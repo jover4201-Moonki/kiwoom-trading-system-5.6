@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from kiwoom import describe_selection, get_ws_base_url, get_ws_client
@@ -123,6 +124,7 @@ async def run_demo_realtime_baseline(
     realtime_type: str = DEFAULT_REALTIME_TYPE,
     duration_seconds: float = 10.0,
     max_messages: int = 3,
+    on_realtime_message: Callable[[Any], Awaitable[None]] | None = None,
 ) -> dict[str, Any]:
     """Run a bounded demo login, registration, receive and close check."""
 
@@ -141,6 +143,14 @@ async def run_demo_realtime_baseline(
         raise TypeError("max_messages must be an integer.")
     if max_messages <= 0:
         raise ValueError("max_messages must be greater than zero.")
+
+    if (
+        on_realtime_message is not None
+        and not callable(on_realtime_message)
+    ):
+        raise TypeError(
+            "on_realtime_message must be callable."
+        )
 
     mode, ws_base_url = ensure_demo_websocket_environment()
     client = get_ws_client()
@@ -189,6 +199,9 @@ async def run_demo_realtime_baseline(
                     if message_type == "REAL":
                         summary["realtime_messages"] += 1
                         summary["registration_acknowledged"] = True
+
+                        if on_realtime_message is not None:
+                            await on_realtime_message(message)
                     else:
                         summary["system_messages"] += 1
                         if message_type == "REG":

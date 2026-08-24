@@ -192,6 +192,63 @@ class DemoRealtimeTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(summary["closed"])
         self.assertEqual(client.close_calls, 1)
 
+
+    async def test_realtime_handler_receives_only_real(
+        self,
+    ) -> None:
+        real_message = {
+            "trnm": "REAL",
+            "data": [],
+        }
+        client = FakeWebSocketClient(
+            [
+                {
+                    "trnm": "REG",
+                    "return_code": 0,
+                    "return_msg": "success",
+                },
+                real_message,
+            ]
+        )
+        received = []
+
+        async def handler(message):
+            received.append(message)
+
+        with (
+            patch.object(
+                demo_baseline,
+                "ensure_demo_websocket_environment",
+                return_value=(
+                    "demo",
+                    demo_baseline.DEMO_WS_BASE_URL,
+                ),
+            ),
+            patch.object(
+                demo_baseline,
+                "get_ws_client",
+                return_value=client,
+            ),
+        ):
+            await demo_baseline.run_demo_realtime_baseline(
+                "005930",
+                duration_seconds=1,
+                max_messages=2,
+                on_realtime_message=handler,
+            )
+
+        self.assertEqual(received, [real_message])
+        self.assertEqual(client.close_calls, 1)
+
+    async def test_invalid_realtime_handler_is_rejected(
+        self,
+    ) -> None:
+        with self.assertRaises(TypeError):
+            await demo_baseline.run_demo_realtime_baseline(
+                "005930",
+                on_realtime_message=object(),
+            )
+
     async def test_failed_response_closes_client(self) -> None:
         client = FakeWebSocketClient(
             [
