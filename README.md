@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 8 - 실시간 체결 상태 계산 기반선
+Phase 9 - 실시간 체결 파이프라인과 종목·시장별 상태 계산 연결 기반선
 
 검증된 현재 기준선:
 
@@ -110,3 +110,54 @@ Phase 6의 정규화된 `NormalizedTrade`를 입력으로 받아 종목과 시�
 
 이 단계에는 전략 신호, Risk Gate, 주문, 실계좌 연결, 데이터베이스 저장,
 기존 실시간 파이프라인 연결 및 재접속 정책 변경이 포함되지 않는다.
+
+## Phase 9 — 실시간 체결 파이프라인과 종목·시장별 상태 계산 연결 기반선
+
+Phase 7의 `RealtimePipelineResult.trades`와 Phase 8의
+`update_realtime_trade_state`를 연결하여, 한 번의 demo 파이프라인 실행에서
+종목코드와 시장별 최신 관측 상태를 계산한다.
+
+### 구현 범위
+
+- 새 통합 모듈 `src/kiwoom_trading_system/state/realtime_trade_state_pipeline.py`를 추가한다.
+- Phase 7의 기존 수신·정규화 결과와 지표를 변경하지 않고 재사용한다.
+- 상태 매핑의 키는 `(instrument_code, venue)`로 하여 종목과 시장을 분리한다.
+- 각 정규화 체결을 Phase 8의 `update_realtime_trade_state`에 순서대로 적용한다.
+- 개별 `RealtimeTradeStateError`는 계수·격리하고 이후 정상 체결 처리를 계속한다.
+- 예상하지 않은 예외는 성공으로 숨기지 않고 호출자에게 전파한다.
+- 결과에는 기존 파이프라인 결과, 종목·시장별 상태, 상태 갱신 성공·오류 지표를 포함한다.
+- 반환 상태 매핑은 복사본을 기반으로 읽기 전용으로 공개한다.
+- 공개 인터페이스는 `src/kiwoom_trading_system/state/__init__.py`에서 내보낸다.
+
+### 제외 범위
+
+- 전략 신호, 종목 선정, 매수·매도 판단
+- Risk Gate, 주문 허가, 주문 전송, 실계좌 자동주문
+- 모바일 팝업 알림과 외부 메시지 전송
+- 데이터베이스·파일 영속 저장과 재시작 복구
+- WebSocket 재접속·재구독·무제한 반복 정책
+- 새로운 외부 패키지와 의존성 추가
+- `pyproject.toml`, `uv.lock` 및 기존 Phase 6~8 테스트 변경
+- Phase 6의 `realtime_trade.py`, Phase 7의 `realtime_pipeline.py`,
+  Phase 8의 `realtime_trade_state.py` 동작 변경
+
+### 완료 기준
+
+- 기존 Phase 7 파이프라인 결과와 Phase 8 상태 계산 결과가 하나의 통합 결과로 반환된다.
+- 동일 종목의 KRX·NXT·SOR 상태가 서로 섞이지 않는다.
+- 여러 종목의 체결이 각각 독립된 상태로 누적된다.
+- 상태 오류가 발생한 체결과 정상 체결의 처리 결과가 지표로 구분된다.
+- 이전 상태, 정규화 체결, 기존 파이프라인 결과를 변경하지 않는다.
+- 변경 파일이 승인된 Phase 9 범위를 벗어나지 않는다.
+- 기존 테스트와 Phase 9 신규 테스트가 모두 통과한다.
+
+### 테스트 기준
+
+- `tests/test_realtime_trade_state_pipeline.py`에 최소 6개의 단위테스트를 추가한다.
+- 단일 종목·단일 시장의 상태 생성과 누적 계산을 검증한다.
+- 동일 종목의 KRX·NXT 상태 분리와 복수 종목 상태 분리를 검증한다.
+- 고가·저가·체결량·순매수 체결량·관측 체결대금·VWAP 계산을 검증한다.
+- `RealtimeTradeStateError` 격리·계수와 이후 정상 체결 계속 처리를 검증한다.
+- 예상하지 않은 예외 전파와 반환 매핑의 읽기 전용성을 검증한다.
+- mock 입력만 사용하며 실전 WebSocket과 실계좌 주문을 호출하지 않는다.
+- 기존 59개 테스트를 포함하여 전체 65개 이상의 테스트가 통과해야 한다.
