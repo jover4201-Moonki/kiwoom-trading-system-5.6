@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 11 - demo 당일거래량 상위 후보의 실시간 감시목록 변환 기반선
+Phase 13 - demo 실시간 감시목록 WebSocket 등록 송수신 기반선
 
 검증된 현재 기준선:
 
@@ -286,34 +286,75 @@ Phase 11은 Phase 10의 `VolumeRankingResult`를 이후 실시간 관찰 단계�
 - 테스트 중 WebSocket·REST·주문·실계좌 네트워크를 호출하지 않는다.
 - 변경 파일은 승인된 Phase 11의 4개 경로로 제한한다.
 
-## Phase 12 ? demo ??? ????? WebSocket ?? ?? ?? ???
+## Phase 12 — demo 실시간 감시목록 WebSocket 등록 요청 변환 기반선
 
-Phase 12? Phase 11? `RealtimeWatchlist`? ?? ?? SDK? `build_reg_packet` ???? ???, ?? ??? ?? `REG` ?? dict? ???. ? ??? ????? ????? WebSocket ??? ???? ???.
+Phase 12는 Phase 11의 `RealtimeWatchlist`를 키움 SDK의 `build_reg_packet`에 전달하여 하나의 `REG` 요청 dict로 변환하는 순수 계층이다. WebSocket 연결이나 송신은 수행하지 않는다.
 
-????? ??:
+### 입력·출력 계약
 
-- ??? `RealtimeWatchlist`? ????.
-- Phase 11? ? ????? ?? ???? ??? ? `item` ???? ????.
-- ?? ??? ??? ???? tuple? ? `item` list? ????.
-- ??? ??? Phase 11 ??? `"0B"`? ????.
-- `type=["0B"]`, `grp_no="1"`, `refresh="1"`? ?? SDK ??? ????.
-- ?? ????? ???? ??? ?? ??? `item` ??? ?? tuple? ?????.
+- 입력은 `RealtimeWatchlist`로 제한한다.
+- Phase 11에서 확정한 종목 순서와 빈 목록을 그대로 `item` list로 변환한다.
+- 실시간 유형은 `"0B"`만 허용한다.
+- `type=["0B"]`, `grp_no="1"`, `refresh="1"`을 SDK 빌더에 전달한다.
+- 호출마다 새로운 `item`·`type` list를 생성하고 입력 감시목록을 변경하지 않는다.
+- 빈 감시목록의 서버 정책을 추정하지 않고 빈 `item` list로 순수 변환한다.
 
-?? API:
+### 공개 API
 
-- ?? ?? `src/kiwoom_trading_system/brokers/kiwoom/websocket/watchlist_registration.py`
+- 신규 모듈 `src/kiwoom_trading_system/brokers/kiwoom/websocket/watchlist_registration.py`
 - `build_demo_watchlist_registration_request`
-- `DEMO_REGISTRATION_GROUP_NO`, `DEMO_REGISTRATION_REFRESH`
+- `DEMO_REGISTRATION_GROUP_NO`
+- `DEMO_REGISTRATION_REFRESH`
 
-Phase 12 ?? ??:
+### 제외 범위
 
-- WebSocket ??, ???, ?? ?? ?? ? ?? ??
-- `REMOVE` ??, ???, ???, heartbeat ? ?? ?? ??
-- ?? ?? ?? ??, ???? ?? ??, ?? ?? ? ?? ?? ?? ??
-- Phase 11? ???? ????? ????? ?? ???
-- ??, ???, ?? ??, ??? ??
+- WebSocket 연결·로그인·송신·수신
+- `REMOVE`, 재접속, heartbeat와 장시간 실행
+- 실전 서버·REST·주문·원격 알림
+- Phase 11 감시목록과 기존 WebSocket 기준선 변경
+- 의존성·가상환경·잠금파일 변경
 
-?? ??:
+### 완료 기준
 
-- ?? ????? 12?? ?? ?? ?????? ?? ???? ??.
-- ?? ??? ??? Phase 12? 4? ??? ????.
+- 신규 단위테스트 12개와 기존 전체 회귀시험이 통과한다.
+- 변경 파일은 승인된 Phase 12의 4개 경로로 제한한다.
+
+## Phase 13 — demo 실시간 감시목록 WebSocket 등록 송수신 기반선
+
+Phase 13은 Phase 12의 순수 `REG` 변환 결과를 기존 demo WebSocket 안전장치로 송신하고, 제한된 시간과 메시지 수 안에서 응답을 수신한 뒤 연결을 종료하는 기반선이다.
+
+### 입력·세션 계약
+
+- 입력은 `RealtimeWatchlist`로 제한한다.
+- 빈 감시목록은 환경 조회와 클라이언트 생성 전에 명시적으로 거부한다.
+- 등록 패킷은 Phase 12의 `build_demo_watchlist_registration_request`만 사용한다.
+- 기존 demo 환경 검증과 공식 mock WebSocket URL 검증을 그대로 재사용한다.
+- `duration_seconds`와 `max_messages`로 수신을 제한한다.
+- `REG` 또는 `REAL` 수신 시 등록 확인 상태를 기록한다.
+- 비동기 콜백은 `REAL` 메시지에만 호출한다.
+- 실패 응답과 송신·콜백 예외는 숨기지 않고 호출자에게 전달한다.
+- 정상 종료·시간 초과·예외 모두 `finally`에서 클라이언트를 닫는다.
+
+### 구현 범위
+
+- 신규 모듈 `src/kiwoom_trading_system/brokers/kiwoom/websocket/watchlist_baseline.py`
+- 공개 내보내기 `src/kiwoom_trading_system/brokers/kiwoom/websocket/__init__.py`
+- 신규 단위테스트 `tests/test_watchlist_baseline.py`
+- 현재 단계와 계약을 기록하는 `README.md`
+
+### 제외 범위
+
+- 실전 WebSocket·REST·주문 서버 호출
+- 등록 해제, 재접속, heartbeat, 무기한 수신
+- 주문 생성·수정·취소와 계좌 상태 변경
+- 원격 알림·푸시·외부 메시지 전송
+- 의존성·가상환경·잠금파일 변경
+- 기존 Phase 5·11·12 구현 변경
+- 커밋과 원격 저장소 push
+
+### 완료 기준
+
+- 신규 비동기 단위테스트 12개가 실제 네트워크 없이 통과한다.
+- 기존 110개를 포함한 전체 122개 회귀시험이 통과한다.
+- README는 엄격한 UTF-8로 디코딩되고 손상 문자를 포함하지 않는다.
+- 변경 파일은 승인된 Phase 13의 4개 경로로 제한한다.
