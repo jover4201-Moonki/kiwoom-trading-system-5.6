@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 13 - demo 실시간 감시목록 WebSocket 등록 송수신 기반선
+Phase 14 - demo 실시간 감시목록 WebSocket 등록 해제 요청 변환 기반선
 
 검증된 현재 기준선:
 
@@ -358,3 +358,43 @@ Phase 13은 Phase 12의 순수 `REG` 변환 결과를 기존 demo WebSocket 안�
 - 기존 110개를 포함한 전체 122개 회귀시험이 통과한다.
 - README는 엄격한 UTF-8로 디코딩되고 손상 문자를 포함하지 않는다.
 - 변경 파일은 승인된 Phase 13의 4개 경로로 제한한다.
+
+## Phase 14 — demo 실시간 감시목록 WebSocket 등록 해제 요청 변환 기반선
+
+Phase 14는 `RealtimeWatchlist`를 키움 SDK의 `build_remove_packet`에
+전달하여 하나의 `REMOVE` 요청 dict로 변환하는 순수 계층이다.
+WebSocket 연결·송신·수신은 수행하지 않는다.
+
+### 변환 계약
+
+- 그룹 번호는 Phase 12 등록과 같은 `"1"`을 사용한다.
+- 종목 순서와 기본 실시간 타입 `"0B"`를 그대로 보존한다.
+- `REMOVE` 요청에는 `refresh` 필드를 추가하지 않는다.
+- 빈 종목 목록은 그룹·타입 전체 해제로 확대될 수 있으므로
+  SDK 호출 전에 `ValueError`로 거부한다.
+- 입력 감시목록과 후보·metrics 객체를 변경하지 않는다.
+- SDK 예외를 숨기거나 다른 예외로 변환하지 않는다.
+
+### 구현 범위
+
+- 신규 모듈
+  `src/kiwoom_trading_system/brokers/kiwoom/websocket/watchlist_unregistration.py`
+- 공개 상수 `DEMO_UNREGISTRATION_GROUP_NO`
+- 공개 함수 `build_demo_watchlist_unregistration_request`
+- 신규 단위테스트 `tests/test_watchlist_unregistration.py`
+- 패키지 공개 export와 README 단계 설명 갱신
+
+### 제외 범위
+
+- WebSocket 연결·송신·수신과 서버 응답 처리
+- 기존 등록 요청 변환기와 Phase 13 송수신 기반선 변경
+- 등록 해제 패킷의 실제 전송
+- 실전 서버, 주문, 인증, 재접속, heartbeat, 원격 push
+- 전략·리스크·screening·환경·dependency lock 변경
+
+### 검증 기준
+
+- Phase 14 타깃 단위테스트 12개
+- 전체 테스트 134개 수집 및 회귀 실행
+- AST 구문·금지 네트워크 의존성·충돌 마커·공백 오류 검사
+- 변경 경로를 승인된 Phase 14의 4개 경로로 제한
