@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 15 - demo 실시간 감시목록 WebSocket 등록 해제 송수신 기반선
+Phase 16 - demo 실시간 감시목록 WebSocket 통합 수명주기 기반선
 
 검증된 현재 기준선:
 
@@ -431,3 +431,39 @@ WebSocket 송수신 수명주기에 연결한다. 모든 검증은 mock 클라�
 - Phase 15 신규 mock 단위테스트 12개와 기존 전체 테스트를 통과한다.
 - 전체 146개 테스트를 독립적으로 5회 통과한다.
 - 변경 경로를 승인된 Phase 15의 4개 파일로 제한한다.
+
+## Phase 16 — demo 실시간 감시목록 WebSocket 통합 수명주기 기반선
+
+Phase 16은 Phase 12의 `REG` 요청과 Phase 14의 `REMOVE` 요청을 하나의
+mock WebSocket 클라이언트와 하나의 demo 연결에서 순서대로 검증한다.
+모든 단위테스트는 외부 네트워크·인증·실제 서버 연결 없이 실행한다.
+
+### 계약
+
+- `REG → 성공 REG 응답 → 제한된 REAL → REMOVE → 성공 REMOVE 응답 → close`
+  순서를 하나의 연결과 하나의 메시지 iterator에서 수행한다.
+- 요청은 기존 등록·등록 해제 생성기를 그대로 호출하며 생성된 dict를 변경하지 않는다.
+- 입력 감시목록, 후보와 metrics 객체를 변경하지 않는다.
+- `duration_seconds`는 통합 수신 기한이며 `max_realtime_messages`는 `REAL`
+  메시지 수만 제한한다.
+- `asyncio.wait_for` 시간초과·취소, 서버·송신·연결·종료 예외를 성공 상태로
+  바꾸지 않고 `close()`를 한 번 시도한 뒤 전파한다.
+- Phase 13·15 공개 함수와 반환 계약은 변경하지 않는다.
+
+### 공개 API
+
+- `run_demo_watchlist_lifecycle_baseline`
+- `demo_watchlist_lifecycle_baseline_passed`
+
+### 제외 범위
+
+- 실전·demo 실제 WebSocket 및 REST 연결과 기타 외부 네트워크 호출
+- 실제 인증, 주문, 계좌·잔고 변경, 재접속, heartbeat와 상시 실행
+- 의존성, `.env`, 자격증명, `pyproject.toml`과 `uv.lock` 변경
+- Git stage, commit과 push
+
+### 완료 기준
+
+- Phase 16 신규 mock 단위테스트 16개와 Phase 12~16 타깃 테스트를 통과한다.
+- 전체 162개 테스트를 독립적으로 5회 통과한다.
+- 변경 경로를 승인된 Phase 16의 4개 파일로 제한한다.

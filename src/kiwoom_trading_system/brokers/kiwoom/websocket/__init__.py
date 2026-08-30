@@ -10,7 +10,9 @@ from .watchlist_unregistration import (
 from .watchlist_baseline import (
     EmptyRealtimeWatchlistError,
     demo_watchlist_baseline_passed,
+    demo_watchlist_lifecycle_baseline_passed,
     demo_watchlist_unregistration_baseline_passed,
+    run_demo_watchlist_lifecycle_baseline,
     run_demo_watchlist_realtime_baseline,
     run_demo_watchlist_unregistration_baseline,
 )
@@ -26,4 +28,6 @@ __all__ = [
     "demo_watchlist_baseline_passed",
     "run_demo_watchlist_unregistration_baseline",
     "demo_watchlist_unregistration_baseline_passed",
+    "run_demo_watchlist_lifecycle_baseline",
+    "demo_watchlist_lifecycle_baseline_passed",
 ]

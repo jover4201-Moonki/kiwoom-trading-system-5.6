@@ -201,6 +201,184 @@ async def run_demo_watchlist_unregistration_baseline(
     )
 
 
+async def _next_lifecycle_message(
+    message_iterator: Any,
+    *,
+    deadline: float,
+) -> Any:
+    """Receive one message before the shared lifecycle deadline."""
+
+    remaining = deadline - asyncio.get_running_loop().time()
+    if remaining <= 0:
+        raise TimeoutError
+    return await asyncio.wait_for(
+        message_iterator.__anext__(),
+        timeout=remaining,
+    )
+
+
+def _record_lifecycle_message(
+    summary: dict[str, Any],
+    message: Any,
+    *,
+    accept_realtime: bool = True,
+) -> str:
+    """Validate and classify one lifecycle message."""
+
+    _validate_response(message)
+    message_type = _message_type(message)
+    summary["messages_received"] += 1
+    if message_type not in summary["message_types"]:
+        summary["message_types"].append(message_type)
+    if message_type == "REAL":
+        if accept_realtime:
+            summary["realtime_messages"] += 1
+        else:
+            summary["ignored_realtime_messages"] += 1
+    else:
+        summary["system_messages"] += 1
+    return message_type
+
+
+async def _receive_lifecycle_type(
+    message_iterator: Any,
+    summary: dict[str, Any],
+    *,
+    expected_type: str,
+    deadline: float,
+) -> None:
+    """Receive through the next successful expected message type."""
+
+    while True:
+        message = await _next_lifecycle_message(
+            message_iterator,
+            deadline=deadline,
+        )
+        if _record_lifecycle_message(
+            summary,
+            message,
+            accept_realtime=False,
+        ) == expected_type:
+            return
+
+
+async def run_demo_watchlist_lifecycle_baseline(
+    watchlist: RealtimeWatchlist,
+    *,
+    duration_seconds: float = 10.0,
+    max_realtime_messages: int = 1,
+) -> dict[str, Any]:
+    """Run REG, bounded REAL receive, and REMOVE on one demo connection."""
+
+    registration = build_demo_watchlist_registration_request(watchlist)
+    unregistration = build_demo_watchlist_unregistration_request(watchlist)
+    _validate_run_options(
+        duration_seconds,
+        max_realtime_messages,
+        None,
+    )
+
+    stock_codes = watchlist.stock_codes
+    mode, ws_base_url = ensure_demo_websocket_environment()
+    summary: dict[str, Any] = {
+        "mode": mode,
+        "ws_base_url": ws_base_url,
+        "api_url": API_URL,
+        "stock_codes": stock_codes,
+        "registered_item_count": len(stock_codes),
+        "unregistered_item_count": len(stock_codes),
+        "realtime_type": watchlist.realtime_type,
+        "max_realtime_messages": max_realtime_messages,
+        "connected": False,
+        "registration_sent": False,
+        "registration_acknowledged": False,
+        "messages_received": 0,
+        "realtime_messages": 0,
+        "ignored_realtime_messages": 0,
+        "system_messages": 0,
+        "message_types": [],
+        "unregistration_sent": False,
+        "unregistration_acknowledged": False,
+        "closed": False,
+    }
+
+    client = get_ws_client()
+    try:
+        await client.connect(api_url=API_URL)
+        summary["connected"] = bool(client.is_connected)
+
+        await client.send(registration)
+        summary["registration_sent"] = True
+
+        message_iterator = client.iter_messages().__aiter__()
+        deadline = (
+            asyncio.get_running_loop().time()
+            + float(duration_seconds)
+        )
+        await _receive_lifecycle_type(
+            message_iterator,
+            summary,
+            expected_type="REG",
+            deadline=deadline,
+        )
+        summary["registration_acknowledged"] = True
+
+        while summary["realtime_messages"] < max_realtime_messages:
+            message = await _next_lifecycle_message(
+                message_iterator,
+                deadline=deadline,
+            )
+            _record_lifecycle_message(summary, message)
+
+        await client.send(unregistration)
+        summary["unregistration_sent"] = True
+        await _receive_lifecycle_type(
+            message_iterator,
+            summary,
+            expected_type="REMOVE",
+            deadline=deadline,
+        )
+        summary["unregistration_acknowledged"] = True
+    finally:
+        await client.close()
+        summary["closed"] = not bool(client.is_connected)
+
+    return summary
+
+
+def demo_watchlist_lifecycle_baseline_passed(
+    summary: dict[str, Any],
+) -> bool:
+    """Return whether the integrated demo watchlist lifecycle completed."""
+
+    realtime_limit = summary.get("max_realtime_messages")
+    registered_count = summary.get("registered_item_count", 0)
+    realtime_messages = summary.get("realtime_messages", 0)
+    ignored_realtime_messages = summary.get("ignored_realtime_messages")
+    system_messages = summary.get("system_messages", 0)
+    return bool(
+        summary.get("mode") == "demo"
+        and summary.get("ws_base_url") == DEMO_WS_BASE_URL
+        and isinstance(realtime_limit, int)
+        and not isinstance(realtime_limit, bool)
+        and realtime_limit > 0
+        and registered_count > 0
+        and summary.get("unregistered_item_count") == registered_count
+        and summary.get("connected")
+        and summary.get("registration_sent")
+        and summary.get("registration_acknowledged")
+        and realtime_messages == realtime_limit
+        and isinstance(ignored_realtime_messages, int)
+        and not isinstance(ignored_realtime_messages, bool)
+        and ignored_realtime_messages >= 0
+        and summary.get("unregistration_sent")
+        and summary.get("unregistration_acknowledged")
+        and summary.get("messages_received")
+        == realtime_messages + ignored_realtime_messages + system_messages
+        and summary.get("closed")
+    )
+
+
 def demo_watchlist_baseline_passed(summary: dict[str, Any]) -> bool:
     """Return whether the bounded demo watchlist baseline completed."""
 
@@ -237,4 +415,6 @@ __all__ = [
     "demo_watchlist_baseline_passed",
     "run_demo_watchlist_unregistration_baseline",
     "demo_watchlist_unregistration_baseline_passed",
+    "run_demo_watchlist_lifecycle_baseline",
+    "demo_watchlist_lifecycle_baseline_passed",
 ]
