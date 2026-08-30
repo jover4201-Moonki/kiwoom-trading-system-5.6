@@ -1,4 +1,4 @@
-"""Bounded demo WebSocket baseline for a realtime watchlist."""
+"""Bounded demo WebSocket baselines for a realtime watchlist."""
 
 from __future__ import annotations
 
@@ -19,6 +19,9 @@ from .demo_baseline import (
 )
 from .watchlist_registration import (
     build_demo_watchlist_registration_request,
+)
+from .watchlist_unregistration import (
+    build_demo_watchlist_unregistration_request,
 )
 
 
@@ -50,6 +53,58 @@ def _validate_run_options(
         raise TypeError("on_realtime_message must be callable.")
 
 
+async def _run_demo_watchlist_request_baseline(
+    request: dict[str, Any],
+    summary: dict[str, Any],
+    *,
+    sent_key: str,
+    acknowledged_key: str,
+    acknowledgement_types: frozenset[str],
+    duration_seconds: float,
+    max_messages: int,
+    on_realtime_message: Callable[[Any], Awaitable[None]] | None = None,
+) -> dict[str, Any]:
+    """Send one request and receive bounded messages with guaranteed cleanup."""
+
+    client = get_ws_client()
+    try:
+        await client.connect(api_url=API_URL)
+        summary["connected"] = bool(client.is_connected)
+
+        await client.send(request)
+        summary[sent_key] = True
+
+        try:
+            async with asyncio.timeout(float(duration_seconds)):
+                async for message in client.iter_messages():
+                    _validate_response(message)
+                    message_type = _message_type(message)
+
+                    summary["messages_received"] += 1
+                    if message_type not in summary["message_types"]:
+                        summary["message_types"].append(message_type)
+
+                    if message_type == "REAL":
+                        summary["realtime_messages"] += 1
+                        if on_realtime_message is not None:
+                            await on_realtime_message(message)
+                    else:
+                        summary["system_messages"] += 1
+
+                    if message_type in acknowledgement_types:
+                        summary[acknowledged_key] = True
+
+                    if summary["messages_received"] >= max_messages:
+                        break
+        except TimeoutError:
+            summary["timed_out"] = True
+    finally:
+        await client.close()
+        summary["closed"] = not bool(client.is_connected)
+
+    return summary
+
+
 async def run_demo_watchlist_realtime_baseline(
     watchlist: RealtimeWatchlist,
     *,
@@ -73,7 +128,6 @@ async def run_demo_watchlist_realtime_baseline(
     )
 
     mode, ws_base_url = ensure_demo_websocket_environment()
-    client = get_ws_client()
     summary: dict[str, Any] = {
         "mode": mode,
         "ws_base_url": ws_base_url,
@@ -92,42 +146,59 @@ async def run_demo_watchlist_realtime_baseline(
         "closed": False,
     }
 
-    try:
-        await client.connect(api_url=API_URL)
-        summary["connected"] = bool(client.is_connected)
+    return await _run_demo_watchlist_request_baseline(
+        registration,
+        summary,
+        sent_key="registration_sent",
+        acknowledged_key="registration_acknowledged",
+        acknowledgement_types=frozenset({"REG", "REAL"}),
+        duration_seconds=duration_seconds,
+        max_messages=max_messages,
+        on_realtime_message=on_realtime_message,
+    )
 
-        await client.send(registration)
-        summary["registration_sent"] = True
 
-        try:
-            async with asyncio.timeout(float(duration_seconds)):
-                async for message in client.iter_messages():
-                    _validate_response(message)
-                    message_type = _message_type(message)
+async def run_demo_watchlist_unregistration_baseline(
+    watchlist: RealtimeWatchlist,
+    *,
+    duration_seconds: float = 10.0,
+    max_messages: int = 3,
+) -> dict[str, Any]:
+    """Unregister one watchlist and receive bounded demo messages."""
 
-                    summary["messages_received"] += 1
-                    if message_type not in summary["message_types"]:
-                        summary["message_types"].append(message_type)
+    unregistration = build_demo_watchlist_unregistration_request(watchlist)
+    stock_codes = watchlist.stock_codes
 
-                    if message_type == "REAL":
-                        summary["realtime_messages"] += 1
-                        summary["registration_acknowledged"] = True
-                        if on_realtime_message is not None:
-                            await on_realtime_message(message)
-                    else:
-                        summary["system_messages"] += 1
-                        if message_type == "REG":
-                            summary["registration_acknowledged"] = True
+    _validate_run_options(duration_seconds, max_messages, None)
 
-                    if summary["messages_received"] >= max_messages:
-                        break
-        except TimeoutError:
-            summary["timed_out"] = True
-    finally:
-        await client.close()
-        summary["closed"] = not bool(client.is_connected)
+    mode, ws_base_url = ensure_demo_websocket_environment()
+    summary: dict[str, Any] = {
+        "mode": mode,
+        "ws_base_url": ws_base_url,
+        "api_url": API_URL,
+        "stock_codes": stock_codes,
+        "unregistered_item_count": len(stock_codes),
+        "realtime_type": watchlist.realtime_type,
+        "connected": False,
+        "unregistration_sent": False,
+        "unregistration_acknowledged": False,
+        "messages_received": 0,
+        "realtime_messages": 0,
+        "system_messages": 0,
+        "message_types": [],
+        "timed_out": False,
+        "closed": False,
+    }
 
-    return summary
+    return await _run_demo_watchlist_request_baseline(
+        unregistration,
+        summary,
+        sent_key="unregistration_sent",
+        acknowledged_key="unregistration_acknowledged",
+        acknowledgement_types=frozenset({"REMOVE"}),
+        duration_seconds=duration_seconds,
+        max_messages=max_messages,
+    )
 
 
 def demo_watchlist_baseline_passed(summary: dict[str, Any]) -> bool:
@@ -144,8 +215,26 @@ def demo_watchlist_baseline_passed(summary: dict[str, Any]) -> bool:
     )
 
 
+def demo_watchlist_unregistration_baseline_passed(
+    summary: dict[str, Any],
+) -> bool:
+    """Return whether demo watchlist unregistration completed."""
+
+    return bool(
+        summary.get("mode") == "demo"
+        and summary.get("ws_base_url") == DEMO_WS_BASE_URL
+        and summary.get("unregistered_item_count", 0) > 0
+        and summary.get("connected")
+        and summary.get("unregistration_sent")
+        and summary.get("unregistration_acknowledged")
+        and summary.get("closed")
+    )
+
+
 __all__ = [
     "EmptyRealtimeWatchlistError",
     "run_demo_watchlist_realtime_baseline",
     "demo_watchlist_baseline_passed",
+    "run_demo_watchlist_unregistration_baseline",
+    "demo_watchlist_unregistration_baseline_passed",
 ]

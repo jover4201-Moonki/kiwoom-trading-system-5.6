@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 14 - demo 실시간 감시목록 WebSocket 등록 해제 요청 변환 기반선
+Phase 15 - demo 실시간 감시목록 WebSocket 등록 해제 송수신 기반선
 
 검증된 현재 기준선:
 
@@ -398,3 +398,36 @@ WebSocket 연결·송신·수신은 수행하지 않는다.
 - 전체 테스트 134개 수집 및 회귀 실행
 - AST 구문·금지 네트워크 의존성·충돌 마커·공백 오류 검사
 - 변경 경로를 승인된 Phase 14의 4개 경로로 제한
+
+## Phase 15 — demo 실시간 감시목록 WebSocket 등록 해제 송수신 기반선
+
+Phase 15는 Phase 14의 순수 `REMOVE` 요청을 Phase 13의 제한된 demo
+WebSocket 송수신 수명주기에 연결한다. 모든 검증은 mock 클라이언트와
+로컬 단위테스트만 사용하며 실제 서버에는 연결하지 않는다.
+
+### 계약
+
+- 등록 해제 요청은 `build_demo_watchlist_unregistration_request`만 사용한다.
+- 성공 응답의 `trnm="REMOVE"`를 등록 해제 승인으로 기록한다.
+- 송신과 수신은 `duration_seconds`와 `max_messages`로 제한한다.
+- 정상·서버 실패·송신 오류·시간초과·종료 오류에서 `close()`를 한 번 시도한다.
+- 입력 감시목록과 생성된 `REMOVE` 요청을 변경하지 않는다.
+- Phase 12 등록 변환, Phase 13 등록 송수신, Phase 14 해제 변환을 재사용한다.
+
+### 공개 API
+
+- `run_demo_watchlist_unregistration_baseline`
+- `demo_watchlist_unregistration_baseline_passed`
+
+### 제외 범위
+
+- 실전·demo 실제 WebSocket 연결과 외부 네트워크 호출
+- 실전 인증, 주문, 계좌 변경, 재접속과 heartbeat
+- 의존성, `.env`, 자격증명과 잠금파일 변경
+- Git stage, commit과 push
+
+### 완료 기준
+
+- Phase 15 신규 mock 단위테스트 12개와 기존 전체 테스트를 통과한다.
+- 전체 146개 테스트를 독립적으로 5회 통과한다.
+- 변경 경로를 승인된 Phase 15의 4개 파일로 제한한다.
