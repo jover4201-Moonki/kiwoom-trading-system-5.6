@@ -615,6 +615,168 @@ class DemoWatchlistRecoveryBaselineTests(
             recovery.WatchlistRecoveryExhaustedError,
         )
 
+    async def test_callback_receives_only_accepted_real_messages(self):
+        ignored = {"trnm": "REAL", "data": [{"item": "ignored"}]}
+        accepted = {"trnm": "REAL", "data": [{"item": "005930"}]}
+        client = RecoveryWebSocketClient(
+            "only",
+            [
+                ignored,
+                {"trnm": "REG", "return_code": 0},
+                {"trnm": "PING"},
+                accepted,
+                {"trnm": "REMOVE", "return_code": 0},
+            ],
+        )
+        handler = AsyncMock()
+        with (
+            patch.object(
+                recovery,
+                "ensure_demo_websocket_environment",
+                return_value=("demo", recovery.DEMO_WS_BASE_URL),
+            ),
+            patch.object(recovery, "get_ws_client", return_value=client),
+        ):
+            summary = await recovery.run_demo_watchlist_recovery_baseline(
+                _watchlist("005930"),
+                duration_seconds=1.0,
+                on_realtime_message=handler,
+            )
+
+        handler.assert_awaited_once_with(accepted)
+        self.assertEqual(summary["realtime_messages"], 1)
+        self.assertEqual(summary["ignored_realtime_messages"], 1)
+
+    async def test_callback_order_is_preserved_across_reconnect(self):
+        first_real = {"trnm": "REAL", "sequence": 1}
+        second_real = {"trnm": "REAL", "sequence": 2}
+        first = RecoveryWebSocketClient(
+            "first",
+            [
+                {"trnm": "REG", "return_code": 0},
+                first_real,
+            ],
+            stream_error=EOFError("stream ended"),
+        )
+        second = RecoveryWebSocketClient(
+            "second",
+            [
+                {"trnm": "REG", "return_code": 0},
+                second_real,
+                {"trnm": "REMOVE", "return_code": 0},
+            ],
+        )
+        received: list[int] = []
+
+        async def handler(message) -> None:
+            received.append(message["sequence"])
+
+        with (
+            patch.object(
+                recovery,
+                "ensure_demo_websocket_environment",
+                return_value=("demo", recovery.DEMO_WS_BASE_URL),
+            ),
+            patch.object(
+                recovery,
+                "get_ws_client",
+                side_effect=[first, second],
+            ),
+        ):
+            summary = await recovery.run_demo_watchlist_recovery_baseline(
+                _watchlist("005930"),
+                duration_seconds=1.0,
+                max_realtime_messages=2,
+                initial_backoff_seconds=0.0,
+                max_backoff_seconds=0.0,
+                on_realtime_message=handler,
+            )
+
+        self.assertEqual(received, [1, 2])
+        self.assertTrue(summary["recovered"])
+
+    async def test_invalid_callback_fails_before_environment_or_client(self):
+        with (
+            patch.object(
+                recovery,
+                "ensure_demo_websocket_environment",
+            ) as environment,
+            patch.object(recovery, "get_ws_client") as factory,
+        ):
+            with self.assertRaisesRegex(
+                TypeError,
+                "on_realtime_message",
+            ):
+                await recovery.run_demo_watchlist_recovery_baseline(
+                    _watchlist("005930"),
+                    on_realtime_message=object(),
+                )
+
+        environment.assert_not_called()
+        factory.assert_not_called()
+
+    async def test_callback_oserror_is_fatal_and_not_retried(self):
+        client = RecoveryWebSocketClient(
+            "only",
+            [
+                {"trnm": "REG", "return_code": 0},
+                {"trnm": "REAL"},
+            ],
+        )
+        handler = AsyncMock(side_effect=OSError("handler failed"))
+        with (
+            patch.object(
+                recovery,
+                "ensure_demo_websocket_environment",
+                return_value=("demo", recovery.DEMO_WS_BASE_URL),
+            ),
+            patch.object(
+                recovery,
+                "get_ws_client",
+                return_value=client,
+            ) as factory,
+        ):
+            with self.assertRaisesRegex(OSError, "handler failed"):
+                await recovery.run_demo_watchlist_recovery_baseline(
+                    _watchlist("005930"),
+                    duration_seconds=1.0,
+                    on_realtime_message=handler,
+                )
+
+        self.assertEqual(factory.call_count, 1)
+        self.assertEqual(client.close_calls, 1)
+
+    async def test_callback_runtime_error_is_fatal_and_not_retried(self):
+        client = RecoveryWebSocketClient(
+            "only",
+            [
+                {"trnm": "REG", "return_code": 0},
+                {"trnm": "REAL"},
+            ],
+        )
+        handler = AsyncMock(side_effect=RuntimeError("handler failed"))
+        with (
+            patch.object(
+                recovery,
+                "ensure_demo_websocket_environment",
+                return_value=("demo", recovery.DEMO_WS_BASE_URL),
+            ),
+            patch.object(
+                recovery,
+                "get_ws_client",
+                return_value=client,
+            ) as factory,
+        ):
+            with self.assertRaisesRegex(RuntimeError, "handler failed"):
+                await recovery.run_demo_watchlist_recovery_baseline(
+                    _watchlist("005930"),
+                    duration_seconds=1.0,
+                    on_realtime_message=handler,
+                )
+
+        self.assertEqual(factory.call_count, 1)
+        self.assertEqual(client.close_calls, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -11,6 +11,12 @@ from kiwoom_trading_system.state.realtime_trade_state_pipeline import (
     aggregate_realtime_trade_states,
     run_demo_trade_state_pipeline,
 )
+from kiwoom_trading_system.state.watchlist_recovery_state_pipeline import (
+    WatchlistRecoveryStateKey,
+    WatchlistRecoveryStatePipelineMetrics,
+    WatchlistRecoveryStatePipelineResult,
+    run_demo_watchlist_recovery_state_pipeline,
+)
 
 __all__ = [
     "STATE_SCHEMA_VERSION",
@@ -22,4 +28,8 @@ __all__ = [
     "aggregate_realtime_trade_states",
     "run_demo_trade_state_pipeline",
     "update_realtime_trade_state",
+    "WatchlistRecoveryStateKey",
+    "WatchlistRecoveryStatePipelineMetrics",
+    "WatchlistRecoveryStatePipelineResult",
+    "run_demo_watchlist_recovery_state_pipeline",
 ]

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import math
+from collections.abc import Awaitable, Callable
 from typing import Any
 
 from kiwoom import get_ws_client
@@ -56,12 +57,23 @@ class _RecoveryDeadlineExceeded(TimeoutError):
     """Internal marker for the shared recovery deadline."""
 
 
+class _RealtimeCallbackFailed(Exception):
+    """Keep callback failures outside the reconnect error classifier."""
+
+    def __init__(self, error: Exception) -> None:
+        super().__init__(str(error))
+        self.error = error
+
+
 def _validate_recovery_options(
     duration_seconds: float,
     max_realtime_messages: int,
     max_reconnect_attempts: int,
     initial_backoff_seconds: float,
     max_backoff_seconds: float,
+    on_realtime_message: (
+        Callable[[Any], Awaitable[None]] | None
+    ),
 ) -> None:
     if isinstance(duration_seconds, bool) or not isinstance(
         duration_seconds,
@@ -109,6 +121,24 @@ def _validate_recovery_options(
             "max_backoff_seconds must be greater than or equal to "
             "initial_backoff_seconds."
         )
+
+    if (
+        on_realtime_message is not None
+        and not callable(on_realtime_message)
+    ):
+        raise TypeError(
+            "on_realtime_message must be callable."
+        )
+
+
+async def _call_realtime_callback(
+    on_realtime_message: Callable[[Any], Awaitable[None]],
+    message: Any,
+) -> None:
+    try:
+        await on_realtime_message(message)
+    except Exception as error:
+        raise _RealtimeCallbackFailed(error) from error
 
 
 def _backoff_delay(
@@ -211,6 +241,9 @@ async def run_demo_watchlist_recovery_baseline(
     max_reconnect_attempts: int = 2,
     initial_backoff_seconds: float = 0.25,
     max_backoff_seconds: float = 2.0,
+    on_realtime_message: (
+        Callable[[Any], Awaitable[None]] | None
+    ) = None,
 ) -> dict[str, Any]:
     """Recover a bounded demo watchlist after a WebSocket disconnect."""
 
@@ -222,6 +255,7 @@ async def run_demo_watchlist_recovery_baseline(
         max_reconnect_attempts,
         initial_backoff_seconds,
         max_backoff_seconds,
+        on_realtime_message,
     )
 
     stock_codes = watchlist.stock_codes
@@ -318,11 +352,19 @@ async def run_demo_watchlist_recovery_baseline(
                     message_iterator,
                     deadline=deadline,
                 )
-                _record_recovery_message(
+                message_type = _record_recovery_message(
                     summary,
                     message,
                     accept_realtime=True,
                 )
+                if (
+                    message_type == "REAL"
+                    and on_realtime_message is not None
+                ):
+                    await _call_realtime_callback(
+                        on_realtime_message,
+                        message,
+                    )
 
             await client.send(unregistration)
             shutdown_started = True
@@ -337,6 +379,8 @@ async def run_demo_watchlist_recovery_baseline(
             completed = True
         except _RecoveryDeadlineExceeded:
             raise
+        except _RealtimeCallbackFailed as failure:
+            raise failure.error from failure
         except _RECOVERABLE_DISCONNECTS as error:
             if shutdown_started:
                 raise
