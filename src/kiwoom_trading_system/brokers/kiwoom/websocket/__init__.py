@@ -17,6 +17,12 @@ from .watchlist_baseline import (
     run_demo_watchlist_unregistration_baseline,
 )
 
+from .watchlist_recovery_baseline import (
+    WatchlistRecoveryExhaustedError,
+    demo_watchlist_recovery_baseline_passed,
+    run_demo_watchlist_recovery_baseline,
+)
+
 __all__ = [
     "DEMO_REGISTRATION_GROUP_NO",
     "DEMO_REGISTRATION_REFRESH",
@@ -30,4 +36,7 @@ __all__ = [
     "demo_watchlist_unregistration_baseline_passed",
     "run_demo_watchlist_lifecycle_baseline",
     "demo_watchlist_lifecycle_baseline_passed",
+    "WatchlistRecoveryExhaustedError",
+    "run_demo_watchlist_recovery_baseline",
+    "demo_watchlist_recovery_baseline_passed",
 ]
