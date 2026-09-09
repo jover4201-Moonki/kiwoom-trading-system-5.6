@@ -565,3 +565,81 @@ Phase 19 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 18로
 - 현재 196개 전체 회귀테스트를 보존하고 Phase 19 신규 16개를 포함하여 구현 후 최소 212개 이상이 통과해야 한다.
 - failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
 - 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
+
+## Phase 20 — demo 실시간 감시목록 관측 스냅샷 전략 진입 신호 후보 평가 기반선 v1.0
+
+Phase 20는 Phase 19의 `WatchlistObservationSnapshot`을 입력으로 받아, 순수 동기 evaluator가 각 후보를 `NO_SIGNAL` 또는 `ENTRY_CANDIDATE`로 평가하고 향후 Risk Check가 소비할 수 있는 불변 전략 진입 신호 스냅샷을 만드는 기반선이다.
+Phase 20 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 19로 유지한다.
+
+### 입력 계약
+- 입력은 `WatchlistObservationSnapshot`과 순수 동기 `evaluator`로 제한한다.
+- `evaluator`는 후보별 `WatchlistCandidateObservation`을 정확히 1회 평가한다.
+- 잘못된 snapshot 타입 또는 호출 불가능한 evaluator는 `TypeError`로 차단한다.
+- evaluator 반환값은 `WatchlistSignalEvaluation`이어야 하며 다른 타입은 `TypeError`로 차단한다.
+- Phase 19 후보 순서, `source_rank`, `stock_code`, `stock_name`, `exchange_scope`, `realtime_type`을 보존한다.
+- Phase 19의 관측 상태를 다시 계산하거나 새로운 시장 의미를 추론하지 않는다.
+
+### Signal 계약
+- `WatchlistSignalDecision`은 `NO_SIGNAL`과 `ENTRY_CANDIDATE`만 허용한다.
+- `NO_SIGNAL`은 `venue=None`이어야 한다.
+- `ENTRY_CANDIDATE`는 `venue`를 반드시 지정해야 한다.
+- `ENTRY_CANDIDATE`의 venue는 해당 후보의 `observation.states`에 실제 존재하는 `MarketVenue`만 허용한다.
+- 관측 상태가 없는 후보는 `ENTRY_CANDIDATE`가 될 수 없다.
+- KRX·NXT·SOR 중 어느 시장을 사용할지 builder가 자동 선택하거나 추론하지 않는다.
+- `reason_code`는 비어 있거나 공백만 있는 문자열을 허용하지 않는다.
+- `ENTRY_CANDIDATE`는 주문 승인, Risk Gate 통과 또는 실제 매수 명령을 의미하지 않는다.
+- 향후 연결 순서는 `ENTRY_CANDIDATE -> Risk Check -> Order Permission -> Order`로 유지한다.
+
+### 출력 계약
+- 후보별 불변 결과 `WatchlistCandidateSignal`을 반환한다.
+- 전체 불변 결과 `WatchlistSignalSnapshot`을 반환한다.
+- 입력 후보를 제거하거나 재정렬하지 않고 모든 후보를 결과에 유지한다.
+- snapshot은 signal tuple, 전체 후보 수, `NO_SIGNAL` 수, `ENTRY_CANDIDATE` 수와 realtime type을 보존한다.
+- 입력 snapshot, candidate observation, state mapping과 evaluator 반환 객체를 변경하지 않는다.
+- evaluator의 예상하지 않은 예외는 성공으로 숨기지 않고 호출자에게 그대로 전파한다.
+
+### 공개 API
+- 신규 모듈 `src/kiwoom_trading_system/strategies/watchlist_signal.py`
+- `WatchlistSignalError`
+- `WatchlistSignalDecision`
+- `WatchlistSignalEvaluation`
+- `WatchlistCandidateSignal`
+- `WatchlistSignalSnapshot`
+- `build_watchlist_signal_snapshot`
+- 공개 export는 `src/kiwoom_trading_system/strategies/__init__.py`에서 제공한다.
+
+### 실행·재시도·복구 경계
+- Phase 20은 순수 동기 변환 계층으로 WebSocket client, task, queue 또는 background loop를 생성하지 않는다.
+- 자체 timeout, retry, reconnect 횟수는 0이다.
+- `connect`, `send`, `recv`, `close`를 호출하지 않는다.
+- Phase 17·18의 재연결·정규화·상태 계산 책임을 가져오지 않는다.
+- Phase 19의 observation snapshot을 변경하거나 재생성하지 않는다.
+
+### 구현 허용 경로
+- `README.md`
+- `src/kiwoom_trading_system/strategies/__init__.py`
+- `src/kiwoom_trading_system/strategies/watchlist_signal.py`
+- `tests/test_watchlist_signal.py`
+
+### 제외 범위
+- 실제 전략 공식, threshold, confidence score와 임의 numeric scoring
+- `SELL`, `EXIT`, 청산 판단과 보유 포지션 관리
+- 손절가, 목표가, 주문수량과 자금배분
+- Risk Gate, 주문 허가, 주문 생성·수정·취소·전송
+- 실전 WebSocket·REST·계좌·잔고 조회와 외부 네트워크 호출
+- Credential, `.env`, `pyproject.toml`, `uv.lock`과 dependency 변경
+- 모바일 팝업 알림, 데이터베이스·파일 영속 저장과 재시작 복원
+- `brokers`, `market_data`, `screening`, `state`, `orders`, `risk`, `alerts` 기존 구현 변경
+- 기존 테스트 파일 변경
+- Git stage, commit, push, reset, restore, clean
+
+### 테스트·완료 기준
+- Phase 20 구현 시 신규 mock 단위테스트를 최소 20개 추가한다.
+- 정상 `NO_SIGNAL`과 `ENTRY_CANDIDATE`, 후보 순서·메타데이터·realtime type 보존을 검증한다.
+- KRX·NXT·SOR venue 검증, 미관측 후보의 ENTRY 차단과 잘못된 venue를 검증한다.
+- 잘못된 snapshot/evaluator/평가 반환 타입과 비어 있는 `reason_code`를 검증한다.
+- evaluator 예상 밖 예외 전파, 입력·출력 불변성과 package public export identity를 검증한다.
+- 실제 네트워크·Credential·계좌·주문을 사용하지 않는다.
+- 현재 212개 전체 회귀테스트를 보존하고 Phase 20 신규 최소 20개를 포함하여 구현 후 최소 232개 이상이 통과해야 한다.
+- failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
+- 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
