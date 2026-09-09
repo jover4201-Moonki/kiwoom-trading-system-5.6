@@ -491,3 +491,77 @@ mock WebSocket 클라이언트와 하나의 demo 연결에서 순서대로 검�
 - 예외: 예상 가능한 `TradeNormalizationError`와 `RealtimeTradeStateError`만 격리하며 나머지 오류·시간초과·취소·복구 소진은 전파한다.
 - 제외: 실전 서버·실계좌·주문·전략·Risk Gate·모바일 팝업 알림·영속화·재시작 복원·인증·의존성·Git stage/commit/push.
 - 테스트: Phase 18 mock 테스트를 14개 이상 추가하고 기존 176개를 포함한 전체 190개 이상 회귀 테스트를 통과해야 한다.
+
+## Phase 19 — demo 실시간 감시목록 후보 메타데이터·관측 상태 전략 입력 스냅샷 기반선 v1.0
+
+Phase 19는 Phase 11의 감시목록 후보 메타데이터와 Phase 18의 복구 스트림 관측 상태를 결합하여, 이후 전략 계층이 읽을 수 있는 불변 관측 스냅샷을 만드는 순수 변환 기반선이다.
+Phase 19 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 18로 유지한다.
+
+### 입력 계약
+
+- 입력은 `RealtimeWatchlist`와 `WatchlistRecoveryStatePipelineResult`로 제한한다.
+- 감시목록 후보의 순서, `source_rank`, `stock_code`, `stock_name`, `exchange_scope`, `realtime_type`을 보존한다.
+- Phase 18 상태 키의 종목코드는 감시목록에 존재해야 한다.
+- 상태 키의 종목코드·시장과 `RealtimeTradeState` 내부 종목코드·시장이 일치해야 한다.
+- 새로운 시장 의미, 전략 의미 또는 주문 의미를 추론하지 않는다.
+- 잘못된 입력 타입은 `TypeError`, 계약 불일치는 Phase 19 전용 `WatchlistObservationError`로 차단한다.
+
+### 출력 계약
+
+- 후보별 불변 결과 `WatchlistCandidateObservation`을 반환한다.
+- 전체 불변 결과 `WatchlistObservationSnapshot`을 반환한다.
+- 후보별 상태는 `MarketVenue -> RealtimeTradeState` 읽기 전용 mapping으로 공개한다.
+- 체결이 아직 없는 후보도 제거하지 않고 빈 상태 mapping으로 유지한다.
+- snapshot은 감시목록 순서의 observation tuple, 전체 후보 수, 관측 후보 수, 미관측 후보 수, 전체 상태 수와 realtime type을 보존한다.
+- 입력 감시목록, Phase 18 결과, 상태 객체와 원본 mapping을 변경하지 않는다.
+
+### 공개 API
+
+- 신규 모듈 `src/kiwoom_trading_system/strategies/watchlist_observation.py`
+- `WatchlistObservationError`
+- `WatchlistCandidateObservation`
+- `WatchlistObservationSnapshot`
+- `build_watchlist_observation_snapshot`
+- 공개 export는 `src/kiwoom_trading_system/strategies/__init__.py`에서 제공한다.
+
+### 상태·예외·시간초과·취소·종료 계약
+
+- Phase 19는 순수 동기 변환 계층으로 WebSocket client, task, queue 또는 background loop를 생성하지 않는다.
+- 자체 timeout을 만들지 않고 cancellation을 포착하거나 변환하지 않는다.
+- `connect`, `send`, `recv`, `close`를 호출하지 않는다.
+- Phase 17·18의 시간초과, 취소, 복구 소진과 예상하지 않은 예외를 성공으로 바꾸지 않는다.
+
+### 재시도·복구 경계
+
+- Phase 19의 retry와 reconnect 횟수는 0이다.
+- WebSocket 재연결·재등록·bounded exponential backoff는 Phase 17의 책임으로 유지한다.
+- Phase 19는 체결 정규화를 다시 수행하지 않고 Phase 18 상태를 다시 계산하지 않는다.
+
+### 구현 허용 경로
+
+- `README.md`
+- `src/kiwoom_trading_system/strategies/__init__.py`
+- `src/kiwoom_trading_system/strategies/watchlist_observation.py`
+- `tests/test_watchlist_observation.py`
+
+### 제외 범위
+
+- `brokers`, `market_data`, `screening`, `state`, `orders`, `risk`, `alerts` 기존 구현 변경
+- 기존 테스트 파일 변경
+- 전략 점수, 매수·매도 신호, 종목 선정과 매매 판단
+- Risk Gate, 주문 허가, 주문 생성·수정·취소·전송과 실계좌 변경
+- 실전 WebSocket·REST·계좌 조회와 외부 네트워크 호출
+- 모바일 팝업 알림, 데이터베이스·파일 영속 저장과 재시작 복원
+- Credential, `.env`, `pyproject.toml`, `uv.lock`과 dependency 변경
+- Git stage, commit, push, reset, restore, clean
+
+### 테스트·완료 기준
+
+- Phase 19 구현 시 신규 mock 단위테스트를 최소 16개 추가한다.
+- 후보 순서·메타데이터 보존, KRX/NXT/SOR 상태 분리, 미관측 후보 유지와 입력 불변성을 검증한다.
+- 예상하지 않은 종목 상태, 종목코드·시장 불일치와 잘못된 입력 타입을 검증한다.
+- 결과 tuple·상태 mapping의 불변성과 package public export identity를 검증한다.
+- 실제 네트워크·Credential·주문·계좌를 사용하지 않는다.
+- 현재 196개 전체 회귀테스트를 보존하고 Phase 19 신규 16개를 포함하여 구현 후 최소 212개 이상이 통과해야 한다.
+- failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
+- 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
