@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 16 - demo 실시간 감시목록 WebSocket 통합 수명주기 기반선
+Phase 18 — demo 실시간 감시목록 WebSocket 복구 스트림·체결 정규화·종목·시장별 상태 계산 통합 기반선 v1.0
 
 검증된 현재 기준선:
 
