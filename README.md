@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 20 — demo 실시간 감시목록 관측 스냅샷 전략 진입 신호 후보 평가 기반선 v1.0
+Phase 21 — demo 전략 진입 신호 후보 Risk Check 평가 스냅샷 기반선 v1.0
 
 검증된 현재 기준선:
 
@@ -641,5 +641,89 @@ Phase 20 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 19로
 - evaluator 예상 밖 예외 전파, 입력·출력 불변성과 package public export identity를 검증한다.
 - 실제 네트워크·Credential·계좌·주문을 사용하지 않는다.
 - 현재 212개 전체 회귀테스트를 보존하고 Phase 20 신규 최소 20개를 포함하여 구현 후 최소 232개 이상이 통과해야 한다.
+- failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
+- 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
+
+## Phase 21 — demo 전략 진입 신호 후보 Risk Check 평가 스냅샷 기반선 v1.0
+
+Phase 21은 Phase 20의 `WatchlistSignalSnapshot`을 입력으로 받아, `ENTRY_CANDIDATE` 후보만 순수 동기 checker로 Risk Check하고 주문 허가와 분리된 불변 Risk 평가 스냅샷을 만드는 기반선이다.
+Phase 21 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 20으로 유지한다.
+
+### 입력 계약
+- 입력은 `WatchlistSignalSnapshot`과 순수 동기 `checker`로 제한한다.
+- `NO_SIGNAL` 후보에는 checker를 호출하지 않는다.
+- `ENTRY_CANDIDATE` 후보마다 해당 `WatchlistCandidateSignal`을 checker에 정확히 1회 전달한다.
+- 잘못된 snapshot 타입 또는 호출 불가능한 checker는 `TypeError`로 차단한다.
+- checker 반환값은 `WatchlistRiskEvaluation`이어야 하며 다른 타입은 `TypeError`로 차단한다.
+- Phase 20 후보 순서, `source_rank`, `stock_code`, `stock_name`, `exchange_scope`, `realtime_type`, signal decision, `venue`, signal `reason_code`를 보존한다.
+- Phase 20의 signal decision이나 venue를 다시 계산하거나 변경하지 않는다.
+
+### Risk Check 계약
+- `WatchlistRiskDecision`은 `RISK_CLEAR`와 `RISK_BLOCKED`만 허용한다.
+- `WatchlistRiskEvaluation`은 `decision`, `reason_code` 두 필드로 구성한다.
+- Risk Check를 실제 수행한 결과의 `reason_code`는 비어 있거나 공백만 있는 문자열을 허용하지 않는다.
+- `NO_SIGNAL` 후보는 Risk Check 미적용으로 유지하고 `risk_decision=None`, `risk_reason_code=None`으로 기록한다.
+- `RISK_CLEAR`는 현재 checker가 차단 사유를 반환하지 않았다는 뜻일 뿐 주문 허가, 주문 승인 또는 실제 매수 명령을 의미하지 않는다.
+- `RISK_BLOCKED` 후보는 Phase 21 결과에서 차단 상태로 보존하며 `ENTRY_CANDIDATE` 또는 주문 가능 상태로 되돌리지 않는다.
+- 실제 계좌 비중, 손실한도, 주문수량, 손절·목표가 등 numeric Risk 정책을 builder가 임의 생성하거나 추론하지 않는다.
+- 연결 순서는 `ENTRY_CANDIDATE -> Risk Check -> Order Permission -> Order`를 유지한다.
+
+### 출력 계약
+- 후보별 불변 결과 `WatchlistCandidateRisk`를 반환한다.
+- 전체 불변 결과 `WatchlistRiskSnapshot`을 반환한다.
+- `WatchlistCandidateRisk`는 `source_rank`, `stock_code`, `stock_name`, `exchange_scope`, `realtime_type`, `signal_decision`, `venue`, `signal_reason_code`, `risk_decision`, `risk_reason_code`를 보존한다.
+- `WatchlistRiskSnapshot`은 `risks`, `candidate_count`, `no_signal_count`, `risk_checked_count`, `risk_clear_count`, `risk_blocked_count`, `realtime_type`을 보존한다.
+- `candidate_count = no_signal_count + risk_checked_count`를 만족해야 한다.
+- `risk_checked_count = risk_clear_count + risk_blocked_count`를 만족해야 한다.
+- Phase 20의 `entry_candidate_count`와 Phase 21의 `risk_checked_count`는 일치해야 한다.
+- 입력 후보를 제거하거나 재정렬하지 않고 모든 후보를 결과에 유지한다.
+- 입력 snapshot, candidate signal과 checker 반환 객체를 변경하지 않는다.
+- checker의 예상하지 않은 예외는 `RISK_BLOCKED`나 성공으로 숨기지 않고 호출자에게 그대로 전파한다.
+
+### 공개 API
+- 신규 모듈 `src/kiwoom_trading_system/risk/watchlist_risk.py`
+- `WatchlistRiskError`
+- `WatchlistRiskDecision`
+- `WatchlistRiskEvaluation`
+- `WatchlistCandidateRisk`
+- `WatchlistRiskSnapshot`
+- `build_watchlist_risk_snapshot`
+- builder 시그니처는 `build_watchlist_risk_snapshot(snapshot, checker)`로 고정한다.
+- 공개 export는 `src/kiwoom_trading_system/risk/__init__.py`에서 제공한다.
+
+### 실행·재시도·복구 경계
+- Phase 21은 순수 동기 변환 계층으로 WebSocket client, task, queue 또는 background loop를 생성하지 않는다.
+- 자체 timeout, retry, reconnect 횟수는 0이다.
+- REST/WebSocket, `connect`, `send`, `recv`, `close`를 호출하지 않는다.
+- Credential, 계좌, 잔고, 주문 API에 접근하지 않는다.
+- 파일·데이터베이스 영속 저장을 수행하지 않는다.
+- Phase 20의 signal snapshot을 변경하거나 재생성하지 않는다.
+
+### 구현 허용 경로
+- `README.md`
+- `src/kiwoom_trading_system/risk/__init__.py`
+- `src/kiwoom_trading_system/risk/watchlist_risk.py`
+- `tests/test_watchlist_risk.py`
+
+### 제외 범위
+- 최대 투자금액·비중, 1회·일일 손실한도 등 numeric Risk threshold와 임의 scoring
+- 손절가, 목표가, 주문수량, 자금배분과 포지션 관리
+- Order Permission, 주문 승인과 주문 생성·수정·취소·전송
+- `SELL`, `EXIT`와 청산 판단
+- 실전 WebSocket·REST·계좌·잔고 조회와 외부 네트워크 호출
+- Credential, `.env`, `pyproject.toml`, `uv.lock`과 dependency 변경
+- 모바일 팝업 알림, 데이터베이스·파일 영속 저장과 재시작 복원
+- `brokers`, `market_data`, `screening`, `state`, `orders`, `alerts` 기존 구현 변경
+- Phase 20 `strategies/watchlist_signal.py`와 기존 테스트 파일 변경
+- Git stage, commit, push, reset, restore, clean
+
+### 테스트·완료 기준
+- Phase 21 구현 시 신규 mock 단위테스트를 최소 24개 추가한다.
+- 정상 `RISK_CLEAR`, `RISK_BLOCKED`, `NO_SIGNAL` checker 미호출과 ENTRY 후보당 checker 정확히 1회 호출을 검증한다.
+- 후보 순서·메타데이터·venue·signal reason 보존과 혼합 후보 처리를 검증한다.
+- 잘못된 snapshot/checker/평가 반환 타입과 비어 있는 Risk `reason_code`를 검증한다.
+- checker 예상 밖 예외 전파, count 산술 불변조건, 입력·출력 불변성과 package public export identity를 검증한다.
+- 실제 네트워크·Credential·계좌·주문을 사용하지 않는다.
+- 현재 239개 전체 회귀테스트를 보존하고 Phase 21 신규 최소 24개를 포함하여 구현 후 최소 263개 이상이 통과해야 한다.
 - failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
 - 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
