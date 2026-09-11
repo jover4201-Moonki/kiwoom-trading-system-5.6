@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 22 — demo Risk Check 통과 후보 Order Permission 평가 스냅샷 기반선 v1.0
+Phase 23 — demo `ORDER_PERMITTED` 후보 Order Intent 생성 스냅샷 기반선 v1.0
 
 검증된 현재 기준선:
 
