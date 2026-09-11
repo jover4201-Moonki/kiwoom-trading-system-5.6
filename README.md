@@ -909,3 +909,260 @@ Phase 22에서는 아래 작업을 수행하지 않는다.
 이 계약을 README에 등록하는 것만으로 Phase 22 구현이 완료된 것으로 보지 않는다.
 Phase 22 구현·테스트·검증·closure가 모두 완료되기 전까지 `Current Phase`는 Phase 21로 유지한다.
 README 계약 등록 이후에도 별도 승인 전에는 구현, `git add`, commit, push, 실주문, 실계좌, 외부 네트워크를 수행하지 않는다.
+
+## Phase 23 — demo `ORDER_PERMITTED` 후보 Order Intent 생성 스냅샷 기반선 v1.0
+
+### 목적과 경계
+
+Phase 23은 Phase 22 `WatchlistOrderPermissionSnapshot`을 입력으로 받아 `ORDER_PERMITTED` 후보만 broker-neutral Order Intent로 변환하고, 검증된 불변 스냅샷으로 집계하는 순수 Order-layer 기반선이다.
+
+Phase 23의 Order Intent는 순수 Order-layer 모델이다. 키움 `kt00011`, `kt10000`, `kt10001`, `kt10002`, `kt10003`, 실계좌, credential, OAuth/token 및 외부 네트워크에 접근하거나 의존하지 않는다.
+
+`demo`는 키움 모의투자 서버 호출 허용을 뜻하지 않는다. Phase 23은 `api.kiwoom.com`과 `mockapi.kiwoom.com` 모두 호출하지 않는다.
+
+연결 순서는 다음과 같이 유지한다.
+
+`ENTRY_CANDIDATE -> Risk Check -> Order Permission -> Order Intent -> [향후 Account / Buying-Power Validation] -> [향후 Broker Mapping] -> [향후 Order Submission]`
+
+### 입력 계약
+
+입력은 Phase 22 `WatchlistOrderPermissionSnapshot`이다.
+
+- `ORDER_PERMITTED` 후보만 Order Intent planner 호출 대상이다.
+- `ORDER_DENIED` 후보에는 planner를 호출하지 않는다.
+- Phase 22의 후보 순서와 `source_rank`를 그대로 보존한다.
+- Phase 22의 upstream 필드와 count를 임의 보정·정규화·재해석하지 않는다.
+
+### 공개 API 계약
+
+구현 완료 시 `kiwoom_trading_system.orders`는 아래 7개 이름을 공개한다.
+
+- `WatchlistOrderIntentError`
+- `WatchlistOrderIntentSide`
+- `WatchlistOrderIntentStyle`
+- `WatchlistOrderIntentEvaluation`
+- `WatchlistCandidateOrderIntent`
+- `WatchlistOrderIntentSnapshot`
+- `build_watchlist_order_intent_snapshot`
+
+### Order Side 계약
+
+`WatchlistOrderIntentSide`는 Phase 23 v1.0에서 아래 값만 허용한다.
+
+- `BUY`
+
+현재 upstream은 신규 진입 후보 흐름이므로 `SELL`, `SHORT`, `COVER`, `EXIT`를 임의 추가하지 않는다. 매도·청산은 별도 upstream 계약과 별도 Phase에서 정의한다.
+
+### Order Style 계약
+
+`WatchlistOrderIntentStyle`은 Phase 23 v1.0에서 아래 두 값만 허용한다.
+
+- `MARKET`
+- `LIMIT`
+
+키움 broker-specific `trde_tp`, IOC, FOK, 시간외 주문유형 및 실제 SOR routing을 Phase 23 순수 모델에 포함하지 않는다.
+
+### `WatchlistOrderIntentEvaluation`
+
+`frozen=True`, `slots=True`인 dataclass로 구현하며 필드 순서를 고정한다.
+
+1. `order_side`
+2. `order_style`
+3. `requested_quantity`
+4. `limit_price`
+5. `reason_code`
+
+계약은 다음과 같다.
+
+- `order_side`는 반드시 `WatchlistOrderIntentSide.BUY`이다.
+- 문자열 `"BUY"`를 enum으로 자동 변환하지 않는다.
+- `requested_quantity`는 `type(value) is int`이고 `value > 0`이어야 한다.
+- `bool`, `float`, 문자열을 수량으로 자동 변환하거나 반올림하지 않는다.
+- `requested_quantity`는 요청수량이며 실제 주문가능수량이 아니다.
+- `MARKET`은 `limit_price is None`이어야 한다.
+- `LIMIT`은 `type(limit_price) is int`이고 `limit_price > 0`이어야 한다.
+- `bool`, `float`, 문자열을 가격으로 자동 변환하거나 반올림하지 않는다.
+- `reason_code`는 비어 있지 않은 문자열이어야 하며 whitespace-only를 허용하지 않는다.
+- builder는 `reason_code`를 임의 trim·정규화·대체하지 않는다.
+
+Phase 23은 positive quantity/price의 구조적 타당성만 확인하며 현금잔고, 예수금, 증거금, 실제 주문가능수량, 종목별 최대주문수량, 호가단위, 상·하한가, 시장 session, 거래정지, 실제 주문 가능 여부와 체결 가능성을 확인하지 않는다.
+
+### `WatchlistCandidateOrderIntent`
+
+`frozen=True`, `slots=True`인 dataclass로 구현하며 Phase 22의 12개 후보 추적 필드를 정확히 앞부분에 보존한 뒤 Order Intent 결과를 추가한다.
+
+1. `source_rank`
+2. `stock_code`
+3. `stock_name`
+4. `exchange_scope`
+5. `realtime_type`
+6. `signal_decision`
+7. `venue`
+8. `signal_reason_code`
+9. `risk_decision`
+10. `risk_reason_code`
+11. `order_permission_decision`
+12. `order_permission_reason_code`
+13. `order_side`
+14. `order_style`
+15. `requested_quantity`
+16. `limit_price`
+17. `order_intent_reason_code`
+
+1~12번 upstream 필드는 수정·trim·normalize·변환·재해석·재번호하지 않는다.
+
+`venue`는 upstream 추적정보로만 보존하며 키움 주문의 `dmst_stex_tp` 또는 실제 routing 값으로 변환하지 않는다.
+
+### `WatchlistOrderIntentSnapshot`
+
+`frozen=True`, `slots=True`인 dataclass로 구현하며 필드 순서를 고정한다.
+
+1. `intents`
+2. `candidate_count`
+3. `no_signal_count`
+4. `risk_checked_count`
+5. `risk_clear_count`
+6. `risk_blocked_count`
+7. `permission_checked_count`
+8. `order_permitted_count`
+9. `order_denied_count`
+10. `intent_planned_count`
+11. `market_order_count`
+12. `limit_order_count`
+13. `realtime_type`
+
+`intents`에는 planner가 성공한 `ORDER_PERMITTED` 후보만 포함하고 `ORDER_DENIED` 후보는 포함하지 않는다.
+
+### Builder 계약
+
+공개 builder 이름과 인자 순서는 아래와 같이 고정한다.
+
+`build_watchlist_order_intent_snapshot(snapshot, planner)`
+
+- `snapshot`은 Phase 22 `WatchlistOrderPermissionSnapshot`이어야 한다.
+- `planner`는 동기 순수 callable이어야 한다.
+- `ORDER_PERMITTED` 후보마다 planner를 정확히 1회 호출한다.
+- `ORDER_DENIED` 후보에는 planner를 0회 호출한다.
+- planner 반환값은 `WatchlistOrderIntentEvaluation`이어야 한다.
+- 입력 후보 순서를 보존하고 `source_rank`를 재번호하지 않는다.
+- builder는 수량·가격·주문스타일·자금배분·position sizing을 임의 계산하거나 추론하지 않는다.
+- builder는 완전한 성공 시 하나의 `WatchlistOrderIntentSnapshot`만 반환한다.
+- 부분 성공 Snapshot은 반환하지 않는다.
+
+planner와 builder는 async 외부 I/O, awaitable 반환, REST, WebSocket, 파일 기반 credential 조회, OS credential store 조회, 환경변수 Kiwoom credential 조회, 계좌 조회, `kt00011`, `kt10000`, `kt10001`, `kt10002`, `kt10003`, 외부 HTTP 및 실제 주문 전송을 수행하지 않는다.
+
+### Count 불변식
+
+성공 반환 시 Phase 22의 기존 불변식을 모두 유지한다.
+
+- `candidate_count = no_signal_count + risk_checked_count`
+- `risk_checked_count = risk_clear_count + risk_blocked_count`
+- `permission_checked_count = risk_clear_count`
+- `permission_checked_count = order_permitted_count + order_denied_count`
+
+Phase 23은 아래 불변식을 추가한다.
+
+- `intent_planned_count = order_permitted_count`
+- `len(intents) = intent_planned_count`
+- `market_order_count + limit_order_count = intent_planned_count`
+
+따라서 정상 성공 시 `len(intents) = intent_planned_count = order_permitted_count`를 만족한다.
+
+유효한 빈 snapshot과 전부 `ORDER_DENIED`인 snapshot은 정상 결과이며 planner 호출 수는 0이다.
+
+### 오류 및 실패 계약
+
+아래 상황은 `WatchlistOrderIntentError` 계열의 fail-closed 실패로 처리한다.
+
+- `snapshot` 타입 또는 구조가 계약과 다름
+- upstream count 불변식 위반
+- upstream 후보 필드 또는 `source_rank` 계약 위반
+- `planner`가 callable이 아님
+- async/coroutine planner 또는 awaitable 반환
+- planner 호출 중 예외 발생
+- planner 반환 타입이 `WatchlistOrderIntentEvaluation`이 아님
+- `BUY` 이외의 direction
+- 허용되지 않은 order style
+- `requested_quantity`가 int가 아니거나 bool이거나 0 이하
+- `MARKET`인데 `limit_price`가 존재
+- `LIMIT`인데 `limit_price`가 없거나 int가 아니거나 bool이거나 0 이하
+- 빈 문자열 또는 whitespace-only `reason_code`
+- 부분 결과만 생성된 상태
+
+planner 자체 예외는 `WatchlistOrderIntentError`의 원인으로 exception chaining을 통해 보존한다.
+
+임의 retry, 오류 무시, default Intent 생성, fallback quantity/price, 자동 clamp, 자동 보정 및 부분 Snapshot 반환을 금지한다.
+
+### 키움 API·보안 경계
+
+Phase 23에서는 다음을 호출하거나 접근하지 않는다.
+
+- `kt00011` 주문가능수량 조회
+- `kt10000` 주식 매수주문
+- `kt10001` 주식 매도주문
+- `kt10002` 주식 정정주문
+- `kt10003` 주식 취소주문
+- 실계좌 또는 모의계좌
+- App Key, App Secret, access token
+- OAuth/token 발급·폐기
+- Windows Credential Manager 또는 keyring
+- `.env` credential
+- 외부 REST 또는 WebSocket
+- `api.kiwoom.com`
+- `mockapi.kiwoom.com`
+
+Phase 23 때문에 신규 dependency를 추가하지 않으며 `pyproject.toml`과 `uv.lock`을 변경하지 않는다.
+
+### 호환성 계약
+
+Phase 23은 Phase 20 Signal, Phase 21 Risk, Phase 22 Order Permission의 공개 API와 의미를 변경하지 않는다.
+
+기존 `kiwoom_trading_system.orders` package 아래에서 확장하며 새 `order`, `execution`, `broker_order` package를 임의 생성하지 않는다.
+
+### 구현 허용 후보 경로
+
+향후 구현이 별도 승인된 경우에만 아래 경로를 변경 후보로 한다.
+
+- `src/kiwoom_trading_system/orders/__init__.py`
+- `src/kiwoom_trading_system/orders/watchlist_order_intent.py`
+- `tests/test_watchlist_order_intent.py`
+
+README 계약 등록 단계에서는 위 구현 경로를 수정하지 않는다.
+
+### 테스트 계약
+
+향후 구현 단계에서 최소한 아래를 검증한다.
+
+- 신규 7개 public export 정확성
+- builder signature `(snapshot, planner)`
+- `BUY`, `MARKET`, `LIMIT` enum 값
+- frozen/slots 및 dataclass 필드 순서
+- Phase 22 12개 후보 추적 필드 exact 보존
+- 빈 snapshot
+- 전부 `ORDER_DENIED`
+- `ORDER_PERMITTED`별 planner 정확히 1회
+- mixed PERMITTED/DENIED
+- 입력 순서와 `source_rank` 보존
+- BUY 이외 direction 거부
+- quantity 0/음수/bool/float/string 거부
+- MARKET price=None 강제
+- LIMIT positive int price 강제
+- LIMIT price 0/음수/bool/float/string 거부
+- 빈/whitespace-only reason 거부
+- 잘못된 planner 반환형
+- coroutine/awaitable 거부
+- planner exception chaining
+- atomicity와 부분 Snapshot 금지
+- count 불변식
+- 외부 network와 credential 접근 없음
+- `kt00011`, `kt10000`, `kt10001`, `kt10002`, `kt10003` 호출 없음
+- Phase 20~22 공개 API 호환성
+- 전체 회귀테스트
+
+정확한 Phase 23 신규 테스트 개수는 구현 전 임의 확정하지 않는다.
+
+### Current Phase
+
+이 계약을 README에 등록해도 `Current Phase`는 `PHASE22`로 유지한다.
+
+Phase 23 구현·검증·Closure가 완료되기 전까지 `Current Phase`를 `PHASE23`으로 변경하지 않는다.
