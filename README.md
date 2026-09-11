@@ -727,3 +727,185 @@ Phase 21 구현·검증이 완료되기 전까지 `Current Phase`는 Phase 20으
 - 현재 239개 전체 회귀테스트를 보존하고 Phase 21 신규 최소 24개를 포함하여 구현 후 최소 263개 이상이 통과해야 한다.
 - failures=0, errors=0, skipped=0, 테스트 프로세스 exit code=0과 예상·실행 테스트 수 일치를 모두 만족해야 한다.
 - 구현 변경은 승인된 4개 경로로만 제한하고 commit·push는 별도 승인한다.
+
+## Phase 22 — demo Risk Check 통과 후보 Order Permission 평가 스냅샷 기반선 v1.0
+
+### 목적
+
+Phase 21 `WatchlistRiskSnapshot`에서 `RISK_CLEAR`로 판정된 후보만 후속 주문 허가 정책(Order Permission)으로 평가한다.
+이 단계는 내부 정책 게이트만 정의하며 실제 주문 승인, 주문가능수량 조회, 주문 생성·정정·취소·전송은 수행하지 않는다.
+
+### 처리 순서
+
+`ENTRY_CANDIDATE -> Risk Check -> Order Permission -> Order`
+
+- Phase 21 `RISK_BLOCKED` 후보는 Order Permission checker 호출 대상이 아니다.
+- Phase 21 `RISK_CLEAR` 후보만 Order Permission checker를 정확히 1회 호출한다.
+- Order Permission 결과는 `ORDER_PERMITTED` 또는 `ORDER_DENIED` 중 하나다.
+- `ORDER_PERMITTED`는 내부 정책상 후속 Order 단계로 전달 가능하다는 뜻이며, 키움증권 주문 승인·주문가능금액·체결 가능성을 뜻하지 않는다.
+
+### 구현 패키지 및 예정 경로
+
+- package: `kiwoom_trading_system.orders`
+- `src/kiwoom_trading_system/orders/__init__.py`
+- `src/kiwoom_trading_system/orders/watchlist_order_permission.py`
+- `tests/test_watchlist_order_permission.py`
+
+이 Phase 22 계약 등록 단계에서는 위 구현 파일을 생성·수정하지 않는다.
+
+### 공개 API 계약
+
+`kiwoom_trading_system.orders`는 구현 완료 시 아래 이름을 공개한다.
+
+- `WatchlistOrderPermissionError`
+- `WatchlistOrderPermissionDecision`
+- `WatchlistOrderPermissionEvaluation`
+- `WatchlistCandidateOrderPermission`
+- `WatchlistOrderPermissionSnapshot`
+- `build_watchlist_order_permission_snapshot`
+
+### Decision 계약
+
+`WatchlistOrderPermissionDecision`은 아래 두 값만 허용한다.
+
+- `ORDER_PERMITTED`
+- `ORDER_DENIED`
+
+`ORDER_DENIED`는 정상적인 정책 판정 결과이며 예외가 아니다.
+
+### WatchlistOrderPermissionEvaluation
+
+frozen dataclass로 구현하며 필드 순서를 고정한다.
+
+1. `decision`
+2. `reason_code`
+
+`reason_code`는 비어 있지 않은 문자열이어야 한다.
+
+### WatchlistCandidateOrderPermission
+
+frozen dataclass로 구현하며 Phase 21의 후보 추적 필드를 그대로 보존한 뒤 Order Permission 결과를 추가한다.
+
+1. `source_rank`
+2. `stock_code`
+3. `stock_name`
+4. `exchange_scope`
+5. `realtime_type`
+6. `signal_decision`
+7. `venue`
+8. `signal_reason_code`
+9. `risk_decision`
+10. `risk_reason_code`
+11. `order_permission_decision`
+12. `order_permission_reason_code`
+
+upstream 값은 임의 보정·정규화·재해석하지 않는다.
+
+### WatchlistOrderPermissionSnapshot
+
+frozen dataclass로 구현하며 필드 순서를 고정한다.
+
+1. `permissions`
+2. `candidate_count`
+3. `no_signal_count`
+4. `risk_checked_count`
+5. `risk_clear_count`
+6. `risk_blocked_count`
+7. `permission_checked_count`
+8. `order_permitted_count`
+9. `order_denied_count`
+10. `realtime_type`
+
+`permissions`에는 Order Permission checker를 실제 수행한 `RISK_CLEAR` 후보 결과만 들어간다.
+
+### Builder 계약
+
+공개 builder 이름과 인자 순서를 아래와 같이 고정한다.
+
+`build_watchlist_order_permission_snapshot(snapshot, checker)`
+
+- `snapshot`은 Phase 21 `WatchlistRiskSnapshot`이어야 한다.
+- `checker`는 Order Permission 평가 callable이어야 한다.
+- `checker`는 각 `RISK_CLEAR` 후보에 대해 정확히 1회 호출한다.
+- `RISK_BLOCKED` 후보에 대해서는 `checker`를 호출하지 않는다.
+- 입력 후보 순서를 보존하며 `source_rank`를 재번호하지 않는다.
+- 성공 시 하나의 완전한 `WatchlistOrderPermissionSnapshot`만 반환한다.
+- 부분 성공 Snapshot은 반환하지 않는다.
+
+### Count 불변식
+
+성공 반환 시 아래 관계를 모두 만족해야 한다.
+
+- `candidate_count = no_signal_count + risk_checked_count`
+- `risk_checked_count = risk_clear_count + risk_blocked_count`
+- `permission_checked_count = risk_clear_count`
+- `permission_checked_count = order_permitted_count + order_denied_count`
+- `len(permissions) = permission_checked_count`
+
+Phase 21에서 전달받은 count와 `realtime_type`은 임의 수정하지 않는다.
+
+### 오류 및 실패 계약
+
+아래 상황은 `WatchlistOrderPermissionError` 계열의 fail-closed 실패로 처리한다.
+
+- `snapshot` 타입 또는 구조가 계약과 다름
+- upstream count 불변식 위반
+- 후보 필드 또는 `source_rank` 계약 위반
+- `checker`가 callable이 아님
+- `checker` 호출 중 예외 발생
+- `checker` 반환 타입이 `WatchlistOrderPermissionEvaluation`이 아님
+- 허용되지 않은 decision 값
+- 빈 문자열 또는 공백-only `reason_code`
+- 부분 결과만 생성된 상태
+
+임의 retry, 오류 무시, 자동 보정, 부분 Snapshot 반환은 금지한다.
+
+### 보안·네트워크·주문 경계
+
+Phase 22에서는 아래 작업을 수행하지 않는다.
+
+- 키움 실제 주문 `kt10000`, `kt10001`, `kt10002`, `kt10003`
+- 계좌 기반 주문가능수량 조회 `kt00011`
+- 주문 수량·가격·거래유형 생성
+- 주문 생성·정정·취소·전송
+- 실계좌·예수금·잔고 접근
+- App Key, Secret, token, Credential 접근
+- REST/WebSocket 외부 네트워크 접속
+- dependency 추가·변경
+
+테스트는 mock/local 순수 로직으로만 수행한다.
+
+### 호환성 계약
+
+- Phase 20 공개 API와 동작을 변경하지 않는다.
+- Phase 21 공개 API와 동작을 변경하지 않는다.
+- Phase 21 `WatchlistRiskSnapshot`이 Phase 22의 유일한 upstream 입력 계약이다.
+- `orders` 이외의 새 `order` 또는 `execution` package를 만들지 않는다.
+- 기존 `src/kiwoom_trading_system/orders/__init__.py`와 호환되도록 구현한다.
+
+### 테스트 계약
+
+구현 단계에서는 최소한 아래를 검증한다.
+
+- 공개 export와 builder signature
+- enum 값 정확성
+- 모든 Phase 22 dataclass의 frozen 여부와 필드 순서
+- 빈 입력
+- 전부 `RISK_BLOCKED`
+- 전부 `RISK_CLEAR`
+- PERMITTED/DENIED 혼합
+- `RISK_BLOCKED` checker 미호출
+- 각 `RISK_CLEAR` checker 정확히 1회 호출
+- source order 및 `source_rank` 보존
+- count 불변식
+- invalid snapshot/type/decision/reason
+- checker exception
+- 부분 결과 금지
+- Phase 20/21 compatibility
+- 전체 회귀테스트
+
+### Phase 경계
+
+이 계약을 README에 등록하는 것만으로 Phase 22 구현이 완료된 것으로 보지 않는다.
+Phase 22 구현·테스트·검증·closure가 모두 완료되기 전까지 `Current Phase`는 Phase 21로 유지한다.
+README 계약 등록 이후에도 별도 승인 전에는 구현, `git add`, commit, push, 실주문, 실계좌, 외부 네트워크를 수행하지 않는다.
