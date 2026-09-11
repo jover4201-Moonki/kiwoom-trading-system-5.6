@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 21 — demo 전략 진입 신호 후보 Risk Check 평가 스냅샷 기반선 v1.0
+Phase 22 — demo Risk Check 통과 후보 Order Permission 평가 스냅샷 기반선 v1.0
 
 검증된 현재 기준선:
 
