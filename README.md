@@ -1629,3 +1629,401 @@ Phase 24 pure validation core에는 신규 dependency를 추가하지 않는다.
 Phase 24 구현·검증·Closure가 완료되기 전까지 README 상단 `Current Phase`를 Phase 24로 변경하지 않는다.
 
 Phase 24 README 계약 등록은 구현 승인이나 구현 완료를 의미하지 않는다.
+
+## Phase 25 — demo Account-Validated Order Intent → Kiwoom REST Buy-Order Request Mapping Snapshot 기반선 v1.0
+
+### 목적과 경계
+
+Phase 25는 Phase 24 `WatchlistAccountValidationSnapshot`을 입력으로 받아 `ACCOUNT_VALIDATION_PASSED`인 BUY Order Intent만 Kiwoom REST 국내주식 매수주문 `kt10000`의 request body shape로 순수 변환하고, 그 결과를 immutable Mapping Snapshot으로 집계하는 broker-specific pure mapping 기반선이다.
+
+`ACCOUNT_VALIDATION_BLOCKED`는 정상적인 제외 상태이며 exception으로 처리하지 않는다.
+
+Phase 25는 request shape만 만들며 OAuth/token, credential, REST/WebSocket connection, HTTP POST, account query, order submission, correction/cancel, response handling을 수행하지 않는다.
+
+Phase 25는 Phase 20 Signal, Phase 21 Risk, Phase 22 Order Permission, Phase 23 Order Intent, Phase 24 Account Validation의 기존 공개 계약과 의미를 변경하지 않는다.
+
+### 공식 module
+
+향후 구현 module:
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_mapping.py`
+
+향후 계약 테스트:
+
+`tests/test_watchlist_order_mapping.py`
+
+### Phase 25 public symbols
+
+Phase 25 module의 공식 public symbol은 다음 7개이다.
+
+1. `KIWOOM_BUY_ORDER_API_ID`
+2. `KIWOOM_ORDER_API_PATH`
+3. `KiwoomOrderMappingError`
+4. `KiwoomBuyOrderRequest`
+5. `WatchlistCandidateKiwoomOrderMapping`
+6. `WatchlistKiwoomOrderMappingSnapshot`
+7. `build_watchlist_kiwoom_order_mapping_snapshot`
+
+상수 계약:
+
+- `KIWOOM_BUY_ORDER_API_ID = "kt10000"`
+- `KIWOOM_ORDER_API_PATH = "/api/dostk/ordr"`
+
+`KiwoomOrderMappingError`는 Phase 25 structural/type/identity/provider-shape contract 위반을 나타내는 `ValueError` 계열 오류로 사용한다.
+
+### Input contract
+
+Phase 25 builder의 입력은 Phase 24 `WatchlistAccountValidationSnapshot` 하나이다.
+
+mapping 대상은 `account_validation_decision == ACCOUNT_VALIDATION_PASSED`인 `WatchlistCandidateAccountValidation`만이다.
+
+`ACCOUNT_VALIDATION_BLOCKED` candidate는 정상 제외하며 `KiwoomOrderMappingError`로 바꾸지 않는다.
+
+Phase 25는 Phase 24 validation 결과를 재평가하거나 buying power를 다시 계산하지 않는다.
+
+Phase 24의 다음 identity와 business field를 trim, normalize, reinterpret, renumber하지 않는다.
+
+- `source_rank`
+- `stock_code`
+- `stock_name`
+- `exchange_scope`
+- `realtime_type`
+- `signal_decision`
+- `venue`
+- `signal_reason_code`
+- `risk_decision`
+- `risk_reason_code`
+- `order_permission_decision`
+- `order_permission_reason_code`
+- `order_side`
+- `order_style`
+- `requested_quantity`
+- `limit_price`
+- `order_intent_reason_code`
+- `account_validation_decision`
+- `account_validation_reason_code`
+- `reservation_amount`
+- `max_orderable_quantity`
+- `remaining_buying_power_after`
+
+### Kiwoom provider contract
+
+Phase 25의 provider request contract는 Kiwoom 공식 machine-readable `kiwoom_api_spec.json`과 승인 환경에 설치된 `kwcli 1.0.0`의 동일 spec을 기준으로 한다.
+
+API contract:
+
+- API ID: `kt10000`
+- Method: `POST`
+- Path: `/api/dostk/ordr`
+- Format: JSON
+
+request body exact field order:
+
+1. `dmst_stex_tp`
+2. `stk_cd`
+3. `ord_qty`
+4. `ord_uv`
+5. `trde_tp`
+6. `cond_uv`
+
+field contract:
+
+- `dmst_stex_tp`: String / Required Y / Length 3
+- `stk_cd`: String / Required Y / Length 12
+- `ord_qty`: String / Required Y / Length 12
+- `ord_uv`: String / Required N / Length 12
+- `trde_tp`: String / Required Y / Length 2
+- `cond_uv`: String / Required N / Length 12
+
+공식 human-readable `kiwoom_docs/주문.md`에는 현재 `trde_tp` Length가 `20`으로 표시되어 있으나, 공식 machine-readable `kiwoom_api_spec.json`과 승인 환경에 설치된 `kwcli 1.0.0` spec은 모두 Length `2`로 일치한다.
+
+Phase 25는 machine-readable official spec + installed spec의 일치값인 `trde_tp` Length `2`를 authoritative provider-shape contract로 사용한다.
+
+이 문서 불일치는 실제 Submission 지원 여부를 증명하는 근거로 사용하지 않는다.
+
+### KiwoomBuyOrderRequest
+
+`KiwoomBuyOrderRequest`는 `@dataclass(frozen=True, slots=True)`이다.
+
+exact field order:
+
+1. `dmst_stex_tp`
+2. `stk_cd`
+3. `ord_qty`
+4. `ord_uv`
+5. `trde_tp`
+6. `cond_uv`
+
+모든 field는 provider JSON body에 직접 대응하는 문자열이다.
+
+`KiwoomBuyOrderRequest`에는 authorization header, token, base URL, HTTP client, response, `ord_no`, `return_code`, `return_msg` 또는 submission state를 포함하지 않는다.
+
+### BUY / MARKET / LIMIT mapping contract
+
+Phase 25는 BUY만 허용한다.
+
+`order_side`는 정확히 `BUY`여야 한다.
+
+MARKET:
+
+- `order_style == MARKET`
+- `limit_price is None`
+- `trde_tp = "3"`
+- `ord_uv = ""`
+- `cond_uv = ""`
+
+LIMIT:
+
+- `order_style == LIMIT`
+- `limit_price`는 `bool`이 아닌 exact positive `int`
+- `trde_tp = "0"`
+- `ord_uv = str(limit_price)`
+- `cond_uv = ""`
+
+quantity:
+
+- `requested_quantity`는 `bool`이 아닌 exact positive `int`
+- `ord_qty = str(requested_quantity)`
+- provider Length 12를 초과하면 contract ERROR
+
+price:
+
+- LIMIT `ord_uv`는 provider Length 12를 초과할 수 없다.
+- MARKET에서는 임의 가격을 생성하거나 current/ask/upper-limit/VI price를 proxy로 사용하지 않는다.
+- Phase 25는 tick size, price limit, session, halt 또는 주문 가능 가격을 검증하지 않는다.
+
+### Venue mapping contract
+
+`dmst_stex_tp`의 유일한 source는 `venue.value`이다.
+
+pure mapping:
+
+- `MarketVenue.KRX.value -> "KRX"`
+- `MarketVenue.NXT.value -> "NXT"`
+- `MarketVenue.SOR.value -> "SOR"`
+
+`exchange_scope`는 tracking metadata로만 보존하며 `dmst_stex_tp` routing source로 사용하지 않는다.
+
+PASSED candidate의 `venue`는 유효한 `MarketVenue`여야 하며 `None`은 contract ERROR이다.
+
+NXT/SOR pure mapping은 실제 demo/mock Submission 지원을 보증하지 않는다.
+
+현재 human-readable provider 문서의 mock 환경 KRX-only 표기는 Phase 25 pure mapping을 KRX-only로 축소하는 근거로 사용하지 않는다.
+
+실제 환경별 KRX/NXT/SOR Submission capability는 향후 별도 Submission Phase에서 당시 최신 provider contract를 다시 검증한 뒤 결정한다.
+
+### WatchlistCandidateKiwoomOrderMapping
+
+`WatchlistCandidateKiwoomOrderMapping`은 `@dataclass(frozen=True, slots=True)`이다.
+
+Phase 24 `WatchlistCandidateAccountValidation`의 기존 22개 field를 exact order로 그대로 보존한 뒤 다음 field 하나를 추가한다.
+
+23. `request`
+
+`request`는 해당 candidate에서 생성한 `KiwoomBuyOrderRequest`이다.
+
+candidate와 request 사이의 다음 identity는 exact match여야 한다.
+
+- `candidate.venue.value == request.dmst_stex_tp`
+- `candidate.stock_code == request.stk_cd`
+- `str(candidate.requested_quantity) == request.ord_qty`
+
+MARKET/LIMIT price/style mapping도 candidate와 request 사이에서 exact match여야 한다.
+
+Phase 25는 PASSED candidate의 `source_rank`를 재번호하거나 재정렬하지 않는다.
+
+### WatchlistKiwoomOrderMappingSnapshot
+
+`WatchlistKiwoomOrderMappingSnapshot`은 `@dataclass(frozen=True, slots=True)`이다.
+
+exact field order:
+
+1. `mappings`
+2. `candidate_count`
+3. `no_signal_count`
+4. `risk_checked_count`
+5. `risk_clear_count`
+6. `risk_blocked_count`
+7. `permission_checked_count`
+8. `order_permitted_count`
+9. `order_denied_count`
+10. `intent_planned_count`
+11. `market_order_count`
+12. `limit_order_count`
+13. `validation_checked_count`
+14. `validation_passed_count`
+15. `validation_blocked_count`
+16. `mapping_count`
+17. `initial_available_buying_power`
+18. `total_reserved_buying_power`
+19. `remaining_buying_power`
+20. `account_context_id`
+21. `evidence_snapshot_id`
+22. `realtime_type`
+
+Phase 24 snapshot의 기존 count, buying-power summary, identity, realtime type은 의미를 변경하지 않고 그대로 전달한다.
+
+### Builder contract
+
+exact builder signature:
+
+`build_watchlist_kiwoom_order_mapping_snapshot(snapshot)`
+
+builder는 output 생성 전에 전체 upstream Phase 24 snapshot structure, type, count, identity, enum, numeric invariant와 provider field length를 먼저 검증한다.
+
+구조 검증 중 하나라도 실패하면 부분 mapping 결과를 반환하지 않는다.
+
+Phase 25는 atomic fail-closed contract를 유지한다.
+
+정상 `ACCOUNT_VALIDATION_BLOCKED` candidate는 mapping을 만들지 않고 건너뛴다.
+
+PASSED candidate의 기존 tuple relative order를 그대로 보존한다.
+
+### Exact invariants
+
+Phase 25 신규 exact invariant:
+
+- `len(mappings) == mapping_count`
+- `mapping_count == validation_passed_count`
+- `validation_checked_count == validation_passed_count + validation_blocked_count`
+- output mappings order == upstream PASSED candidate relative order
+- mapped `source_rank`는 upstream 값을 그대로 보존하며 재번호하지 않는다.
+- mapped `source_rank`는 unique positive exact `int`이며 `bool`을 허용하지 않는다.
+- duplicate mapping을 허용하지 않는다.
+- candidate/request identity는 exact match여야 한다.
+- upstream snapshot과 candidate를 mutate하지 않는다.
+- `validation_passed_count == 0`이면 `mappings == ()`이고 `mapping_count == 0`이다.
+
+Phase 24의 기존 invariant를 Phase 25 builder 진입 시 전부 재검증한다.
+
+특히 다음을 포함한다.
+
+- `len(validations) == validation_checked_count`
+- `validation_checked_count == intent_planned_count`
+- `initial_available_buying_power == total_reserved_buying_power + remaining_buying_power`
+- `remaining_buying_power >= 0`
+- `total_reserved_buying_power >= 0`
+- Phase 23/24 upstream count invariants
+- source order 보존
+- exact upstream identity
+
+### ERROR boundary
+
+다음은 모두 `KiwoomOrderMappingError`이며 partial result를 반환하지 않는다.
+
+- wrong snapshot type
+- malformed Phase 24 snapshot/count invariant
+- duplicate or invalid `source_rank`
+- invalid enum/type
+- PASSED candidate의 `venue is None`
+- unsupported `venue`
+- non-BUY `order_side`
+- unsupported `order_style`
+- MARKET with non-None `limit_price`
+- LIMIT with non-positive or non-exact-int `limit_price`
+- `bool` / `float` / `str` numeric coercion
+- non-positive or non-exact-int `requested_quantity`
+- provider String Length overflow
+- candidate/request identity mismatch
+- unsupported upstream contract
+
+정상 `ACCOUNT_VALIDATION_BLOCKED`는 ERROR가 아니다.
+
+구조 오류를 BLOCKED 또는 빈 mapping으로 숨기지 않는다.
+
+### Submission / authentication boundary
+
+Phase 25 pure mapping에서는 다음을 직접 수행하거나 해석하지 않는다.
+
+- OAuth/token 발급·폐기
+- credential 조회·저장
+- `.env`
+- Windows Credential Manager
+- REST/WebSocket connection
+- HTTP POST
+- `get_client`
+- `fetch_page`
+- actual/demo account query
+- order submission
+- correction/cancel
+- `ord_no`
+- `return_code`
+- `return_msg`
+- provider response parsing
+- retry
+- timeout
+- network backoff
+- 실제 주문 가능성 또는 체결 가능성 확인
+
+Phase 25 output은 향후 Submission Phase의 입력 후보일 뿐 주문 전송 또는 주문 성공을 의미하지 않는다.
+
+### Dependency / 허용경로
+
+Phase 25 pure mapping에는 신규 dependency를 추가하지 않는다.
+
+따라서 다음 파일은 변경 금지이다.
+
+- `pyproject.toml`
+- `uv.lock`
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- 기존 Phase 19~24 source/test
+
+향후 Phase 25 구현 허용경로 후보는 다음 두 개로 제한한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_mapping.py`
+- `tests/test_watchlist_order_mapping.py`
+
+별도 승인 없이 package-level export를 추가하거나 기존 `__all__` 계약을 변경하지 않는다.
+
+이번 README 공식 계약 등록 단계의 실제 변경 허용경로는 `README.md` 하나뿐이다.
+
+### 최소 테스트 계약
+
+향후 Phase 25 구현 검증은 최소 다음 범주를 포함한다.
+
+- valid empty/all-BLOCKED snapshot
+- one MARKET PASSED
+- one LIMIT PASSED
+- mixed PASSED/BLOCKED
+- PASSED relative order preservation
+- source_rank preservation / no renumbering
+- duplicate source_rank rejection
+- KRX/NXT/SOR pure mapping
+- `exchange_scope` is not routing source
+- MARKET `limit_price is None`
+- MARKET non-None price rejection
+- LIMIT exact positive int price
+- LIMIT bool/float/string/non-positive price rejection
+- requested_quantity exact positive int
+- requested_quantity bool/float/string/non-positive rejection
+- ord_qty Length overflow
+- ord_uv Length overflow
+- wrong snapshot type
+- malformed Phase 24 counts/invariants
+- invalid enum/type
+- PASSED `venue is None`
+- unsupported venue/style/side
+- candidate/request identity exact match
+- provider body exact field order
+- provider field Type/Required/Length contract
+- `trde_tp` Length 2 provenance contract
+- dataclass frozen
+- dataclass slots
+- exact field order
+- atomic failure / no partial result
+- upstream input immutability
+- no REST/WebSocket/credential/account/order invocation
+- no new dependency
+- prohibited path preservation
+
+정확한 Phase 25 신규 테스트 개수는 구현 전에 임의 확정하지 않는다.
+
+Phase 25 구현 후 Full Regression expected count는 현재 기준선 451개 + 실제 Phase 25 신규 테스트 수로 계산하며, failures=0, errors=0, skipped=0, 프로세스 exit code=0을 모두 만족해야 한다.
+
+### Current Phase
+
+이 공식 계약을 README에 등록해도 `Current Phase`는 Phase 24로 유지한다.
+
+Phase 25 구현·검증·Closure가 완료되기 전까지 README 상단 `Current Phase`를 Phase 25로 변경하지 않는다.
+
+Phase 25 README 계약 등록은 구현 승인이나 구현 완료를 의미하지 않는다.
