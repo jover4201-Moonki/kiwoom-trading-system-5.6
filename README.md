@@ -1166,3 +1166,466 @@ README 계약 등록 단계에서는 위 구현 경로를 수정하지 않는다
 이 계약을 README에 등록해도 `Current Phase`는 `PHASE22`로 유지한다.
 
 Phase 23 구현·검증·Closure가 완료되기 전까지 `Current Phase`를 `PHASE23`으로 변경하지 않는다.
+
+## Phase 24 — demo Order Intent Account / Buying-Power Validation Snapshot 기반선 v1.0
+
+### 목적과 경계
+
+Phase 24는 Phase 23 `WatchlistOrderIntentSnapshot`을 입력으로 받아, 향후 Broker/Account Adapter가 공급한 broker-neutral Account / Buying-Power evidence를 검증하고, 각 Order Intent가 후속 Broker Mapping으로 전달 가능한지를 immutable Account Validation snapshot으로 집계하는 순수 Order-layer 기반선이다.
+
+`demo`는 Kiwoom 모의계좌 API를 직접 조회한다는 의미가 아니다. Phase 24 core는 real/demo 계좌 API, OAuth/token, credential, REST/WebSocket, 주문/정정/취소를 직접 수행하지 않는다.
+
+Phase 24는 Phase 20 Signal, Phase 21 Risk, Phase 22 Order Permission, Phase 23 Order Intent의 기존 공개 계약과 의미를 변경하지 않는다.
+
+### 공식 module
+
+공식 구현 module 경로:
+
+`src/kiwoom_trading_system/orders/watchlist_account_validation.py`
+
+공식 계약 테스트 경로:
+
+`tests/test_watchlist_account_validation.py`
+
+### Phase 24 public symbols
+
+Phase 24 module의 공식 public symbol은 다음 7개이다.
+
+1. `WatchlistAccountValidationError`
+2. `WatchlistAccountValidationDecision`
+3. `WatchlistIntentBuyingPowerEvidence`
+4. `WatchlistAccountValidationContext`
+5. `WatchlistCandidateAccountValidation`
+6. `WatchlistAccountValidationSnapshot`
+7. `build_watchlist_account_validation_snapshot`
+
+`WatchlistAccountValidationError`는 `ValueError`를 상속한다.
+
+### Decision contract
+
+`WatchlistAccountValidationDecision`은 `str, Enum` 기반이며 exact value는 다음 두 개이다.
+
+- `ACCOUNT_VALIDATION_PASSED`
+- `ACCOUNT_VALIDATION_BLOCKED`
+
+정상적인 account/buying-power 부족은 `BLOCKED`로 판정한다.
+구조·타입·identity·invariant 오류는 `BLOCKED`로 숨기지 않고 `WatchlistAccountValidationError`로 처리한다.
+
+### WatchlistIntentBuyingPowerEvidence
+
+`WatchlistIntentBuyingPowerEvidence`는 `@dataclass(frozen=True, slots=True)`이다.
+
+exact field order:
+
+1. `source_rank`
+2. `stock_code`
+3. `exchange_scope`
+4. `venue`
+5. `order_side`
+6. `order_style`
+7. `requested_quantity`
+8. `limit_price`
+9. `reservation_amount`
+10. `max_orderable_quantity`
+11. `account_context_id`
+12. `evidence_snapshot_id`
+
+field rules:
+
+- `source_rank`: exact `int`, `> 0`; `bool` 금지
+- `stock_code`: non-empty `str`
+- `exchange_scope`: non-empty `str`
+- `venue`: `MarketVenue | None`
+- `order_side`: exact `WatchlistOrderIntentSide`
+- `order_style`: exact `WatchlistOrderIntentStyle`
+- `requested_quantity`: exact `int`, `> 0`; `bool` 금지
+- `limit_price`: `int | None`; upstream Intent와 exact match
+- `reservation_amount`: exact `int`, KRW 단위, `> 0`; `bool` 금지
+- `max_orderable_quantity`: exact `int`, `>= 0`; `bool` 금지
+- `account_context_id`: non-empty opaque `str`
+- `evidence_snapshot_id`: non-empty opaque `str`
+
+`reservation_amount`는 Phase 24가 계산하는 값이 아니다.
+향후 Broker/Account Adapter가 broker 규칙을 반영하여 정규화한 authoritative reservation amount이다.
+
+`max_orderable_quantity`는 일반적인 현재 보유수량이 아니라, 해당 Intent 조건에서 Adapter가 정규화한 authoritative maximum orderable quantity이다.
+
+### WatchlistAccountValidationContext
+
+`WatchlistAccountValidationContext`는 `@dataclass(frozen=True, slots=True)`이다.
+
+exact field order:
+
+1. `account_context_id`
+2. `evidence_snapshot_id`
+3. `is_fresh`
+4. `available_buying_power`
+5. `evidences`
+
+field rules:
+
+- `account_context_id`: non-empty opaque `str`
+- `evidence_snapshot_id`: non-empty opaque `str`
+- `is_fresh`: exact `bool`이고 반드시 `True`
+- `available_buying_power`: exact `int`, KRW 단위, `>= 0`; `bool` 금지
+- `evidences`: `tuple[WatchlistIntentBuyingPowerEvidence, ...]`
+
+계좌번호 원문, App Key, App Secret, access token을 domain model에 저장하지 않는다.
+
+Phase 24는 wall-clock freshness threshold를 자체 계산하지 않는다.
+향후 Adapter가 freshness를 판정한다.
+
+`is_fresh is not True`이면 정상적인 `BLOCKED`가 아니라 contract ERROR이다.
+
+`evidence_snapshot_id`는 Context와 모든 Evidence가 동일한 account/orderability normalization snapshot에서 생성됐는지 broker-neutral하게 검증하기 위한 identity이다.
+
+### Intent / Evidence exact identity
+
+`context.evidences[n]`은 반드시 `snapshot.intents[n]`과 positional하게 대응한다.
+
+다음 8개 field가 exact match해야 한다.
+
+1. `source_rank`
+2. `stock_code`
+3. `exchange_scope`
+4. `venue`
+5. `order_side`
+6. `order_style`
+7. `requested_quantity`
+8. `limit_price`
+
+추가로 모든 Evidence에 대해:
+
+- `evidence.account_context_id == context.account_context_id`
+- `evidence.evidence_snapshot_id == context.evidence_snapshot_id`
+
+가 성립해야 한다.
+
+Evidence 또는 Intent를 `source_rank`, 종목코드, 금액 등으로 재정렬하지 않는다.
+Phase 23 `snapshot.intents`의 기존 tuple order를 그대로 유지한다.
+
+다음은 모두 contract ERROR이다.
+
+- missing evidence
+- extra evidence
+- duplicate `source_rank`
+- 동일 `source_rank`인데 나머지 identity가 다른 evidence
+- positional identity mismatch
+- account context identity mismatch
+- evidence snapshot identity mismatch
+
+### MARKET / LIMIT buying-power contract
+
+Phase 24는 MARKET 또는 LIMIT Order Intent의 authoritative buying power를 직접 계산하지 않는다.
+
+Phase 24에서는 다음을 임의 proxy로 사용하지 않는다.
+
+- current price
+- ask price
+- upper-limit price
+- VI price
+- 임의 시장가 추정가격
+- fee rate
+- tax rate
+- margin rate
+
+LIMIT에서도 `requested_quantity * limit_price`를 broker authoritative buying-power의 대체값으로 사용하지 않는다.
+
+향후 Broker/Account Adapter가 실제 provider/account 규칙을 반영한 `reservation_amount`와 `max_orderable_quantity`를 Phase 24에 공급한다.
+
+Phase 24는 공급된 `reservation_amount`를 다시 계산하지 않는다.
+
+### Cumulative reservation policy
+
+per-intent independent buying-power validation은 사용하지 않는다.
+
+Phase 24는 snapshot-level cumulative reservation을 사용한다.
+
+초기 상태:
+
+`remaining_buying_power = context.available_buying_power`
+
+`total_reserved_buying_power = 0`
+
+평가는 `snapshot.intents`의 기존 tuple order로만 수행한다.
+`source_rank` 또는 다른 field로 재정렬하지 않는다.
+
+각 Intent의 평가 순서는 다음과 같다.
+
+1. `requested_quantity > max_orderable_quantity`
+
+   - `ACCOUNT_VALIDATION_BLOCKED`
+   - reason code: `MAX_ORDERABLE_QUANTITY_INSUFFICIENT`
+   - `remaining_buying_power` 차감 없음
+   - `total_reserved_buying_power` 증가 없음
+
+2. `reservation_amount > remaining_buying_power`
+
+   - `ACCOUNT_VALIDATION_BLOCKED`
+   - reason code: `BUYING_POWER_INSUFFICIENT`
+   - `remaining_buying_power` 차감 없음
+   - `total_reserved_buying_power` 증가 없음
+
+3. 위 두 조건을 모두 통과
+
+   - `ACCOUNT_VALIDATION_PASSED`
+   - reason code: `ACCOUNT_VALIDATION_OK`
+   - `remaining_buying_power -= reservation_amount`
+   - `total_reserved_buying_power += reservation_amount`
+
+exact boundary인:
+
+`reservation_amount == remaining_buying_power`
+
+는 `ACCOUNT_VALIDATION_PASSED`이다.
+
+이 경우 해당 평가 후 `remaining_buying_power == 0`이다.
+
+BLOCKED Intent의 `reservation_amount`는 `total_reserved_buying_power`에 포함하지 않는다.
+
+### WatchlistCandidateAccountValidation
+
+`WatchlistCandidateAccountValidation`은 `@dataclass(frozen=True, slots=True)`이다.
+
+Phase 23 `WatchlistCandidateOrderIntent`의 기존 17개 field를 exact order로 보존한 뒤 다음 5개 field를 추가한다.
+
+18. `account_validation_decision`
+19. `account_validation_reason_code`
+20. `reservation_amount`
+21. `max_orderable_quantity`
+22. `remaining_buying_power_after`
+
+정상 reason code는 다음과 같다.
+
+- PASS: `ACCOUNT_VALIDATION_OK`
+- quantity 부족: `MAX_ORDERABLE_QUANTITY_INSUFFICIENT`
+- buying power 부족: `BUYING_POWER_INSUFFICIENT`
+
+### WatchlistAccountValidationSnapshot
+
+`WatchlistAccountValidationSnapshot`은 `@dataclass(frozen=True, slots=True)`이다.
+
+exact field order:
+
+1. `validations`
+2. `candidate_count`
+3. `no_signal_count`
+4. `risk_checked_count`
+5. `risk_clear_count`
+6. `risk_blocked_count`
+7. `permission_checked_count`
+8. `order_permitted_count`
+9. `order_denied_count`
+10. `intent_planned_count`
+11. `market_order_count`
+12. `limit_order_count`
+13. `validation_checked_count`
+14. `validation_passed_count`
+15. `validation_blocked_count`
+16. `initial_available_buying_power`
+17. `total_reserved_buying_power`
+18. `remaining_buying_power`
+19. `account_context_id`
+20. `evidence_snapshot_id`
+21. `realtime_type`
+
+### Builder contract
+
+exact builder signature:
+
+`build_watchlist_account_validation_snapshot(snapshot, context)`
+
+Phase 24 builder에는 외부 validator callback을 두지 않는다.
+
+broker-specific 계산은 Phase 24 이전의 Broker/Account Adapter normalization 단계에서 완료되고, Phase 24는 fixed contract validation과 cumulative reservation만 수행한다.
+
+builder는 cumulative evaluation 전에 전체 upstream snapshot, Context, Evidence type, count, identity, freshness, numeric invariant를 먼저 검증한다.
+
+구조 검증 중 하나라도 실패하면 cumulative evaluation 결과를 부분적으로 반환하지 않는다.
+
+Phase 24는 atomic fail-closed contract를 유지한다.
+
+### Empty snapshot
+
+`intent_planned_count == 0`이어도 Context는 valid해야 한다.
+
+필수 조건:
+
+- `is_fresh is True`
+- `account_context_id` non-empty
+- `evidence_snapshot_id` non-empty
+- `available_buying_power >= 0`
+- `evidences == ()`
+
+정상 empty 결과:
+
+- `validations == ()`
+- `validation_checked_count == 0`
+- `validation_passed_count == 0`
+- `validation_blocked_count == 0`
+- `total_reserved_buying_power == 0`
+- `remaining_buying_power == initial_available_buying_power`
+
+### Exact invariants
+
+Phase 24 신규 exact invariant:
+
+- `len(context.evidences) == intent_planned_count`
+- `len(validations) == validation_checked_count`
+- `validation_checked_count == intent_planned_count`
+- `validation_checked_count == validation_passed_count + validation_blocked_count`
+- `initial_available_buying_power == total_reserved_buying_power + remaining_buying_power`
+- `remaining_buying_power >= 0`
+- `total_reserved_buying_power >= 0`
+- output validation order == input `snapshot.intents` order
+- each Evidence has exact one-to-one Intent identity
+- upstream snapshot, Context, Evidence는 mutate하지 않는다.
+
+`total_reserved_buying_power`에는 PASSED Intent의 `reservation_amount`만 포함한다.
+
+Phase 23 upstream invariant도 Phase 24 builder 진입 시 재검증한다.
+
+특히:
+
+- `intent_planned_count == order_permitted_count`
+- `len(intents) == intent_planned_count`
+- `market_order_count + limit_order_count == intent_planned_count`
+- upstream count invariants
+- unique positive `source_rank`
+- source order 보존
+
+### PASSED / BLOCKED / ERROR 경계
+
+정상 정책 판정:
+
+- quantity 충분 + buying power 충분 => `ACCOUNT_VALIDATION_PASSED`
+- `requested_quantity > max_orderable_quantity` => `ACCOUNT_VALIDATION_BLOCKED`
+- `reservation_amount > remaining_buying_power` => `ACCOUNT_VALIDATION_BLOCKED`
+
+contract ERROR:
+
+- wrong snapshot type
+- wrong Context type
+- wrong Evidence type
+- stale Context
+- missing / duplicate / extra Evidence
+- Intent / Evidence identity mismatch
+- account/evidence snapshot identity mismatch
+- bool / float / string numeric
+- invalid negative numeric
+- invalid enum/type
+- malformed upstream count invariant
+- unsupported upstream contract
+
+정상적인 account/buying-power 부족 상태를 exception으로 처리하지 않는다.
+
+구조 오류를 `ACCOUNT_VALIDATION_BLOCKED`로 숨기지 않는다.
+
+### Package compatibility
+
+Phase 24 module `__all__`에는 Phase 24의 공식 7개 public symbol을 둔다.
+
+향후 `kiwoom_trading_system.orders` package attribute에서도 Phase 24 symbol에 접근할 수 있도록 Phase 23의 package exposure pattern을 유지하는 것을 구현 계약으로 한다.
+
+그러나 기존 package-level `orders.__all__`은 Phase 22 exact 6-name contract를 그대로 유지한다.
+
+Phase 24에서 package-level `orders.__all__`을 임의 확장하지 않는다.
+
+### Broker / Account Adapter boundary
+
+Phase 24 pure core에서는 다음을 직접 수행하거나 해석하지 않는다.
+
+- `kt00010`
+- `kt00011`
+- `kt10000`
+- `kt10001`
+- `kt10002`
+- `kt10003`
+- OAuth/token
+- credential
+- `.env`
+- Windows Credential Manager
+- REST/WebSocket connection
+- actual/demo account query
+- broker raw response parsing/mapping
+- `trde_tp`
+- IOC/FOK
+- KRX/NXT/SOR broker order mapping
+- tick-size mapping
+- price-limit validation
+- market-session query
+- trading-halt query
+- Order Submission
+- 실제 주문/정정/취소
+
+실제 Kiwoom account/orderability 데이터 취득, raw response 해석, provider-specific calculation, normalization은 향후 Broker/Account Adapter 단계의 책임이다.
+
+### Dependency / 허용경로
+
+Phase 24 pure validation core에는 신규 dependency를 추가하지 않는다.
+
+따라서 Phase 24 구현에서도 다음 파일은 변경 금지이다.
+
+- `pyproject.toml`
+- `uv.lock`
+
+향후 Phase 24 구현 허용경로 후보는 다음 세 개로 제한한다.
+
+- `src/kiwoom_trading_system/orders/__init__.py`
+- `src/kiwoom_trading_system/orders/watchlist_account_validation.py`
+- `tests/test_watchlist_account_validation.py`
+
+별도 승인 없이 `order`, `execution`, `broker_order` 등 새로운 package를 만들지 않는다.
+
+이번 README 공식 계약 등록 단계의 실제 변경 허용경로는 `README.md` 하나뿐이다.
+
+### 최소 테스트 계약
+
+향후 Phase 24 구현 검증은 최소 다음 범주를 포함한다.
+
+- valid empty snapshot/context
+- one MARKET PASSED
+- one LIMIT PASSED
+- exact buying-power boundary
+- insufficient `max_orderable_quantity`
+- insufficient remaining buying power
+- all PASSED
+- all BLOCKED
+- mixed PASSED/BLOCKED
+- cumulative oversubscription
+- BLOCKED intent does not reserve
+- deterministic input tuple order
+- source-rank reordering 금지
+- 각 Intent/Evidence identity field mismatch
+- Context/Evidence account identity mismatch
+- Context/Evidence snapshot identity mismatch
+- missing Evidence
+- duplicate Evidence
+- extra Evidence
+- stale Context
+- wrong Context/Evidence type
+- bool numeric rejection
+- float/string numeric rejection
+- negative numeric rejection
+- zero boundary rules
+- malformed upstream snapshot
+- upstream count invariant failure
+- atomic failure / no partial result
+- dataclass frozen
+- dataclass slots
+- exact field order
+- package attribute identity
+- package-level `orders.__all__` preservation
+- no broker/network/credential imports
+- no Kiwoom API/TR IDs in Phase 24 pure core
+- no actual order/account/network invocation
+
+정확한 Phase 24 신규 테스트 개수는 구현 전 임의 확정하지 않는다.
+
+### Current Phase
+
+이 공식 계약을 README에 등록해도 `Current Phase`는 Phase 23으로 유지한다.
+
+Phase 24 구현·검증·Closure가 완료되기 전까지 README 상단 `Current Phase`를 Phase 24로 변경하지 않는다.
+
+Phase 24 README 계약 등록은 구현 승인이나 구현 완료를 의미하지 않는다.
