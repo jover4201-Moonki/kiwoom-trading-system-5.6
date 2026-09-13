@@ -2027,3 +2027,173 @@ Phase 25 구현 후 Full Regression expected count는 현재 기준선 451개 + 
 Phase 25 구현·검증·Closure가 완료되기 전까지 README 상단 `Current Phase`를 Phase 25로 변경하지 않는다.
 
 Phase 25 README 계약 등록은 구현 승인이나 구현 완료를 의미하지 않는다.
+
+## Phase 26 — demo Kiwoom Buy-Order Dry-Run Dispatch Plan Snapshot 기반선 v1.0
+
+Status: CONTRACT APPROVED FOR README REGISTRATION
+Implementation: NOT YET APPROVED
+Order Submission: OUT OF SCOPE
+
+### Purpose
+
+Phase 26 consumes the Phase 25 `WatchlistKiwoomOrderMappingSnapshot` and builds a pure, non-sending dry-run dispatch-plan snapshot for demo Kiwoom buy-order requests.
+
+Phase 26 MUST NOT transmit actual or demo orders.
+
+### Upstream
+
+- `WatchlistKiwoomOrderMappingSnapshot`
+- `WatchlistCandidateKiwoomOrderMapping`
+- `KiwoomBuyOrderRequest`
+
+The Phase 25 request object MUST be preserved exactly.
+
+No request remapping, recalculation, replacement, mutation, or reordering is allowed.
+
+### Public API
+
+The module public API is exactly:
+
+1. `KIWOOM_DEMO_ORDER_BASE_URL`
+2. `KIWOOM_ORDER_HTTP_METHOD`
+3. `KIWOOM_ORDER_CONTENT_TYPE`
+4. `KiwoomOrderDispatchPlanError`
+5. `KiwoomDemoOrderDispatchDecision`
+6. `KiwoomDemoOrderDispatchBlockReason`
+7. `KiwoomBuyOrderDispatchPlan`
+8. `WatchlistCandidateKiwoomOrderDispatchPlan`
+9. `WatchlistKiwoomOrderDispatchPlanSnapshot`
+10. `build_watchlist_kiwoom_order_dispatch_plan_snapshot`
+
+No package-level re-export from `brokers/kiwoom/rest/__init__.py` is added in Phase 26.
+
+### Constants
+
+- `KIWOOM_DEMO_ORDER_BASE_URL = "https://mockapi.kiwoom.com"`
+- `KIWOOM_ORDER_HTTP_METHOD = "POST"`
+- `KIWOOM_ORDER_CONTENT_TYPE = "application/json;charset=UTF-8"`
+
+Phase 25 `KIWOOM_BUY_ORDER_API_ID` and `KIWOOM_ORDER_API_PATH` are reused without remapping.
+
+### Dispatch Decision
+
+`KiwoomDemoOrderDispatchDecision`:
+
+- `DRY_RUN_SUPPORTED`
+- `DRY_RUN_BLOCKED`
+
+`KiwoomDemoOrderDispatchBlockReason`:
+
+- `DEMO_VENUE_UNSUPPORTED`
+
+### Venue Policy
+
+- KRX → `DRY_RUN_SUPPORTED`
+- NXT → `DRY_RUN_BLOCKED / DEMO_VENUE_UNSUPPORTED`
+- SOR → `DRY_RUN_BLOCKED / DEMO_VENUE_UNSUPPORTED`
+- unknown or malformed venue → fail closed with `KiwoomOrderDispatchPlanError`
+
+The KRX/NXT/SOR policy is based on the provider demo-order boundary that the Kiwoom mock order environment is KRX-only.
+
+### KiwoomBuyOrderDispatchPlan
+
+Exact field order:
+
+1. `base_url: str`
+2. `http_method: str`
+3. `api_id: str`
+4. `api_path: str`
+5. `content_type: str`
+6. `request: KiwoomBuyOrderRequest`
+7. `decision: KiwoomDemoOrderDispatchDecision`
+8. `block_reason: KiwoomDemoOrderDispatchBlockReason | None`
+9. `send_authorized: bool`
+
+The dataclass is frozen and slotted.
+
+`send_authorized` MUST always be `False`.
+
+### WatchlistCandidateKiwoomOrderDispatchPlan
+
+Exact field order:
+
+1. `source_mapping: WatchlistCandidateKiwoomOrderMapping`
+2. `dispatch_plan: KiwoomBuyOrderDispatchPlan`
+
+Required identity:
+
+- `source_mapping is upstream_mapping`
+- `dispatch_plan.request is upstream_mapping.request`
+
+### WatchlistKiwoomOrderDispatchPlanSnapshot
+
+Exact field order:
+
+1. `source_snapshot: WatchlistKiwoomOrderMappingSnapshot`
+2. `plans: tuple[WatchlistCandidateKiwoomOrderDispatchPlan, ...]`
+3. `candidate_count: int`
+4. `dry_run_supported_count: int`
+5. `dry_run_blocked_count: int`
+6. `send_authorized_count: int`
+
+Required invariant:
+
+- `send_authorized_count == 0`
+
+An all-blocked snapshot is valid.
+
+### Builder
+
+`build_watchlist_kiwoom_order_dispatch_plan_snapshot(snapshot: WatchlistKiwoomOrderMappingSnapshot) -> WatchlistKiwoomOrderDispatchPlanSnapshot`
+
+The builder MUST be pure and atomic.
+
+Any structural validation failure MUST raise before returning a snapshot.
+
+Partial result return is prohibited.
+
+### Security and Side-Effect Boundary
+
+Phase 26 MUST NOT:
+
+- call `get_client`
+- fetch OAuth tokens
+- access credentials
+- access `.env`
+- connect to `api.kiwoom.com`
+- connect to `mockapi.kiwoom.com`
+- send an actual order
+- send a demo order
+- modify dependencies
+- modify `pyproject.toml`
+- modify `uv.lock`
+- modify `brokers/kiwoom/rest/__init__.py`
+
+### Idempotency / Retry Boundary
+
+Phase 26 does not solve duplicate-order prevention or submission idempotency.
+
+Future actual submission logic MUST NOT automatically retry or retransmit an order after an ambiguous timeout, cancellation, or network failure until broker-side reconciliation determines whether the original order was accepted.
+
+### Implementation Paths
+
+Future implementation is limited to:
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_dispatch_plan.py`
+- `tests/test_watchlist_order_dispatch_plan.py`
+
+Implementation requires separate approval.
+
+### Test Contract
+
+Phase 26 implementation MUST add exactly 59 Phase 26 tests.
+
+Existing pre-Phase26 regression baseline is 510 tests.
+
+Expected full regression after Phase26 implementation is exactly 569 tests:
+
+- failures = 0
+- errors = 0
+- skipped = 0
+
+README registration alone does not change the 510-test baseline.
