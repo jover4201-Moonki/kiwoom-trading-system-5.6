@@ -2197,3 +2197,214 @@ Expected full regression after Phase26 implementation is exactly 569 tests:
 - skipped = 0
 
 README registration alone does not change the 510-test baseline.
+
+## Phase 27 — demo Kiwoom Buy-Order Submission Readiness & Reconciliation Gate Snapshot 기반선 v1.0
+
+Order Submission: OUT OF SCOPE
+
+Phase 27은 Phase 26 `WatchlistKiwoomOrderDispatchPlanSnapshot`을 exact upstream으로 받아,
+실제 주문 전송 전에 submission readiness와 prior submission reconciliation 상태만 순수 동기식으로 평가하는
+non-sending safety gate 기반선이다.
+
+Phase 27 자체는 actual order authorization, actual Order Submission, credential/token/.env access,
+external network, account/order action을 수행하지 않는다.
+
+### Upstream
+
+- `WatchlistKiwoomOrderDispatchPlanSnapshot`
+- Phase 26 `source_snapshot`, candidate source plan, mapped request identity를 exact preserve한다.
+- request/plan을 remap, recalculate, replace, mutate, reorder하지 않는다.
+- contexts count는 Phase 26 plans count와 exact match여야 한다.
+- context relative order는 Phase 26 plans relative order와 exact match여야 한다.
+- pairwise `source_rank`는 exact match여야 한다.
+- duplicate, missing, extra context를 허용하지 않는다.
+- structure/type/count/identity/upstream invariant가 하나라도 깨지면 partial result 없이
+  `KiwoomOrderSubmissionSafetyError`로 fail closed한다.
+
+### Future Implementation Paths
+
+향후 별도 구현 승인이 있는 경우에만 아래 두 경로를 허용한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_submission_safety.py`
+- `tests/test_watchlist_order_submission_safety.py`
+
+위 두 경로 이외의 README, package export, dependency, 다른 source/test 경로 변경은 별도 승인 없이는 허용하지 않는다.
+
+### Public API
+
+Phase 27 public API는 다음 8개로 제한한다.
+
+1. `KiwoomOrderSubmissionSafetyError`
+2. `KiwoomPriorSubmissionState`
+3. `KiwoomOrderSubmissionSafetyDecision`
+4. `KiwoomOrderSubmissionSafetyBlockReason`
+5. `KiwoomOrderSubmissionSafetyContext`
+6. `WatchlistCandidateKiwoomOrderSubmissionSafety`
+7. `WatchlistKiwoomOrderSubmissionSafetySnapshot`
+8. `build_watchlist_kiwoom_order_submission_safety_snapshot`
+
+### KiwoomOrderSubmissionSafetyContext
+
+Context fields:
+
+1. `source_rank`
+2. `prior_submission_state`
+3. `prior_attempt_reference`
+4. `reconciliation_reference`
+
+모든 non-None reference는 local opaque identifier이며 broker idempotency key로 간주하지 않는다.
+reference를 broker-native duplicate-prevention 또는 exactly-once 보장으로 해석하지 않는다.
+
+### Prior Submission State
+
+`KiwoomPriorSubmissionState`:
+
+- `NEVER_ATTEMPTED`
+- `CONFIRMED_NOT_ACCEPTED`
+- `CONFIRMED_ACCEPTED`
+- `AMBIGUOUS_UNRESOLVED`
+
+Reference invariant:
+
+- `NEVER_ATTEMPTED`
+  - `prior_attempt_reference is None`
+  - `reconciliation_reference is None`
+- `AMBIGUOUS_UNRESOLVED`
+  - `prior_attempt_reference` 필수
+  - `reconciliation_reference`는 `None` 또는 local opaque reference
+- `CONFIRMED_NOT_ACCEPTED`
+  - `prior_attempt_reference` 필수
+  - `reconciliation_reference` 필수
+- `CONFIRMED_ACCEPTED`
+  - `prior_attempt_reference` 필수
+  - `reconciliation_reference` 필수
+
+### Safety Decision
+
+`KiwoomOrderSubmissionSafetyDecision`:
+
+- `READY_FOR_CONFIRMATION`
+- `SUBMISSION_BLOCKED`
+
+`READY_FOR_CONFIRMATION`은 actual order authorization, send authorization 또는 주문 전송 완료를 의미하지 않는다.
+이는 향후 actual Submission Phase에서 execution-time fresh explicit confirmation을 요청할 수 있는 상태일 뿐이다.
+
+### Block Reason
+
+`KiwoomOrderSubmissionSafetyBlockReason`:
+
+- `DEMO_VENUE_UNSUPPORTED`
+- `RECONCILIATION_REQUIRED`
+- `ALREADY_ACCEPTED`
+
+structure/type/count/identity/upstream invariant 오류는 BlockReason으로 축소하지 않고
+`KiwoomOrderSubmissionSafetyError`로 fail closed한다.
+
+### Venue Contract
+
+Phase 27은 Phase 26 venue 또는 dispatch decision을 새로 mapping하지 않고 그대로 검증한다.
+
+- KRX + Phase 26 `DRY_RUN_SUPPORTED`
+  - prior submission state에 따라 readiness를 평가한다.
+- NXT
+  - `SUBMISSION_BLOCKED / DEMO_VENUE_UNSUPPORTED`
+- SOR
+  - `SUBMISSION_BLOCKED / DEMO_VENUE_UNSUPPORTED`
+- unknown, malformed, inconsistent venue/decision
+  - `KiwoomOrderSubmissionSafetyError`
+
+현재 mock/demo submission capability가 KRX-only라는 provider contract를 Phase 27 readiness 경계에 반영한다.
+
+### Prior Submission Decision Contract
+
+`NEVER_ATTEMPTED`:
+
+- KRX + upstream `DRY_RUN_SUPPORTED`이면 `READY_FOR_CONFIRMATION` 가능
+
+`CONFIRMED_NOT_ACCEPTED`:
+
+- KRX + upstream `DRY_RUN_SUPPORTED`이면 `READY_FOR_CONFIRMATION` 가능
+- 과거 approval을 재사용하지 않는다.
+- 향후 actual Submission Phase에서 execution-time fresh explicit confirmation이 필수다.
+
+`CONFIRMED_ACCEPTED`:
+
+- `SUBMISSION_BLOCKED / ALREADY_ACCEPTED`
+- 재전송 금지
+
+`AMBIGUOUS_UNRESOLVED`:
+
+- `SUBMISSION_BLOCKED / RECONCILIATION_REQUIRED`
+- broker-side reconciliation 전 retry/retransmit 금지
+
+### Retry / Retransmit Contract
+
+- `automatic_retry_permitted`는 항상 `False`다.
+- snapshot `automatic_retry_permitted_count == 0`이어야 한다.
+- Phase 27은 retry, retransmit, resend를 실행하지 않는다.
+- broker-side acceptance가 ambiguous한 동안 실제 전송 후보로 되돌리지 않는다.
+
+### Actual Submission Boundary
+
+Phase 27에서 금지:
+
+- actual Order Submission
+- external network
+- credential/token/.env access
+- account/order action
+- `get_client`
+- `get_ws_client`
+- OAuth/token acquisition
+- dependency 변경
+- 새 `submission_attempt_id` 생성
+- broker idempotency 보장 주장
+
+향후 actual Submission Phase의 interface 후보:
+
+`READY_FOR_CONFIRMATION`
+-> execution-time fresh explicit confirmation
+-> 새 local `submission_attempt_id` 생성 후보
+-> single outbound attempt
+-> broker response/reconciliation
+
+local `submission_attempt_id`는 broker idempotency 보장이 아니다.
+
+network 시작 이후 timeout, cancellation, connection loss, response loss 등으로 broker 접수 여부가 불명확하면
+`AMBIGUOUS_UNRESOLVED`로 처리하고 broker-side reconciliation 전 자동 retry/retransmit을 금지한다.
+
+### Package / Provider Boundary
+
+현재 승인 baseline의 설치본은 `kwcli 1.0.0`이다.
+
+Phase 27은 `kwcli`, credential, network, account/order action을 사용하지 않으므로
+online latest package version은 Phase 27 readiness 계약의 runtime dependency로 고정하지 않는다.
+
+향후 actual Submission Phase의 계약 설계 또는 구현 전에 당시 최신 Kiwoom provider contract와
+설치 package contract를 다시 검증하는 것을 필수 gate로 둔다.
+
+### Implementation / Test Contract
+
+향후 별도 구현 승인이 있는 경우 최소한 다음을 검증한다.
+
+- Phase 26 snapshot/plan/request exact identity preserve
+- contexts count/order/source_rank exact pairing
+- duplicate/missing/extra context fail closed
+- `NEVER_ATTEMPTED` reference invariant
+- `AMBIGUOUS_UNRESOLVED` reference invariant
+- confirmed state reference invariant
+- KRX readiness path
+- NXT/SOR demo venue block
+- `CONFIRMED_NOT_ACCEPTED` fresh-confirmation boundary
+- `CONFIRMED_ACCEPTED` retransmit block
+- ambiguous reconciliation block
+- `automatic_retry_permitted == False`
+- snapshot `automatic_retry_permitted_count == 0`
+- partial result 금지
+- external network call count 0
+- credential/token/.env access count 0
+- account/order action count 0
+- dependency 변경 없음
+- Phase 26/25 compatibility와 full regression 유지
+
+Phase 27 계약 등록 자체는 implementation 또는 Current Phase alignment를 의미하지 않는다.
+README 공식 계약 등록 후에도 `Current Phase`는 별도 구현/Closure 승인 전까지 `PHASE26`으로 유지한다.
