@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 25 — demo Account-Validated Order Intent → Kiwoom REST Buy-Order Request Mapping Snapshot 기반선 v1.0
+Phase 26 — demo Kiwoom Buy-Order Dry-Run Dispatch Plan Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
