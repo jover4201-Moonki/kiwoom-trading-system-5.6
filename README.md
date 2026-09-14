@@ -2408,3 +2408,273 @@ online latest package version은 Phase 27 readiness 계약의 runtime dependency
 
 Phase 27 계약 등록 자체는 implementation 또는 Current Phase alignment를 의미하지 않는다.
 README 공식 계약 등록 후에도 `Current Phase`는 별도 구현/Closure 승인 전까지 `PHASE26`으로 유지한다.
+
+## Phase 28 — demo Kiwoom Buy-Order Preparation Confirmation & Single-Attempt Preparation Snapshot 기반선 v1.0
+
+Order Submission: OUT OF SCOPE
+
+Phase 28은 Phase 27 `WatchlistKiwoomOrderSubmissionSafetySnapshot`을 exact upstream으로 받아,
+`READY_FOR_CONFIRMATION` 후보의 preparation confirmation과 local single-attempt preparation만
+순수 동기식(non-sending)으로 평가하는 기반선이다.
+
+Phase 28 자체는 actual Order Submission, HTTP/API call, external network,
+credential/token/.env access, account/order action, provider client 생성 또는 OAuth/token acquisition을 수행하지 않는다.
+
+### Upstream
+
+- exact upstream: `WatchlistKiwoomOrderSubmissionSafetySnapshot`
+- Phase 27 `source_snapshot`, `evaluations`, candidate `source_plan`,
+  Phase 26 dispatch plan, Phase 25 `KiwoomBuyOrderRequest` identity를 exact preserve한다.
+- upstream object를 remap, recalculate, replace, mutate, reorder하지 않는다.
+- contexts count는 Phase 27 evaluations count와 exact match여야 한다.
+- context relative order는 Phase 27 evaluations relative order와 exact match여야 한다.
+- pairwise `source_rank`는 exact match여야 한다.
+- duplicate, missing, extra context를 허용하지 않는다.
+- structure/type/count/order/identity/reference invariant가 하나라도 깨지면 partial result 없이
+  `KiwoomOrderAttemptPreparationError`로 fail closed한다.
+
+### Public API
+
+Phase 28 public API는 다음 8개로 제한한다.
+
+1. `KiwoomOrderAttemptPreparationError`
+2. `KiwoomOrderPreparationConfirmationState`
+3. `KiwoomOrderAttemptPreparationDecision`
+4. `KiwoomOrderAttemptPreparationBlockReason`
+5. `KiwoomOrderAttemptPreparationContext`
+6. `WatchlistCandidateKiwoomOrderAttemptPreparation`
+7. `WatchlistKiwoomOrderAttemptPreparationSnapshot`
+8. `build_watchlist_kiwoom_order_attempt_preparation_snapshot`
+
+### KiwoomOrderPreparationConfirmationState
+
+exact members:
+
+- `NOT_CONFIRMED`
+- `CONFIRMED_FOR_PREPARATION`
+
+`CONFIRMED_FOR_PREPARATION`은 preparation confirmation일 뿐 actual send authorization,
+execution-time fresh confirmation, broker acceptance 또는 주문 완료를 의미하지 않는다.
+
+### KiwoomOrderAttemptPreparationDecision
+
+exact members:
+
+- `ATTEMPT_PREPARED`
+- `ATTEMPT_BLOCKED`
+
+`ATTEMPT_PREPARED`는 actual send authorization이 아니다.
+
+### KiwoomOrderAttemptPreparationBlockReason
+
+exact members:
+
+- `UPSTREAM_SUBMISSION_BLOCKED`
+- `CONFIRMATION_REQUIRED`
+
+structure/type/count/order/identity/reference invariant 오류는 BlockReason으로 축소하지 않고
+`KiwoomOrderAttemptPreparationError`로 fail closed한다.
+
+### KiwoomOrderAttemptPreparationContext
+
+exact fields:
+
+1. `source_rank`
+2. `confirmation_state`
+3. `confirmation_reference`
+4. `submission_attempt_reference`
+
+Reference contract:
+
+- `NOT_CONFIRMED`
+  - `confirmation_reference is None`
+  - `submission_attempt_reference is None`
+- `CONFIRMED_FOR_PREPARATION`
+  - `confirmation_reference` 필수
+  - `submission_attempt_reference` 필수
+- 모든 non-None reference는 `str`이어야 하고 `value.strip() != ""`이어야 한다.
+- reference 값 자체는 normalize, trim, mutate하지 않고 exact preserve한다.
+- non-None `confirmation_reference`는 snapshot 내 unique여야 한다.
+- `submission_attempt_reference`는 snapshot 내 unique여야 한다.
+- 같은 context에서 `confirmation_reference != submission_attempt_reference`여야 한다.
+- 같은 candidate의 새 `submission_attempt_reference`는 Phase 27 context의
+  기존 non-None `prior_attempt_reference`와 달라야 한다.
+- local reference는 local opaque correlation reference일 뿐 broker idempotency key,
+  broker duplicate-prevention key, broker order number 또는 exactly-once guarantee가 아니다.
+
+### WatchlistCandidateKiwoomOrderAttemptPreparation
+
+exact fields:
+
+1. `source_evaluation`
+2. `context`
+3. `decision`
+4. `block_reason`
+5. `single_attempt_prepared`
+6. `automatic_retry_permitted`
+
+Decision contract:
+
+- Phase 27 `READY_FOR_CONFIRMATION`
+  + valid `CONFIRMED_FOR_PREPARATION`
+  + valid references
+  -> `ATTEMPT_PREPARED`
+- Phase 27 `READY_FOR_CONFIRMATION`
+  + `NOT_CONFIRMED`
+  -> `ATTEMPT_BLOCKED / CONFIRMATION_REQUIRED`
+- Phase 27 `SUBMISSION_BLOCKED`
+  + valid non-confirmed context
+  -> `ATTEMPT_BLOCKED / UPSTREAM_SUBMISSION_BLOCKED`
+- Phase 27 `SUBMISSION_BLOCKED` candidate에 confirmation/reference를 강제로 주입하면
+  `KiwoomOrderAttemptPreparationError`로 fail closed한다.
+- `decision == ATTEMPT_PREPARED` iff `single_attempt_prepared is True`.
+- `automatic_retry_permitted`는 항상 `False`다.
+
+### WatchlistKiwoomOrderAttemptPreparationSnapshot
+
+exact fields:
+
+1. `source_snapshot`
+2. `preparations`
+3. `candidate_count`
+4. `prepared_count`
+5. `blocked_count`
+6. `confirmation_required_count`
+7. `automatic_retry_permitted_count`
+
+Snapshot invariants:
+
+- `candidate_count == len(preparations)`
+- `prepared_count == count(decision == ATTEMPT_PREPARED)`
+- `blocked_count == count(decision == ATTEMPT_BLOCKED)`
+- `confirmation_required_count == count(block_reason == CONFIRMATION_REQUIRED)`
+- `automatic_retry_permitted_count == 0`
+- partial result를 허용하지 않는다.
+
+### Builder
+
+`build_watchlist_kiwoom_order_attempt_preparation_snapshot(
+    source_snapshot: WatchlistKiwoomOrderSubmissionSafetySnapshot,
+    contexts: tuple[KiwoomOrderAttemptPreparationContext, ...],
+) -> WatchlistKiwoomOrderAttemptPreparationSnapshot`
+
+순수 동기식 builder이며 network I/O나 provider/account/order action을 수행하지 않는다.
+
+### Preparation Confirmation / Freshness Boundary
+
+Phase 28은 wall-clock freshness, caller identity 또는 실제 사용자 interaction 시각을 스스로 증명하지 않는다.
+
+- `confirmation_reference`는 caller가 preparation invocation에 제공하는 local opaque reference다.
+- Phase 28은 visible input 범위의 type, nonblank, pairing, uniqueness, collision만 검증한다.
+- Phase 28 snapshot만으로 cross-process confirmation reuse 또는 exactly-once confirmation을 보장하지 않는다.
+- Phase 28 preparation confirmation을 향후 actual sender의 execution-time fresh confirmation으로 재사용해서는 안 된다.
+- 향후 actual network submission 단계는 I/O 직전에 별도의 fresh explicit confirmation을 다시 요구해야 한다.
+
+따라서:
+
+- `CONFIRMED_FOR_PREPARATION != CONFIRMED_FOR_SEND`
+- `ATTEMPT_PREPARED != SEND_AUTHORIZED`
+
+### Idempotency / Retry / Retransmit
+
+- `submission_attempt_reference`는 local opaque correlation reference다.
+- broker duplicate suppression, broker idempotency, exactly-once delivery,
+  cross-process uniqueness 또는 broker order-number equivalence를 보장하지 않는다.
+- `automatic_retry_permitted`는 항상 `False`다.
+- `automatic_retry_permitted_count == 0`이어야 한다.
+- Phase 28은 retry, retransmit, resend를 실행하지 않는다.
+
+### Reconciliation Boundary
+
+Phase 28은 broker-side reconciliation을 수행하지 않는다.
+
+Phase 27의 prior submission 상태와 safety decision을 그대로 존중한다.
+
+- `CONFIRMED_ACCEPTED`에서 파생된 blocked candidate를 prepared로 승격하지 않는다.
+- `AMBIGUOUS_UNRESOLVED`에서 파생된 reconciliation-required candidate를 prepared로 승격하지 않는다.
+- broker acceptance가 ambiguous한 동안 reconciliation 전 automatic retry/retransmit을 금지한다.
+
+### Risk / Permission / Account Boundary
+
+기존 Risk / Permission / Intent / Account Validation / Mapping / Dispatch / Safety chain을 exact preserve한다.
+
+Phase 28은:
+
+- Risk Gate를 재계산하지 않는다.
+- Risk Gate를 우회하지 않는다.
+- Risk decision을 downgrade하지 않는다.
+- account/buying-power를 다시 조회하거나 계산하지 않는다.
+- `ATTEMPT_PREPARED`를 execution-time Risk 또는 Buying-Power freshness 보장으로 해석하지 않는다.
+
+향후 actual Submission 계약은 Phase 28 결과만으로 outbound I/O를 허용해서는 안 되며,
+execution-time Risk/Buying-Power freshness를 어떻게 검증할지 별도의 승인 계약으로 정의해야 한다.
+
+### Kiwoom Provider Boundary
+
+현재 공식 Kiwoom 국내주식 매수주문 `kt10000` 계약은
+`POST /api/dostk/ordr`이며 authorization bearer token을 요구한다.
+모의투자 주문은 KRX만 지원한다.
+
+Phase 28은 이 provider 계약을 설계 근거로만 사용하고 다음을 수행하지 않는다.
+
+- Authorization header 생성
+- OAuth/token acquisition
+- `get_client`
+- `get_ws_client`
+- HTTP POST
+- API request 실행
+- broker response parsing
+- account/order action
+
+Phase 25 request mapping과 Phase 26 dispatch plan을 다시 생성하거나 변경하지 않는다.
+
+### Implementation Paths
+
+향후 별도 구현 승인이 있는 경우에만 다음 두 경로를 구현 허용경로 후보로 둔다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_attempt_preparation.py`
+- `tests/test_watchlist_order_attempt_preparation.py`
+
+별도 승인 없이는 다음을 변경하지 않는다.
+
+- `README.md`의 기존 내용
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- 기존 Phase 27 / 26 / 25 source/tests
+- `pyproject.toml`
+- `uv.lock`
+- 기타 repository path
+
+### Test Contract
+
+Phase 28 구현 시 targeted test method exact count는 64개로 고정한다.
+
+- Phase 28 targeted tests: `64`
+- Phase 27 compatibility: `72`
+- Phase 26 compatibility: `59`
+- Phase 25 compatibility: `59`
+- pre-implementation full regression baseline: `641`
+- expected post-implementation full regression: `705`
+
+64개 targeted methods는 최소 다음 범주를 포함한다.
+
+- Public API / enum / frozen-slots-dataclass / signature
+- upstream snapshot/evaluation/plan/request identity
+- context count/order/source_rank pairing
+- duplicate/missing/extra context fail closed
+- confirmation/reference type/nonblank/uniqueness/collision invariants
+- READY/BLOCKED decision matrix와 malformed combination fail closed
+- snapshot aggregate counts
+- automatic retry false/count zero
+- empty snapshot / all-blocked / mixed snapshot
+- no remap/recalculate/replace/mutate/reorder
+- no network/client/OAuth/token/credential/.env/account/order action
+- no dependency change
+- no REST package re-export
+- Phase 27 / 26 / 25 compatibility와 full regression
+
+### Current Phase Rule
+
+Phase 28 공식 계약을 README에 등록하는 것만으로 Phase 28 구현 또는 Closure가 완료된 것이 아니다.
+
+Phase 28 source/test 구현과 별도 Closure가 승인·검증되기 전까지
+top-level `Current Phase`는 `PHASE27`을 유지한다.
