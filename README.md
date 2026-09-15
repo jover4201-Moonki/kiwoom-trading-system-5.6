@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 28 — demo Kiwoom Buy-Order Preparation Confirmation & Single-Attempt Preparation Snapshot 기반선 v1.0
+Phase 29 — demo Kiwoom Order Send Authorization Evidence Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
