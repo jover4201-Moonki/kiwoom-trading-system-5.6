@@ -2678,3 +2678,519 @@ Phase 28 공식 계약을 README에 등록하는 것만으로 Phase 28 구현 �
 
 Phase 28 source/test 구현과 별도 Closure가 승인·검증되기 전까지
 top-level `Current Phase`는 `PHASE27`을 유지한다.
+
+## Phase 29 — demo Kiwoom Order Send Authorization Evidence Snapshot 기반선 v1.0
+
+Order Submission: OUT OF SCOPE
+
+Phase 29는 Phase 28 `WatchlistKiwoomOrderAttemptPreparationSnapshot`을 exact upstream으로 받아,
+실제 주문 전송 전에 supplied authorization evidence snapshot을 순수 동기식 read-only로 평가하는
+non-sending Send Authorization Evidence Gate 기반선이다.
+
+Phase 29 자체는 provider/client 호출, credential/token/.env 접근, account 접근, external network,
+actual `kt10000` POST, actual Order Submission, historical authorization consumption ledger mutation,
+automatic retry/reclaim/retransmission을 수행하지 않는다.
+
+`ATTEMPT_PREPARED != SEND_AUTHORIZED`를 유지한다.
+
+`SEND_AUTHORIZED`는 Phase 29 authorization evidence snapshot 평가 시점의 decision일 뿐이다.
+
+`SEND_AUTHORIZED != CURRENTLY_VALID_AT_POST_TIME`
+`SEND_AUTHORIZED != AUTHORIZATION_CONSUMED`
+`SEND_AUTHORIZED != ORDER_SUBMITTED`
+`SEND_AUTHORIZED != ORDER_ACCEPTED`
+
+### Public API
+
+Phase 29 public API는 다음 exact 8개로 제한한다.
+
+1. `KiwoomOrderSendAuthorizationError`
+2. `KiwoomOrderSendAuthorizationState`
+3. `KiwoomOrderSendAuthorizationDecision`
+4. `KiwoomOrderSendAuthorizationBlockReason`
+5. `KiwoomOrderSendAuthorizationContext`
+6. `WatchlistCandidateKiwoomOrderSendAuthorization`
+7. `WatchlistKiwoomOrderSendAuthorizationSnapshot`
+8. `build_watchlist_kiwoom_order_send_authorization_snapshot`
+
+`KiwoomOrderSendAuthorizationError`는 `RuntimeError`를 상속한다.
+
+모든 type/count/order/identity/state-reference/authority/snapshot/freshness/coherence/duplicate/upstream
+contract invariant 위반은 decision evaluation 전에 `KiwoomOrderSendAuthorizationError`로 fail closed한다.
+
+partial result 또는 partial snapshot을 반환하지 않는다.
+
+### Authorization state
+
+`KiwoomOrderSendAuthorizationState`는 `str, Enum` 기반이며 exact member는 다음 두 개이다.
+
+- `NOT_AUTHORIZED`
+- `AUTHORIZED_FOR_SEND`
+
+### Decision
+
+`KiwoomOrderSendAuthorizationDecision`은 `str, Enum` 기반이며 exact member는 다음 두 개이다.
+
+- `SEND_AUTHORIZED`
+- `SEND_BLOCKED`
+
+### Block reason
+
+`KiwoomOrderSendAuthorizationBlockReason`은 `str, Enum` 기반이며 exact member는 다음 세 개이다.
+
+- `UPSTREAM_ATTEMPT_BLOCKED`
+- `SEND_AUTHORIZATION_REQUIRED`
+- `AUTHORIZATION_STALE`
+
+### KiwoomOrderSendAuthorizationContext
+
+`KiwoomOrderSendAuthorizationContext`는 frozen immutable dataclass이다.
+
+exact field order는 다음 7개이다.
+
+1. `source_rank`
+2. `submission_attempt_reference`
+3. `authorization_state`
+4. `send_authorization_reference`
+5. `authorization_authority_reference`
+6. `authorization_evidence_snapshot_id`
+7. `is_fresh`
+
+field contract:
+
+- `source_rank`는 해당 Phase 28 source preparation의 `source_rank`와 exact match여야 한다.
+- `submission_attempt_reference`는 해당 Phase 28 source preparation의 `submission_attempt_reference`와 exact match여야 한다.
+- `authorization_state`는 exact `KiwoomOrderSendAuthorizationState`여야 한다.
+- `AUTHORIZED_FOR_SEND`이면 `send_authorization_reference`는 exact `str`, non-empty, non-whitespace여야 한다.
+- `NOT_AUTHORIZED`이면 `send_authorization_reference`는 exact `None`이어야 한다.
+- `authorization_authority_reference`는 exact `str`, non-empty, non-whitespace, opaque, stable authority namespace identity이다.
+- 같은 authority namespace identity를 다른 authority에 recycle/rebind하지 않는다.
+- `send_authorization_reference`를 같은 authority namespace 내 다른 grant/attempt에 recycle/reassign하지 않는다.
+- `authorization_evidence_snapshot_id`는 exact `str`, non-empty, non-whitespace opaque immutable evidence snapshot identity이다.
+- `is_fresh`는 exact `bool`이어야 하며 `int` 대체를 허용하지 않는다.
+
+`authorization_state`, `send_authorization_reference`, `authorization_authority_reference`,
+`authorization_evidence_snapshot_id`, `is_fresh`는 동일 approved authority의 동일 immutable evidence snapshot에서
+나온 하나의 atomic provenance assertion으로 취급한다.
+
+Phase 29는 provider/network/authority call을 하지 않으므로 위 provenance가 실제 외부 authority에서 발행되었다는
+사실 자체를 독립적으로 인증했다고 주장하지 않는다.
+
+### Trusted provenance boundary
+
+Phase 29 local validation은 다음을 검증한다.
+
+- exact input types
+- Phase 28 upstream registered contract invariants
+- context count와 positional order
+- pairwise `source_rank` identity
+- pairwise `submission_attempt_reference` identity
+- authorization state/reference structural invariant
+- `authorization_authority_reference` local structural validity
+- `authorization_evidence_snapshot_id` local structural validity
+- `is_fresh` exact bool
+- non-empty batch authority/snapshot/freshness coherence
+- duplicate non-None `send_authorization_reference`
+- decision invariant
+- aggregate invariant
+
+Phase 29는 다음 사실을 독립적으로 인증했다고 주장하지 않는다.
+
+- `authorization_authority_reference`가 실제 승인된 external authority라는 사실
+- grant가 실제 해당 authority에서 발행되었다는 사실
+- grant가 실제 해당 `submission_attempt_reference`에 발행되었다는 사실
+- snapshot ID가 실제 immutable authority snapshot을 가리킨다는 사실
+- `is_fresh`가 실제 wall-clock/current authority 상태라는 사실
+- historical grant consumption/reuse 상태
+
+위 항목은 approved external authorization authority/controller/adapter가 제공하는 trusted provenance assertion으로 취급한다.
+
+### PHASE28_UPSTREAM_CONTRACT_VALIDATION
+
+authorization evidence validation 또는 decision evaluation 전에 Phase 28 upstream registered contract를 먼저 검증한다.
+
+Phase 29는 Phase 28의 decision이나 KRX/demo capability를 다시 계산하지 않는다.
+
+다만 다음 구조적 invariant는 exact 검증한다.
+
+1. `source_snapshot`은 exact `WatchlistKiwoomOrderAttemptPreparationSnapshot`이어야 한다.
+2. `source_snapshot.preparations`는 Phase 28 공식 contract의 exact tuple/container invariant를 만족해야 한다.
+3. 모든 preparation member는 exact `WatchlistCandidateKiwoomOrderAttemptPreparation`이어야 한다.
+4. `source_snapshot.candidate_count == len(source_snapshot.preparations)`이어야 한다.
+5. Phase 28 snapshot의 공식 aggregate count invariant 전체를 만족해야 한다.
+6. 각 preparation의 `decision` / `block_reason` 조합은 Phase 28 공식 contract와 exact 일치해야 한다.
+7. 각 Phase 28 `submission_attempt_reference`는 Phase 28 공식 reference invariant를 만족해야 한다.
+8. 각 preparation의 `automatic_retry_permitted`는 exact `False`여야 한다.
+9. Phase 28 snapshot `automatic_retry_permitted_count`는 exact `0`이어야 한다.
+10. Phase 28의 source/context/reference positional identity invariant를 만족해야 한다.
+11. Phase 28 source objects를 remap/recalculate/replace/mutate/reorder하지 않는다.
+
+하나라도 실패하면 Phase 29 authorization evidence validation이나 decision evaluation으로 진행하지 않고
+partial result 없이 `KiwoomOrderSendAuthorizationError`로 fail closed한다.
+
+### Validation order
+
+validation order는 다음 순서로 고정한다.
+
+1. Phase 28 upstream exact type / structure / aggregate / reference / decision invariant validation
+2. Phase 29 context exact type / count / positional order
+3. `source_rank` exact pairwise identity
+4. `submission_attempt_reference` exact binding
+5. authorization state/reference structural invariant
+6. `authorization_authority_reference` validity
+7. `authorization_evidence_snapshot_id` validity
+8. authority/snapshot/freshness batch coherence
+9. `is_fresh` exact bool
+10. duplicate non-None `send_authorization_reference`
+11. decision evaluation
+
+### Batch coherence
+
+non-empty batch에서는 다음 값이 모든 context에서 exact same이어야 한다.
+
+- `authorization_authority_reference`
+- `authorization_evidence_snapshot_id`
+- `is_fresh`
+
+mixed authority/snapshot/freshness는 contract ERROR이다.
+
+non-None `send_authorization_reference`는 batch 안에서 중복될 수 없다.
+
+`None`은 grant가 아니므로 여러 `NOT_AUTHORIZED` context에서 반복될 수 있다.
+
+### Decision precedence
+
+validation을 모두 통과한 뒤 다음 precedence를 적용한다.
+
+1. Phase 28 `ATTEMPT_BLOCKED`
+   - decision = `SEND_BLOCKED`
+   - block_reason = `UPSTREAM_ATTEMPT_BLOCKED`
+
+2. Phase 28 `ATTEMPT_PREPARED` + `is_fresh == False`
+   - authorization state와 관계없이 decision = `SEND_BLOCKED`
+   - block_reason = `AUTHORIZATION_STALE`
+
+3. Phase 28 `ATTEMPT_PREPARED` + fresh + `NOT_AUTHORIZED`
+   - decision = `SEND_BLOCKED`
+   - block_reason = `SEND_AUTHORIZATION_REQUIRED`
+
+4. Phase 28 `ATTEMPT_PREPARED` + fresh + `AUTHORIZED_FOR_SEND`
+   - decision = `SEND_AUTHORIZED`
+   - block_reason = `None`
+
+stale `NOT_AUTHORIZED`는 `SEND_AUTHORIZATION_REQUIRED`보다 `AUTHORIZATION_STALE`가 우선한다.
+
+### WatchlistCandidateKiwoomOrderSendAuthorization
+
+`WatchlistCandidateKiwoomOrderSendAuthorization`은 frozen immutable dataclass이다.
+
+exact field order는 다음 6개이다.
+
+1. `source_preparation`
+2. `context`
+3. `decision`
+4. `block_reason`
+5. `send_authorized`
+6. `automatic_retry_permitted`
+
+invariant:
+
+- `source_preparation`은 해당 Phase 28 preparation object identity를 exact preserve한다.
+- `context`는 validated input context identity를 exact preserve한다.
+- `send_authorized == (decision is SEND_AUTHORIZED)`
+- `automatic_retry_permitted == False`
+
+### WatchlistKiwoomOrderSendAuthorizationSnapshot
+
+`WatchlistKiwoomOrderSendAuthorizationSnapshot`은 frozen immutable dataclass이다.
+
+collection field는 tuple을 사용한다.
+
+exact field order는 다음 9개이다.
+
+1. `source_snapshot`
+2. `authorizations`
+3. `candidate_count`
+4. `send_authorized_count`
+5. `send_blocked_count`
+6. `authorization_required_count`
+7. `authorization_stale_count`
+8. `upstream_blocked_count`
+9. `automatic_retry_permitted_count`
+
+aggregate invariant:
+
+`candidate_count = send_authorized_count + send_blocked_count`
+
+`send_blocked_count = authorization_required_count + authorization_stale_count + upstream_blocked_count`
+
+`automatic_retry_permitted_count == 0`
+
+empty source + empty contexts는 valid하며 모든 aggregate count는 0이다.
+
+### Builder
+
+exact synchronous builder signature:
+
+`build_watchlist_kiwoom_order_send_authorization_snapshot(`
+`    source_snapshot: WatchlistKiwoomOrderAttemptPreparationSnapshot,`
+`    contexts: tuple[KiwoomOrderSendAuthorizationContext, ...],`
+`) -> WatchlistKiwoomOrderSendAuthorizationSnapshot`
+
+- positional order는 `source_snapshot`, `contexts`로 고정한다.
+- defaults는 없다.
+- `source_snapshot`은 exact `WatchlistKiwoomOrderAttemptPreparationSnapshot`이어야 한다.
+- `contexts`는 exact tuple이어야 한다.
+- 모든 context member는 exact `KiwoomOrderSendAuthorizationContext`여야 한다.
+- return type은 exact `WatchlistKiwoomOrderSendAuthorizationSnapshot`이다.
+- validation 완료 전 partial candidate/snapshot을 외부로 반환하지 않는다.
+
+### Future Submission boundary
+
+Phase 29는 authorization consumption을 수행하지 않는다.
+
+future actual Submission Phase의 claim identity는 다음 exact 4-tuple이다.
+
+`authorization_claim_identity = (`
+`    authorization_authority_reference,`
+`    authorization_evidence_snapshot_id,`
+`    submission_attempt_reference,`
+`    send_authorization_reference,`
+`)`
+
+future replay guard는 다음 exact 2-tuple이다.
+
+`authorization_replay_guard = (`
+`    authorization_authority_reference,`
+`    send_authorization_reference,`
+`)`
+
+`send_authorization_reference` 단독은 claim identity가 아니다.
+
+future actual Submission Phase에서는 하나의 approved authorization authority/controller가 보장하는
+single authoritative atomic check-and-consume transaction 안에서 다음을 모두 검증한다.
+
+- claim identity unconsumed
+- replay guard unconsumed
+- exact authority namespace 동일
+- exact immutable evidence snapshot identity 동일
+- exact `submission_attempt_reference` 동일
+- exact `send_authorization_reference` 동일
+- grant가 해당 exact attempt에 계속 binding
+- grant가 revoked/invalidated되지 않음
+- evidence/grant가 transaction 시점에 authoritative하게 fresh/current-valid
+
+authority validity를 transaction 전에 별도로 prefetch한 뒤 local ledger transaction을 수행하는 방식은 허용하지 않는다.
+
+위 조건이 모두 참일 때만 claim identity와 replay guard를 함께 consumed로 atomic commit한다.
+
+partial consume / one-key-only success는 허용하지 않는다.
+
+`AUTHORIZATION_CONSUMPTION_COMMITTED`가 성공한 순간을 해당 exact outbound attempt의
+final authorization linearization point로 정의한다.
+
+`AUTHORIZATION_CONSUMPTION_COMMITTED`는 해당 exact identity에 대한 irrevocable one-shot send reservation이다.
+
+atomic commit 이후 일반적인 freshness expiry 또는 동일 grant의 후속 revoke는 이미 성공적으로 reserved된
+그 exact outbound attempt를 소급 무효화하지 않는다.
+
+authorization authority의 정책 또는 기술구조상 위 semantics를 보장할 수 없으면 다음으로 fail closed한다.
+
+`ATOMIC_CONSUMPTION_SUPPORTED=NO`
+`POST_PERMITTED=NO`
+
+atomic check-and-consume 결과가 already-consumed, duplicate, conflict, stale, revoked, invalid,
+timeout, cancellation, failure, unknown/ambiguous이면 `kt10000` POST를 시도하지 않는다.
+
+automatic retry / automatic reclaim / automatic unconsume / authorization reuse / retransmission을 금지한다.
+
+atomic consume success 이후 process가 실제 POST 전에 종료되어도 authorization은 consumed 상태로 유지한다.
+
+actual POST가 시작된 이후 결과가 timeout/cancellation/connection loss/response loss 등으로 ambiguous하면
+Phase 27 `AMBIGUOUS_UNRESOLVED` → broker-side reconciliation → no automatic retry/retransmission 계약을 승계한다.
+
+### Phase 29 forbidden side effects
+
+Phase 29 자체에서는 다음을 전부 금지한다.
+
+- provider REST client call
+- provider WebSocket client call
+- OAuth/token access
+- `.env`/credential access
+- external network
+- account access
+- actual order action
+- actual `kt10000` POST
+- historical authorization consumption/replay ledger mutation
+- automatic retry/reclaim/retransmission
+- Phase 28 source object mutation
+
+### Runtime targeted test manifest
+
+Phase 29 runtime targeted test total은 exact `89`개이다.
+
+- `Phase29PublicApiTests=10`
+- `Phase29UpstreamIdentityTests=21`
+- `Phase29AuthorizationEvidenceInvariantTests=24`
+- `Phase29DecisionMatrixTests=8`
+- `Phase29SnapshotAggregateTests=10`
+- `Phase29ForbiddenSideEffectTests=8`
+- `Phase29CompatibilityBoundaryTests=8`
+- `TOTAL=89`
+
+`EXPECTED_POST_IMPLEMENTATION_FULL_REGRESSION=705+89=794`
+
+#### Phase29PublicApiTests — 10
+
+- `test_public_api_exact_eight_symbols`
+- `test_error_is_runtime_error`
+- `test_state_enum_exact_members`
+- `test_decision_enum_exact_members`
+- `test_block_reason_enum_exact_members`
+- `test_context_exact_fields_and_frozen`
+- `test_candidate_exact_fields_and_frozen`
+- `test_snapshot_exact_fields_and_frozen`
+- `test_builder_exact_signature`
+- `test_builder_sync_exact_return_type`
+
+#### Phase29UpstreamIdentityTests — 21
+
+- `test_rejects_nonexact_source_snapshot_type`
+- `test_rejects_contexts_non_tuple`
+- `test_rejects_nonexact_context_member_type`
+- `test_rejects_missing_context`
+- `test_rejects_extra_context`
+- `test_rejects_context_positional_reordering`
+- `test_rejects_source_rank_identity_mismatch`
+- `test_rejects_submission_attempt_reference_mismatch`
+- `test_preserves_source_snapshot_identity`
+- `test_preserves_source_preparation_identity`
+- `test_preserves_context_identity`
+- `test_accepts_empty_source_with_empty_contexts`
+- `test_rejects_phase28_preparations_non_tuple`
+- `test_rejects_phase28_nonexact_preparation_member_type`
+- `test_rejects_phase28_candidate_count_length_mismatch`
+- `test_rejects_malformed_phase28_snapshot_aggregate`
+- `test_rejects_malformed_phase28_preparation_decision_block_reason_invariant`
+- `test_rejects_malformed_phase28_submission_attempt_reference_invariant`
+- `test_rejects_phase28_automatic_retry_invariant_violation`
+- `test_rejects_phase28_snapshot_automatic_retry_count_nonzero`
+- `test_rejects_malformed_phase28_source_context_reference_identity`
+
+#### Phase29AuthorizationEvidenceInvariantTests — 24
+
+- `test_rejects_raw_string_authorization_state`
+- `test_authorized_requires_send_reference_exact_str`
+- `test_authorized_rejects_empty_send_reference`
+- `test_authorized_rejects_whitespace_send_reference`
+- `test_not_authorized_requires_none_send_reference`
+- `test_authority_reference_requires_exact_str`
+- `test_authority_reference_rejects_empty`
+- `test_authority_reference_rejects_whitespace`
+- `test_snapshot_id_requires_exact_str`
+- `test_snapshot_id_rejects_empty`
+- `test_snapshot_id_rejects_whitespace`
+- `test_is_fresh_requires_exact_bool`
+- `test_rejects_mixed_authority_batch`
+- `test_rejects_mixed_snapshot_id_batch`
+- `test_rejects_mixed_freshness_batch`
+- `test_rejects_duplicate_non_none_send_reference`
+- `test_allows_duplicate_none_send_references`
+- `test_allows_distinct_send_references`
+- `test_accepts_valid_authorized_pair`
+- `test_accepts_valid_not_authorized_pair`
+- `test_preserves_send_reference_exactly`
+- `test_preserves_authority_and_snapshot_exactly`
+- `test_candidate_send_authorized_matches_decision`
+- `test_candidate_automatic_retry_is_false`
+
+#### Phase29DecisionMatrixTests — 8
+
+- `test_blocked_stale_not_authorized_is_upstream_blocked`
+- `test_blocked_stale_authorized_is_upstream_blocked`
+- `test_blocked_fresh_not_authorized_is_upstream_blocked`
+- `test_blocked_fresh_authorized_is_upstream_blocked`
+- `test_prepared_stale_not_authorized_is_stale`
+- `test_prepared_stale_authorized_is_stale`
+- `test_prepared_fresh_not_authorized_requires_authorization`
+- `test_prepared_fresh_authorized_is_send_authorized`
+
+#### Phase29SnapshotAggregateTests — 10
+
+- `test_candidate_count_exact`
+- `test_send_authorized_count_exact`
+- `test_send_blocked_count_exact`
+- `test_authorization_required_count_exact`
+- `test_authorization_stale_count_exact`
+- `test_upstream_blocked_count_exact`
+- `test_automatic_retry_count_zero`
+- `test_candidate_partition_invariant`
+- `test_blocked_reason_sum_invariant`
+- `test_empty_snapshot_all_counts_zero`
+
+#### Phase29ForbiddenSideEffectTests — 8
+
+- `test_no_provider_client_call`
+- `test_no_websocket_client_call`
+- `test_no_oauth_or_token_access`
+- `test_no_dotenv_or_credential_access`
+- `test_no_external_network`
+- `test_no_account_access`
+- `test_no_order_or_kt10000_call`
+- `test_no_consumption_ledger_mutation`
+
+#### Phase29CompatibilityBoundaryTests — 8
+
+- `test_phase28_public_api_unchanged`
+- `test_phase27_public_api_unchanged`
+- `test_phase26_public_api_unchanged`
+- `test_phase25_public_api_unchanged`
+- `test_attempt_prepared_does_not_imply_send_authorized`
+- `test_validation_failure_precedes_decision`
+- `test_venue_capability_not_recomputed`
+- `test_send_authorized_has_no_submission_or_consumption_semantics`
+
+exact test name count는 89, unique name count는 89이며 duplicate는 0이어야 한다.
+
+Future atomic-consumption ledger, actual authority transaction, actual POST,
+broker ambiguous-result handling tests는 Phase 29 targeted 89에 포함하지 않는다.
+
+위 future responsibility는 `FUTURE_SUBMISSION_BOUNDARY_TEST_MANIFEST`로 별도 유지하고,
+향후 actual Submission Phase implementation 때 해당 Phase의 신규 테스트로 산입한다.
+
+### Registration boundary
+
+Phase 29 공식 계약 README 등록 자체는 Phase 29 source/test 구현 승인이 아니다.
+
+README 등록 단계에서는 다음을 금지한다.
+
+- Phase 29 source/test 생성 또는 수정
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` 변경
+- dependency 변경
+- credential/token/account/network/order 접근
+- git add
+- git commit
+- git push
+- Current Phase 변경
+
+README 공식 계약 등록 후에도 `Current Phase`는 별도 구현/Closure 승인 전까지 `PHASE28`로 유지한다.
+
+### Implementation allowed paths
+
+Phase 29 implementation mutation allowlist는 exact 2개 경로로 제한한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_send_authorization.py`
+- `tests/test_watchlist_order_send_authorization.py`
+
+Phase 29 implementation 단계에서는 위 두 경로만 생성 또는 수정할 수 있다.
+
+`README.md`는 Phase 29 implementation mutation allowlist에 포함하지 않는다.
+Implementation Allowed Paths README Amendment Registration Actual Rerun으로 확정된 README exact identity를 Phase 29 implementation 동안 byte-for-byte 보존한다.
+승인된 ` M README.md` 상태는 expected pre-existing approved change이며 dirty error로 처리하지 않는다.
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`는 implementation allowed path가 아니며 기존 exact identity를 보존한다.
+Phase 29 public API exact 8은 `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_send_authorization.py` module-level public API로 제공하며 package-level re-export를 요구하지 않는다.
+
+Phase 29 implementation에서는 그 밖의 기존 source/test, `README.md`, `rest/__init__.py`, `pyproject.toml`, `uv.lock`, `.env`, credential/token 관련 파일, Git index/commit/remote, Current Phase를 수정하지 않는다.
+
+Future implementation commit path set과 git add/commit 권한은 별도 승인 대상이며, 본 allowed-path contract approval 또는 README amendment registration으로 자동 승인하지 않는다.
