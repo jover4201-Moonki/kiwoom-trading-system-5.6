@@ -3194,3 +3194,363 @@ Phase 29 public API exact 8은 `src/kiwoom_trading_system/brokers/kiwoom/rest/wa
 Phase 29 implementation에서는 그 밖의 기존 source/test, `README.md`, `rest/__init__.py`, `pyproject.toml`, `uv.lock`, `.env`, credential/token 관련 파일, Git index/commit/remote, Current Phase를 수정하지 않는다.
 
 Future implementation commit path set과 git add/commit 권한은 별도 승인 대상이며, 본 allowed-path contract approval 또는 README amendment registration으로 자동 승인하지 않는다.
+
+## Phase 30 — demo Kiwoom Cash BUY-Order Request Materialization Snapshot 기반선 v1.0
+
+Order Submission: OUT OF SCOPE
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=A542DE4A23659E0B99A3FDE31F899FEF4FFD7B6A2ABBBA29C902ADBD5BE3F54D`
+
+Phase 30은 Phase 29에서 검증된 authorization evidence와 upstream order-data provenance를 실제 provider/client 전송 없이 Kiwoom 국내주식 BUY 주문 request 형상의 immutable local snapshot으로 결정적으로 materialize하는 pure local boundary이다.
+
+Phase 30 자체에서는 provider/client 호출, OAuth/token/.env 접근, account 조회, external network, 실제 `kt10000` POST, 주문 제출, 응답 파싱, 주문번호 처리, retry/retransmission, authorization consumption/replay ledger mutation을 수행하지 않는다.
+
+`MATERIALIZED != AUTHORIZED_TO_SEND`
+`MATERIALIZED != ORDER_SUBMITTED`
+`MATERIALIZED != ORDER_ACCEPTED`
+
+### Scope
+
+Phase 30 exact scope는 다음과 같다.
+
+- environment = `demo` only
+- side = `BUY` only
+- exchange = `KRX` only
+- cash order only
+- order style = `LIMIT` 또는 `MARKET`
+- provider request body materialization
+- deterministic materialization fingerprint
+- immutable input/snapshot/body
+- local provenance reference preservation
+- no credentials
+- no account access
+- no network
+- no provider call
+- no order submission
+- no retry
+
+SELL=`kt10001`, NXT, SOR, credit order, amend/cancel, IOC/FOK, 조건부지정가, 시간외, 최유리, 최우선, 스톱지정가, 중간가, response parsing, order number, actual transport는 Phase 30 범위가 아니다.
+
+SELL은 현재 local upstream `WatchlistOrderIntentSide`가 BUY-only이므로 Phase 30에 포함하지 않고 별도 후속 계약으로 분리한다.
+
+### Public API
+
+Phase 30 module-level public API는 exact 4개로 제한한다.
+
+1. `WatchlistOrderSendRequestError`
+2. `WatchlistOrderSendRequestInput`
+3. `WatchlistOrderSendRequestSnapshot`
+4. `build_demo_watchlist_order_send_request_snapshot`
+
+`WatchlistOrderSendRequestError`는 `RuntimeError`를 상속한다.
+
+exact synchronous builder signature:
+
+`build_demo_watchlist_order_send_request_snapshot(`
+`    request: WatchlistOrderSendRequestInput,`
+`) -> WatchlistOrderSendRequestSnapshot`
+
+defaults는 없다.
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` package-level re-export는 Phase 30 계약에 포함하지 않는다.
+
+### WatchlistOrderSendRequestInput
+
+`WatchlistOrderSendRequestInput`은 frozen immutable dataclass이다.
+
+exact field order는 다음 9개이다.
+
+1. `environment`
+2. `side`
+3. `exchange`
+4. `stock_code`
+5. `quantity`
+6. `order_style`
+7. `limit_price`
+8. `source_attempt_ref`
+9. `authorization_evidence_ref`
+
+field contract:
+
+- `environment`는 exact `str` `"demo"`여야 한다.
+- `side`는 exact `str` `"BUY"`여야 한다.
+- `exchange`는 exact `str` `"KRX"`여야 한다.
+- `stock_code`는 exact `str`, length 1..12, non-empty이며 leading/trailing whitespace와 control character를 허용하지 않는다.
+- `quantity`는 exact `int`이고 `bool`을 허용하지 않으며 `> 0`, decimal representation length `<= 12`여야 한다.
+- `order_style`은 exact `str` `"LIMIT"` 또는 `"MARKET"`이어야 한다.
+- `LIMIT`이면 `limit_price`는 exact positive `int`, `bool` 금지, decimal representation length `<= 12`여야 한다.
+- `MARKET`이면 `limit_price`는 exact `None`이어야 한다.
+- `source_attempt_ref`는 exact `str`, length 1..128, non-empty, non-whitespace이며 control character를 허용하지 않는 opaque provenance reference이다.
+- `authorization_evidence_ref`는 exact `str`, length 1..128, non-empty, non-whitespace이며 control character를 허용하지 않는 opaque provenance reference이다.
+
+### Canonical provenance
+
+`source_attempt_ref`의 canonical upstream provenance source는 Phase 29 `KiwoomOrderSendAuthorizationContext.submission_attempt_reference`이다.
+
+`authorization_evidence_ref`의 canonical upstream provenance source는 Phase 29 `KiwoomOrderSendAuthorizationContext.authorization_evidence_snapshot_id`이다.
+
+`send_authorization_reference`와 `authorization_authority_reference`는 각각 별도 의미를 유지하며 `authorization_evidence_ref`로 대체하거나 재해석하지 않는다.
+
+Phase 30 builder는 Phase 29 object graph를 import/traverse/recompute하지 않는다. caller/adapter가 이미 검증된 opaque reference를 `WatchlistOrderSendRequestInput`에 공급한다.
+
+`source_snapshot` object 자체를 `str(...)`, `repr(...)`, hash, object id 또는 임의 serialization으로 `source_attempt_ref`로 변환하는 것은 금지한다.
+
+provenance reference의 존재는 actual order send permission을 의미하지 않는다.
+
+### Provider request contract
+
+Phase 30 BUY provider contract는 다음과 같이 고정한다.
+
+- `api_id = "kt10000"`
+- `http_method = "POST"`
+- `api_path = "/api/dostk/ordr"`
+- `dmst_stex_tp = "KRX"`
+- `stk_cd = stock_code`
+- `ord_qty = str(quantity)`
+- `cond_uv = ""`
+
+LIMIT:
+
+- `ord_uv = str(limit_price)`
+- `trde_tp = "0"`
+
+MARKET:
+
+- `ord_uv = ""`
+- `trde_tp = "3"`
+
+provider body exact key set는 다음 6개이다.
+
+1. `dmst_stex_tp`
+2. `stk_cd`
+3. `ord_qty`
+4. `ord_uv`
+5. `trde_tp`
+6. `cond_uv`
+
+provider body의 모든 value는 `str`이다.
+
+### WatchlistOrderSendRequestSnapshot
+
+`WatchlistOrderSendRequestSnapshot`은 frozen immutable dataclass이다.
+
+exact field order는 다음 15개이다.
+
+1. `environment`
+2. `side`
+3. `exchange`
+4. `api_id`
+5. `http_method`
+6. `api_path`
+7. `body`
+8. `source_attempt_ref`
+9. `authorization_evidence_ref`
+10. `materialization_fingerprint`
+11. `transport_allowed`
+12. `credential_accessed`
+13. `network_performed`
+14. `account_accessed`
+15. `order_submitted`
+
+`body`는 immutable mapping이어야 하며 builder 반환 후 mutation을 허용하지 않는다.
+
+safety flags는 항상 다음과 같다.
+
+- `transport_allowed == False`
+- `credential_accessed == False`
+- `network_performed == False`
+- `account_accessed == False`
+- `order_submitted == False`
+
+### Deterministic materialization fingerprint
+
+fingerprint field name은 exact `materialization_fingerprint`이다.
+
+fingerprint envelope는 exact 다음 값을 포함한다.
+
+- `environment`
+- `side`
+- `exchange`
+- `api_id`
+- `http_method`
+- `api_path`
+- provider `body`
+- `source_attempt_ref`
+- `authorization_evidence_ref`
+
+canonical JSON:
+
+`json.dumps(`
+`    envelope,`
+`    sort_keys=True,`
+`    separators=(",", ":"),`
+`    ensure_ascii=True,`
+`    allow_nan=False,`
+`)`
+
+canonical JSON을 UTF-8 bytes로 encode한 후:
+
+`hashlib.sha256(canonical_bytes).hexdigest()`
+
+를 사용한다.
+
+fingerprint는 lowercase 64-hex string이다.
+
+known vector:
+
+- `environment="demo"`
+- `side="BUY"`
+- `exchange="KRX"`
+- `stock_code="005930"`
+- `quantity=3`
+- `order_style="LIMIT"`
+- `limit_price=64500`
+- `source_attempt_ref="attempt-1"`
+- `authorization_evidence_ref="snapshot-1"`
+
+expected fingerprint:
+
+`95a9556fe973f96e40d664b3369d96366f6bc00fbc3ccd34cc14058925bebc69`
+
+같은 exact input은 같은 fingerprint를 생성해야 하며, provider request 또는 두 provenance reference 중 하나가 달라지면 fingerprint도 달라져야 한다.
+
+### Validation order and errors
+
+validation order와 first-error precedence는 다음 exact 순서로 고정한다.
+
+1. `ENVIRONMENT_PROHIBITED`
+2. `SIDE_UNSUPPORTED`
+3. `DEMO_EXCHANGE_UNSUPPORTED`
+4. `STOCK_CODE_INVALID`
+5. `QUANTITY_INVALID`
+6. `ORDER_STYLE_UNSUPPORTED`
+7. `LIMIT_PRICE_INVALID`
+8. `MARKET_PRICE_MUST_BE_EMPTY`
+9. `SOURCE_ATTEMPT_REF_INVALID`
+10. `AUTHORIZATION_EVIDENCE_REF_INVALID`
+
+복수 오류가 존재해도 위 순서의 첫 오류 하나만 raise한다.
+
+validation failure에서는 partial body, partial snapshot 또는 fingerprint를 반환하지 않는다.
+
+### State transition
+
+Phase 30 state transition은 다음 세 단계뿐이다.
+
+`INPUT -> VALIDATED -> MATERIALIZED`
+
+failure는 fail closed이며 partial state를 외부에 반환하지 않는다.
+
+automatic retry, retry counter, backoff, resend, reclaim, authorization reuse는 존재하지 않는다.
+
+### Forbidden side effects
+
+Phase 30 module과 builder에서는 다음을 모두 금지한다.
+
+- provider REST/WebSocket client call
+- OAuth/token access
+- `.env`/credential access
+- environment credential lookup
+- account access
+- external network
+- file I/O
+- actual order action
+- actual `kt10000` POST
+- response parsing
+- order-number handling
+- Phase 29 source object traversal
+- source object mutation
+- authorization consumption/replay ledger mutation
+- retry/retransmission
+- wall-clock/time dependency
+- UUID generation
+- randomness
+
+### Runtime targeted test manifest
+
+Phase 30 runtime targeted test total은 exact `42`개이다.
+
+`EXPECTED_PRE_IMPLEMENTATION_FULL_REGRESSION=794`
+`EXPECTED_NEW_TEST_DELTA=42`
+`EXPECTED_POST_IMPLEMENTATION_FULL_REGRESSION=836`
+
+exact test names:
+
+1. `test_public_api_exact_four_symbols`
+2. `test_builder_exact_signature_and_return_type`
+3. `test_error_is_runtime_error`
+4. `test_input_exact_fields_and_frozen`
+5. `test_snapshot_exact_fields_and_frozen`
+6. `test_snapshot_body_is_immutable`
+7. `test_buy_limit_snapshot_exact`
+8. `test_buy_market_snapshot_exact`
+9. `test_api_id_method_and_path_exact`
+10. `test_provider_body_key_set_exact`
+11. `test_provider_body_values_are_strings`
+12. `test_limit_provider_mapping_exact`
+13. `test_market_provider_mapping_exact`
+14. `test_provider_exchange_and_condition_price_exact`
+15. `test_non_demo_environment_rejected`
+16. `test_non_buy_side_rejected`
+17. `test_non_krx_exchange_rejected`
+18. `test_stock_code_blank_whitespace_control_rejected`
+19. `test_stock_code_type_and_length_rejected`
+20. `test_quantity_requires_exact_int_not_bool`
+21. `test_quantity_positive_and_12_digit_limit`
+22. `test_order_style_invalid_rejected`
+23. `test_limit_price_required_exact_positive_int_and_12_digit_limit`
+24. `test_market_price_must_be_none`
+25. `test_source_attempt_ref_invalid_rejected`
+26. `test_authorization_evidence_ref_invalid_rejected`
+27. `test_provenance_references_preserved_exactly`
+28. `test_phase29_submission_attempt_reference_contract_available`
+29. `test_phase29_authorization_evidence_snapshot_id_contract_available`
+30. `test_materializer_does_not_traverse_phase29_source_chain`
+31. `test_fingerprint_repeat_stable`
+32. `test_fingerprint_known_vector`
+33. `test_fingerprint_changes_with_provider_request`
+34. `test_fingerprint_changes_with_source_attempt_ref`
+35. `test_fingerprint_changes_with_authorization_evidence_ref`
+36. `test_fingerprint_is_lowercase_sha256_hex`
+37. `test_builder_does_not_read_environment_credentials`
+38. `test_builder_does_not_perform_network_io`
+39. `test_builder_does_not_access_account`
+40. `test_builder_does_not_submit_order_or_call_provider`
+41. `test_transport_and_side_effect_flags_are_false`
+42. `test_builder_does_not_use_file_io_retry_time_uuid_or_randomness`
+
+exact test name count=42, unique name count=42, duplicate=0이어야 한다.
+
+### Registration boundary
+
+Phase 30 공식 계약 README 등록 자체는 Phase 30 source/test 구현 승인이 아니다.
+
+README 등록 단계에서는 다음을 금지한다.
+
+- Phase 30 source/test 생성 또는 수정
+- 기존 Phase29/upstream source/test 수정
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` 변경
+- dependency 변경
+- credential/token/account/network/order 접근
+- git add
+- git commit
+- git push
+- Current Phase 변경
+
+README 공식 계약 등록 이후에도 `Current Phase`는 별도 implementation/Closure 승인 전까지 `PHASE29`로 유지한다.
+
+### Implementation allowed paths
+
+Phase 30 implementation mutation allowlist는 exact 다음 2개 경로로 제한한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_send_request.py`
+- `tests/test_watchlist_order_send_request.py`
+
+Phase 30 implementation 단계에서는 위 두 경로만 생성 또는 수정할 수 있다.
+
+`README.md`는 Phase 30 implementation mutation allowlist에 포함하지 않는다.
+`src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`도 implementation allowed path가 아니다.
+
+Phase 30 implementation에서 기존 Phase29/upstream source/test, `README.md`, `rest/__init__.py`, `pyproject.toml`, `uv.lock`, `.env`, credential/token 관련 파일, Git index/commit/remote, Current Phase를 수정하지 않는다.
+
+Future implementation commit path set과 git add/commit 권한은 별도 승인 대상이며, 본 README contract registration이 자동 승인하지 않는다.
