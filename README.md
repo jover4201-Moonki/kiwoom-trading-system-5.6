@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 29 — demo Kiwoom Order Send Authorization Evidence Snapshot 기반선 v1.0
+Phase 30 — demo Kiwoom Cash BUY-Order Request Materialization Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
