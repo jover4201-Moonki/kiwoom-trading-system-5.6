@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 30 — demo Kiwoom Cash BUY-Order Request Materialization Snapshot 기반선 v1.0
+Phase 31 — demo Kiwoom Cash BUY-Order Authorization Consumption Claim & Replay-Guard Preparation Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
