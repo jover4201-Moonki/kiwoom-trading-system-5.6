@@ -3554,3 +3554,455 @@ Phase 30 implementation 단계에서는 위 두 경로만 생성 또는 수정�
 Phase 30 implementation에서 기존 Phase29/upstream source/test, `README.md`, `rest/__init__.py`, `pyproject.toml`, `uv.lock`, `.env`, credential/token 관련 파일, Git index/commit/remote, Current Phase를 수정하지 않는다.
 
 Future implementation commit path set과 git add/commit 권한은 별도 승인 대상이며, 본 README contract registration이 자동 승인하지 않는다.
+
+## Phase 31 — demo Kiwoom Cash BUY-Order Authorization Consumption Claim & Replay-Guard Preparation Snapshot 기반선 v1.0
+
+Order Submission: OUT OF SCOPE
+Authorization Consumption Transaction: OUT OF SCOPE
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=D9BC9127B1BD90BC54049FA87F357C0DF94F6D82C2F9B89EB063542155B94CAA`
+
+Phase 31은 Phase 30 `WatchlistOrderSendRequestSnapshot`의 이미 materialize된 demo/KRX/cash BUY request와 Phase 29 Future Submission boundary가 정의한 authorization provenance reference를 결합하여, future authoritative atomic check-and-consume transaction에 전달할 authorization claim identity와 replay guard를 immutable local snapshot으로 준비하는 pure local boundary이다.
+
+Phase 31 자체에서는 authorization authority/controller 호출, authorization consumption, replay-ledger mutation, credential/token/.env 접근, account 접근, provider/client 호출, external network, 실제 `kt10000` POST, 주문 제출, response parsing, 주문번호 처리, retry/retransmission을 수행하지 않는다.
+
+`CLAIM_PREPARED != SEND_AUTHORIZED`
+`CLAIM_PREPARED != CURRENTLY_VALID_AT_POST_TIME`
+`CLAIM_PREPARED != AUTHORIZATION_CONSUMED`
+`CLAIM_PREPARED != POST_PERMITTED`
+`CLAIM_PREPARED != ORDER_SUBMITTED`
+`CLAIM_PREPARED != ORDER_ACCEPTED`
+
+### Scope
+
+Phase 31 exact scope:
+
+- environment = `demo` only
+- side = `BUY` only
+- exchange = `KRX` only
+- cash order only
+- exact Phase 30 `WatchlistOrderSendRequestSnapshot` upstream
+- Phase 29 Future Submission claim 4-tuple 의미 보존
+- Phase 29 Future Submission replay-guard 2-tuple 의미 보존
+- authorization claim identity preparation
+- authorization replay guard preparation
+- deterministic claim fingerprint
+- immutable context/snapshot
+- no authorization authority/controller call
+- no authorization consumption
+- no replay-ledger mutation
+- no credential/token/account access
+- no network
+- no provider call
+- no actual `kt10000` POST
+- no order submission
+- no response parsing
+- no automatic retry
+
+SELL, NXT, SOR, credit order, amend/cancel, 추가 주문유형, actual authorization check-and-consume, actual transport, provider response, order number, broker-side reconciliation mutation은 Phase 31 범위가 아니다.
+
+### Public API
+
+Phase 31 module-level public API는 exact 4개로 제한한다.
+
+1. `WatchlistOrderAuthorizationConsumptionClaimError`
+2. `KiwoomOrderAuthorizationConsumptionClaimContext`
+3. `WatchlistOrderAuthorizationConsumptionClaimSnapshot`
+4. `build_demo_watchlist_order_authorization_consumption_claim_snapshot`
+
+`WatchlistOrderAuthorizationConsumptionClaimError`는 `RuntimeError`를 상속한다.
+
+exact synchronous builder signature:
+
+`build_demo_watchlist_order_authorization_consumption_claim_snapshot(`
+`    source_snapshot: WatchlistOrderSendRequestSnapshot,`
+`    context: KiwoomOrderAuthorizationConsumptionClaimContext,`
+`) -> WatchlistOrderAuthorizationConsumptionClaimSnapshot`
+
+defaults는 없다.
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` package-level re-export는 Phase 31 계약에 포함하지 않는다.
+
+### KiwoomOrderAuthorizationConsumptionClaimContext
+
+`KiwoomOrderAuthorizationConsumptionClaimContext`는 frozen immutable dataclass이다.
+
+exact field order는 다음 4개이다.
+
+1. `authorization_authority_reference`
+2. `authorization_evidence_snapshot_id`
+3. `submission_attempt_reference`
+4. `send_authorization_reference`
+
+field contract:
+
+- `authorization_authority_reference`는 Phase 29 계약을 좁히지 않으며 exact `str`, non-empty, non-whitespace opaque stable authority namespace identity이다.
+- `send_authorization_reference`는 Phase 29 `AUTHORIZED_FOR_SEND` reference 계약을 좁히지 않으며 exact `str`, non-empty, non-whitespace opaque grant/reference이다.
+- `authorization_evidence_snapshot_id`는 exact `str`이어야 하며 Phase 30 `authorization_evidence_ref`와 exact match해야 한다. Phase 30 upstream의 1..128/non-whitespace/control-character-free 계약을 그대로 승계한다.
+- `submission_attempt_reference`는 exact `str`이어야 하며 Phase 30 `source_attempt_ref`와 exact match해야 한다. Phase 30 upstream의 1..128/non-whitespace/control-character-free 계약을 그대로 승계한다.
+
+Phase 31은 `authorization_authority_reference` 또는 `send_authorization_reference`에 Phase 29보다 새로운 max-length/control-character 제한을 추가하지 않는다.
+
+### Trusted provenance boundary
+
+Phase 29 계약에서 `authorization_state`, `send_authorization_reference`, `authorization_authority_reference`, `authorization_evidence_snapshot_id`, `is_fresh`는 approved external authorization authority/controller/adapter가 제공하는 trusted provenance assertion으로 취급되지만, Phase 29 local validation 자체가 그 external-origin 사실을 독립적으로 입증하지는 않는다.
+
+Phase 31도 같은 trust boundary를 좁히거나 확장하지 않는다.
+
+caller/adapter는 동일한 approved Phase 29 authorization provenance assertion에서 다음 4개 reference를 공급해야 한다.
+
+- `authorization_authority_reference`
+- `authorization_evidence_snapshot_id`
+- `submission_attempt_reference`
+- `send_authorization_reference`
+
+그러나 Phase 31 local builder가 독립적으로 증명하는 것은 다음뿐이다.
+
+- exact local type/structure
+- Phase 30 `source_attempt_ref`와 `submission_attempt_reference` exact binding
+- Phase 30 `authorization_evidence_ref`와 `authorization_evidence_snapshot_id` exact binding
+- Phase 30 request snapshot integrity
+- deterministic claim/replay-guard materialization
+
+Phase 31은 authority가 실제 승인 authority인지, grant가 실제 해당 authority에서 발행되었는지, grant가 해당 attempt에 귀속되는지, 현재 fresh/current-valid인지, consumed/revoked 상태인지에 대해 독립적으로 주장하지 않는다.
+
+해당 검증은 future authoritative atomic check-and-consume boundary의 책임이다.
+
+### Phase 30 upstream validation
+
+`source_snapshot`은 exact `WatchlistOrderSendRequestSnapshot`이어야 한다.
+
+Phase 31은 Phase 30 upstream을 신뢰만 하지 않고 등록된 immutable contract invariant를 local pure validation으로 재확인한다.
+
+필수 invariant:
+
+- `environment == "demo"`
+- `side == "BUY"`
+- `exchange == "KRX"`
+- `api_id == "kt10000"`
+- `http_method == "POST"`
+- `api_path == "/api/dostk/ordr"`
+- provider `body` exact key set = `dmst_stex_tp`, `stk_cd`, `ord_qty`, `ord_uv`, `trde_tp`, `cond_uv`
+- provider `body` 모든 value는 exact `str`
+- Phase 30 LIMIT/MARKET provider mapping invariant 유지
+- `source_attempt_ref` exact Phase 30 contract 유지
+- `authorization_evidence_ref` exact Phase 30 contract 유지
+- `transport_allowed == False`
+- `credential_accessed == False`
+- `network_performed == False`
+- `account_accessed == False`
+- `order_submitted == False`
+- `materialization_fingerprint` lowercase 64-hex
+
+Phase 31은 Phase 30 request/body/provenance envelope에서 Phase 30 canonical algorithm을 사용하여 expected `materialization_fingerprint`를 pure local로 재계산하고 `source_snapshot.materialization_fingerprint`와 exact match해야 한다.
+
+이 fingerprint integrity validation은 Phase 30 request를 remap/recalculate/replace/mutate/reorder하는 행위가 아니다.
+
+Phase 31은 Phase 30 `source_snapshot`, body 및 provenance 값을 변경하지 않는다.
+
+### Exact reference binding
+
+`context.submission_attempt_reference == source_snapshot.source_attempt_ref`
+
+`context.authorization_evidence_snapshot_id == source_snapshot.authorization_evidence_ref`
+
+하나라도 다르면 fail closed한다.
+
+### Authorization claim identity
+
+Phase 29 Future Submission boundary의 exact 4-tuple 의미와 순서를 그대로 보존한다.
+
+`authorization_claim_identity = (`
+`    context.authorization_authority_reference,`
+`    context.authorization_evidence_snapshot_id,`
+`    context.submission_attempt_reference,`
+`    context.send_authorization_reference,`
+`)`
+
+### Authorization replay guard
+
+Phase 29 Future Submission boundary의 exact 2-tuple 의미와 순서를 그대로 보존한다.
+
+`authorization_replay_guard = (`
+`    context.authorization_authority_reference,`
+`    context.send_authorization_reference,`
+`)`
+
+`send_authorization_reference` 단독은 claim identity가 아니다.
+
+Phase 31은 claim identity/replay guard가 unconsumed인지, revoked인지, stale인지 또는 현재 authority에서 유효한지를 주장하지 않는다.
+
+### WatchlistOrderAuthorizationConsumptionClaimSnapshot
+
+`WatchlistOrderAuthorizationConsumptionClaimSnapshot`은 frozen immutable dataclass이다.
+
+exact field order는 다음 11개이다.
+
+1. `source_snapshot`
+2. `context`
+3. `authorization_claim_identity`
+4. `authorization_replay_guard`
+5. `claim_fingerprint`
+6. `claim_prepared`
+7. `authorization_consumption_committed`
+8. `post_permitted`
+9. `automatic_retry_permitted`
+10. `network_performed`
+11. `order_submitted`
+
+builder 성공 시:
+
+- `source_snapshot` identity exact preserve
+- `context` identity exact preserve
+- `claim_prepared == True`
+- `authorization_consumption_committed == False`
+- `post_permitted == False`
+- `automatic_retry_permitted == False`
+- `network_performed == False`
+- `order_submitted == False`
+
+Phase 30의 `transport_allowed == False`는 변경하지 않는다.
+
+Phase 31 snapshot 생성만으로 transport permission, current authorization validity, authorization consumption 또는 order permission이 발생하지 않는다.
+
+### Deterministic claim fingerprint
+
+fingerprint field name은 exact `claim_fingerprint`이다.
+
+fingerprint envelope exact key set:
+
+- `materialization_fingerprint`
+- `authorization_claim_identity`
+- `authorization_replay_guard`
+
+tuple은 canonical JSON에서 JSON array로 표현한다.
+
+canonical JSON:
+
+`json.dumps(`
+`    envelope,`
+`    sort_keys=True,`
+`    separators=(",", ":"),`
+`    ensure_ascii=True,`
+`    allow_nan=False,`
+`)`
+
+canonical JSON을 UTF-8 bytes로 encode한 후:
+
+`hashlib.sha256(canonical_bytes).hexdigest()`
+
+를 사용한다.
+
+`claim_fingerprint`는 lowercase 64-hex string이다.
+
+known vector:
+
+- `materialization_fingerprint = "95a9556fe973f96e40d664b3369d96366f6bc00fbc3ccd34cc14058925bebc69"`
+- `authorization_authority_reference = "authority-1"`
+- `authorization_evidence_snapshot_id = "snapshot-1"`
+- `submission_attempt_reference = "attempt-1"`
+- `send_authorization_reference = "grant-1"`
+
+expected `claim_fingerprint`:
+
+`6ecb23bec89d683c156299afc011b8eac1345e0d664de070b7a3dba427f3e7c4`
+
+같은 exact input은 같은 fingerprint를 생성해야 하며 envelope element 하나라도 달라지면 fingerprint도 달라져야 한다.
+
+### Validation order and first-error precedence
+
+validation order와 first-error precedence는 exact 다음 순서로 고정한다.
+
+1. `SOURCE_SNAPSHOT_TYPE_INVALID`
+2. `SOURCE_SNAPSHOT_STRUCTURE_INVALID`
+3. `SOURCE_SNAPSHOT_SAFETY_INVALID`
+4. `SOURCE_MATERIALIZATION_FINGERPRINT_INVALID`
+5. `CONTEXT_TYPE_INVALID`
+6. `AUTHORIZATION_AUTHORITY_REFERENCE_INVALID`
+7. `AUTHORIZATION_EVIDENCE_SNAPSHOT_ID_INVALID`
+8. `SUBMISSION_ATTEMPT_REFERENCE_INVALID`
+9. `SEND_AUTHORIZATION_REFERENCE_INVALID`
+10. `SUBMISSION_ATTEMPT_REFERENCE_MISMATCH`
+11. `AUTHORIZATION_EVIDENCE_REFERENCE_MISMATCH`
+
+복수 오류가 존재해도 위 순서의 첫 오류 하나만 `WatchlistOrderAuthorizationConsumptionClaimError`로 raise한다.
+
+validation failure에서는 partial claim identity, replay guard, fingerprint 또는 snapshot을 반환하지 않는다.
+
+### State transition
+
+Phase 31 state transition은 다음 세 단계뿐이다.
+
+`MATERIALIZED -> CLAIM_BINDING_VALIDATED -> CLAIM_PREPARED`
+
+failure는 fail closed이며 partial state를 외부에 반환하지 않는다.
+
+`CLAIM_PREPARED` 이후에도:
+
+- authorization consumption은 commit되지 않았다.
+- `POST_PERMITTED`가 아니다.
+- provider transport를 허용하지 않는다.
+- automatic retry/reclaim/unconsume/reuse/retransmission을 허용하지 않는다.
+
+### Future authoritative atomic-consumption boundary
+
+향후 별도 공식 Phase에서만 authoritative atomic check-and-consume을 수행할 수 있다.
+
+그 future boundary는 approved authorization authority/controller가 보장하는 하나의 authoritative atomic transaction 안에서 최소 다음을 검증해야 한다.
+
+- claim identity unconsumed
+- replay guard unconsumed
+- exact authority namespace 동일
+- exact immutable evidence snapshot identity 동일
+- exact `submission_attempt_reference` 동일
+- exact `send_authorization_reference` 동일
+- grant가 해당 exact attempt에 귀속
+- grant가 revoked/invalidated되지 않음
+- evidence/grant가 transaction 시점에 authoritative하게 fresh/current-valid
+- check와 consume이 하나의 atomic transaction임
+
+위 조건이 모두 참일 때만 claim identity와 replay guard를 함께 consumed로 atomic commit할 수 있다.
+
+partial consume 또는 one-key-only success는 허용하지 않는다.
+
+atomicity를 보장할 수 없거나 결과가 already-consumed, duplicate, conflict, stale, revoked, invalid, timeout, cancellation, failure, unknown 또는 ambiguous이면 `POST_PERMITTED=NO`이며 `kt10000` POST를 시도하지 않는다.
+
+automatic retry, automatic reclaim, automatic unconsume, authorization reuse, retransmission은 금지한다.
+
+Phase 31은 이 future transaction을 구현하거나 승인하지 않는다.
+
+### Forbidden side effects
+
+Phase 31 module과 builder에서는 다음을 모두 금지한다.
+
+- provider REST/WebSocket client call
+- OAuth/token access
+- `.env`/credential access
+- environment credential lookup
+- account access
+- external network
+- authorization authority/controller call
+- authorization consumption
+- consumption/replay-ledger mutation
+- actual order action
+- actual `kt10000` POST
+- response parsing
+- order-number handling
+- Phase 29/30 source object mutation
+- file I/O
+- retry/backoff/retransmission
+- wall-clock/time dependency
+- UUID generation
+- randomness
+
+### Runtime targeted test manifest
+
+Phase 31 future implementation targeted test total은 exact `42`개이다.
+
+`EXPECTED_PRE_IMPLEMENTATION_FULL_REGRESSION=836`
+`EXPECTED_NEW_TEST_DELTA=42`
+`EXPECTED_POST_IMPLEMENTATION_FULL_REGRESSION=878`
+
+exact test names:
+
+1. `test_public_api_exact_four_symbols`
+2. `test_error_is_runtime_error`
+3. `test_context_exact_fields_and_frozen`
+4. `test_snapshot_exact_fields_and_frozen`
+5. `test_builder_exact_signature_and_return_type`
+6. `test_builder_is_synchronous`
+7. `test_rejects_nonexact_phase30_snapshot_type`
+8. `test_preserves_phase30_snapshot_identity`
+9. `test_requires_phase30_demo_environment`
+10. `test_requires_phase30_buy_side`
+11. `test_requires_phase30_krx_exchange`
+12. `test_requires_phase30_kt10000_api_id`
+13. `test_requires_phase30_post_method`
+14. `test_requires_phase30_order_path`
+15. `test_requires_phase30_exact_provider_body_key_set_and_string_values`
+16. `test_requires_phase30_all_safety_flags_false`
+17. `test_recomputes_and_requires_exact_phase30_materialization_fingerprint`
+18. `test_does_not_remap_recalculate_replace_mutate_or_reorder_phase30_request`
+19. `test_rejects_nonexact_context_type`
+20. `test_authorization_authority_reference_preserves_phase29_exact_str_nonblank_contract`
+21. `test_authorization_evidence_snapshot_id_binding_input_invalid_rejected`
+22. `test_submission_attempt_reference_binding_input_invalid_rejected`
+23. `test_send_authorization_reference_preserves_phase29_exact_str_nonblank_contract`
+24. `test_submission_attempt_reference_binding_exact`
+25. `test_authorization_evidence_reference_binding_exact`
+26. `test_claim_identity_exact_four_tuple`
+27. `test_replay_guard_exact_two_tuple`
+28. `test_context_references_preserved_exactly_without_external_origin_claim`
+29. `test_claim_fingerprint_repeat_stable`
+30. `test_claim_fingerprint_known_vector`
+31. `test_claim_fingerprint_changes_with_materialization_fingerprint`
+32. `test_claim_fingerprint_changes_with_authority_reference`
+33. `test_claim_fingerprint_changes_with_send_authorization_reference`
+34. `test_claim_fingerprint_is_lowercase_sha256_hex`
+35. `test_claim_prepared_true`
+36. `test_authorization_consumption_committed_false`
+37. `test_post_permitted_false`
+38. `test_automatic_retry_permitted_false`
+39. `test_builder_does_not_call_authorization_authority_or_mutate_ledger`
+40. `test_builder_does_not_read_credentials_access_account_or_perform_network`
+41. `test_builder_does_not_call_provider_parse_response_or_handle_order_number`
+42. `test_builder_does_not_use_file_io_retry_time_uuid_or_randomness`
+
+exact test name count=42, unique name count=42, duplicate=0이어야 한다.
+
+### Registration boundary
+
+Phase 31 공식 계약 README 등록 자체는 Phase 31 source/test 구현 승인이 아니다.
+
+README 등록 단계에서는 다음을 금지한다.
+
+- Phase 31 source/test 생성 또는 수정
+- 기존 Phase29/Phase30/upstream source/test 수정
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` 변경
+- dependency 변경
+- credential/token/account/network/provider/order 접근
+- authorization consumption 또는 replay-ledger mutation
+- git add
+- git commit
+- git push
+- Current Phase 변경
+
+README 공식 계약 등록 이후에도 `Current Phase`는 별도 implementation/Closure 승인 전까지 `PHASE30`으로 유지한다.
+
+### Future implementation allowed paths
+
+Phase 31 future implementation mutation allowlist 후보는 exact 다음 2개 경로로 제한한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_authorization_consumption_claim.py`
+- `tests/test_watchlist_order_authorization_consumption_claim.py`
+
+DRAFT/README registration approval만으로 위 두 경로 생성 또는 수정은 승인되지 않는다.
+
+`README.md`, `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`, 기존 Phase29/Phase30/upstream source/test, `pyproject.toml`, `uv.lock`, `.env`, credential/token 관련 파일, Git index/commit/remote, Current Phase는 future implementation allowlist에 포함하지 않는다.
+
+future implementation commit path set과 git add/commit 권한은 별도 승인 대상이다.
+
+### Closure conditions
+
+Phase31은 다음 전체가 별도 승인 및 실제 검증되기 전 완료로 간주하지 않는다.
+
+1. Final Contract Review 승인
+2. README exact official contract registration 별도 승인 및 Actual 검증
+3. frozen contract identity 확정
+4. implementation 별도 승인
+5. exact two-path implementation
+6. targeted tests `42/42`
+7. expected full regression `878/878`
+8. failures=0
+9. errors=0
+10. 미승인 skipped=0
+11. Phase29/Phase30 및 protected hashes 불변
+12. dependency 변경 없음
+13. package re-export 변경 없음
+14. credential/token/account/network/provider/order 접근 없음
+15. authorization consumption/replay-ledger mutation 없음
+16. Git 변경 범위 승인 경로와 exact 일치
+17. 별도 commit 승인 및 검증
+18. 별도 Closure 승인 및 Current Phase alignment
+
+Phase31 Closure 전까지 top-level `Current Phase`는 `PHASE30`으로 유지한다.
