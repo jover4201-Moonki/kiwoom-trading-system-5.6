@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 31 — demo Kiwoom Cash BUY-Order Authorization Consumption Claim & Replay-Guard Preparation Snapshot 기반선 v1.0
+Phase 32 — demo Kiwoom Cash BUY-Order Authority Adapter Check-and-Consume Result Evidence Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
