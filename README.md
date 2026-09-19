@@ -4006,3 +4006,1054 @@ Phase31은 다음 전체가 별도 승인 및 실제 검증되기 전 완료로 
 18. 별도 Closure 승인 및 Current Phase alignment
 
 Phase31 Closure 전까지 top-level `Current Phase`는 `PHASE30`으로 유지한다.
+
+## Phase 32 — demo Kiwoom Cash BUY-Order Authority Adapter Check-and-Consume Result Evidence Snapshot 기반선 v1.0
+
+Concrete Authority Backend: OUT OF SCOPE
+Durable Ledger / Persistence: OUT OF SCOPE
+Provider Transport / Order Submission: OUT OF SCOPE
+Authority Adapter Lifecycle Ownership: ADAPTER / AUTHORITY
+Phase32 Deferred-Object Lifecycle Ownership: NO
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=20C5E20145A05B349675CCE273AA5B2C4DB23F7FEDF62D1E9A74803CB135ACC4`
+
+### Frozen contract identity rule
+
+`FROZEN_CONTRACT_IDENTITY_SHA256`는 exact CRLF UTF-8 payload에서 다음 marker paragraph 하나만 완전히 제거한 bytes의 SHA-256 uppercase hex이다.
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=<64 uppercase hex>`
+
+marker paragraph removal 대상은 marker line과 바로 뒤 exact `CRLF CRLF`까지이다.
+
+전체 payload 자체의 raw SHA-256은 frozen identity와 별도로 관리한다.
+
+Phase 32는 exact Phase 31 `WatchlistOrderAuthorizationConsumptionClaimSnapshot`을 upstream으로 받아 deterministic local validation을 수행하고, passive static surface inspection을 통과한 ordinary synchronous Python authority operation을 정확히 한 번 시도한 뒤 authority-reported result evidence를 immutable local snapshot으로 materialize하는 경계이다.
+
+Phase 32는 concrete authority backend identity, durable atomic check-and-consume 구현, persistent replay ledger, 실제 approval/conformance provenance, provider send eligibility 또는 actual order submission을 독립적으로 증명하거나 승인하지 않는다.
+
+`PROTOCOL_COMPATIBLE != APPROVED_AUTHORITY`
+`ASSERTED_AUTHORITY_REFERENCE != VERIFIED_TRUST`
+`AUTHORITY_REPORTED_CONSUMED != DURABLE_CONSUMPTION_PROVEN`
+`CONSUMPTION_EVIDENCE_CANDIDATE_READY != TRANSPORT_PERMISSION`
+`PHASE32_EVIDENCE != PROVIDER_SEND_ELIGIBILITY`
+`INDETERMINATE != BLOCKED`
+`INDETERMINATE => COMMIT_STATE_UNKNOWN`
+`LOCAL_VALIDATION_FAILURE != INDETERMINATE`
+`LOCAL_VALIDATION_FAILURE => AUTHORITY_INVOCATION_ATTEMPT_COUNT == 0`
+`LOCAL_VALIDATION_SUCCESS => AUTHORITY_INVOCATION_ATTEMPT_COUNT == 1`
+`SECOND_AUTHORITY_INVOCATION == PROHIBITED`
+`AUTOMATIC_RETRY == PROHIBITED`
+
+### Scope
+
+Phase 32 exact scope:
+
+- environment = `demo` only
+- side = `BUY` only
+- exchange = `KRX` only
+- cash order only
+- exact Phase 31 `WatchlistOrderAuthorizationConsumptionClaimSnapshot` upstream
+- pure local validation of Phase 30/31 materialization and claim bindings
+- caller-asserted authority approval/conformance references
+- passive adapter surface inspection
+- ordinary synchronous Python instance-method authority operation only
+- exact one authority operation attempt after all local validation succeeds
+- authority-reported result normalization
+- immutable local evidence snapshot
+- deterministic evidence fingerprint
+- adapter/authority-owned async/background lifecycle
+- no provider send permission creation
+- no actual `kt10000` POST
+- no credential/token/account access by Phase 32
+- no automatic retry or second authority invocation
+
+Concrete backend implementation, durable ledger/storage, actual atomic transaction implementation, production authority use, provider transport, response parsing, order number handling, SELL/NXT/SOR/credit/amend/cancel and actual order submission are outside Phase 32.
+
+### Public API
+
+Phase 32 module-level public API는 exact 5개로 제한한다.
+
+1. `WatchlistOrderAuthorizationAdapterEvidenceError`
+2. `KiwoomOrderAuthorizationAuthorityAdapter`
+3. `KiwoomOrderAuthorizationAuthorityReportedResult`
+4. `WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`
+5. `check_and_consume_demo_watchlist_order_authorization_adapter_evidence`
+
+`WatchlistOrderAuthorizationAdapterEvidenceError`는 `RuntimeError`를 상속한다.
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py` package-level re-export는 Phase 32 계약에 포함하지 않는다.
+
+### Builder signature
+
+exact synchronous builder signature:
+
+`check_and_consume_demo_watchlist_order_authorization_adapter_evidence(`
+`    source_snapshot: WatchlistOrderAuthorizationConsumptionClaimSnapshot,`
+`    authority: KiwoomOrderAuthorizationAuthorityAdapter,`
+`    *,`
+`    asserted_authority_approval_reference: str,`
+`    asserted_authority_conformance_reference: str,`
+`) -> WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`
+
+defaults는 없다.
+
+### Authority Adapter Protocol
+
+`KiwoomOrderAuthorizationAuthorityAdapter`는 typing contract이다. Protocol compatibility 자체는 authority approval/trust proof가 아니다.
+
+exact method contract:
+
+`check_and_consume(`
+`    *,`
+`    authorization_claim_identity: tuple[str, str, str, str],`
+`    authorization_replay_guard: tuple[str, str],`
+`    claim_fingerprint: str,`
+`    asserted_authority_approval_reference: str,`
+`    asserted_authority_conformance_reference: str,`
+`) -> KiwoomOrderAuthorizationAuthorityReportedResult`
+
+Phase 32 local validation은 runtime signature를 사전 실행으로 probe하지 않는다.
+
+### Exact type contract
+
+- exact `str`: `type(value) is str`
+- exact `bool`: `type(value) is bool`
+- exact `tuple`: `type(value) is tuple`
+- exact Python function surface: `type(value) is types.FunctionType`
+- exact result dataclass: `type(value) is KiwoomOrderAuthorizationAuthorityReportedResult`
+- `None`: `value is None`
+
+boolean field는 integer `0/1`을 허용하지 않는다.
+
+### Phase 31 upstream contract
+
+`source_snapshot`은 exact `WatchlistOrderAuthorizationConsumptionClaimSnapshot`이어야 한다.
+
+Phase 32는 최소 다음 Phase 31 invariants를 local pure validation으로 재확인한다.
+
+- `claim_prepared == True`
+- `authorization_consumption_committed == False`
+- `post_permitted == False`
+- `automatic_retry_permitted == False`
+- `network_performed == False`
+- `order_submitted == False`
+- `authorization_claim_identity` exact 4-tuple
+- `authorization_replay_guard` exact 2-tuple
+- `claim_fingerprint` lowercase 64-hex
+- embedded Phase 30 source snapshot의 `transport_allowed == False`
+- embedded Phase 30 source snapshot의 credential/network/account/order safety flags가 모두 False
+- exact Phase 30 request/materialization binding 유지
+
+Phase 31 claim identity exact meaning/order:
+
+`authorization_claim_identity = (`
+`    authorization_authority_reference,`
+`    authorization_evidence_snapshot_id,`
+`    submission_attempt_reference,`
+`    send_authorization_reference,`
+`)`
+
+Phase 31 replay guard exact meaning/order:
+
+`authorization_replay_guard = (`
+`    authorization_authority_reference,`
+`    send_authorization_reference,`
+`)`
+
+Phase 32는 Phase 30 canonical materialization fingerprint와 Phase 31 canonical claim fingerprint를 pure local로 재계산하여 exact match를 요구한다. upstream object를 remap, replace 또는 mutate하지 않는다.
+
+Phase 31 claim fingerprint canonical envelope exact key set:
+
+- `materialization_fingerprint`
+- `authorization_claim_identity`
+- `authorization_replay_guard`
+
+canonical JSON:
+
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+
+UTF-8 encode 후:
+
+`hashlib.sha256(canonical_bytes).hexdigest()`
+
+를 사용한다.
+
+### Asserted authority references
+
+`asserted_authority_approval_reference`와 `asserted_authority_conformance_reference`는 exact opaque reference이다.
+
+각 reference는:
+
+- exact `str`
+- length `1..128`
+- non-empty
+- `value == value.strip()`
+- whitespace-only 금지
+- U+0000..U+001F 금지
+- U+007F 금지
+- trim/normalization/case-fold/replacement 금지
+
+이 asserted references는 caller assertion이며 Phase 32 local validation이 외부 approval/conformance 사실을 독립 증명하지 않는다.
+
+### Local validation reasons
+
+allowed deterministic local validation reason exact 7:
+
+1. `SOURCE_SNAPSHOT_TYPE_INVALID`
+2. `SOURCE_SNAPSHOT_STRUCTURE_OR_SAFETY_INVALID`
+3. `PHASE30_REQUEST_OR_MATERIALIZATION_BINDING_INVALID`
+4. `PHASE31_CLAIM_FINGERPRINT_INVALID`
+5. `ASSERTED_AUTHORITY_APPROVAL_REFERENCE_INVALID`
+6. `ASSERTED_AUTHORITY_CONFORMANCE_REFERENCE_INVALID`
+7. `AUTHORITY_CHECK_AND_CONSUME_SURFACE_INVALID`
+
+error string은 exact reason string이다.
+
+### Validation order and first-error precedence
+
+authority surface inspection이나 authority operation attempt보다 먼저 exact 다음 순서로 검증한다.
+
+1. source snapshot exact type
+2. Phase 31 source structure/safety
+3. Phase 30 request/materialization binding
+4. Phase 31 claim fingerprint
+5. asserted authority approval reference
+6. asserted authority conformance reference
+7. passive `check_and_consume` surface and synchronous function-kind
+
+복수 오류가 있어도 위 순서의 첫 오류 하나만 `WatchlistOrderAuthorizationAdapterEvidenceError`로 raise한다.
+
+local validation failure에서는:
+
+- authority operation attempt=`0`
+- authority function body execution 없음
+- authority result 없음
+- evidence fingerprint 없음
+- snapshot 없음
+- partial result 없음
+- INDETERMINATE normalization 없음
+- automatic retry 없음
+
+### Passive adapter surface inspection
+
+unique sentinel `MISSING`을 사용한다.
+
+`class_surface = inspect.getattr_static(type(authority), "check_and_consume", MISSING)`
+
+`instance_surface = inspect.getattr_static(authority, "check_and_consume", MISSING)`
+
+surface validation에서 일반 `getattr()`, `hasattr()`, `callable()`을 사용하지 않는다.
+
+valid surface는 다음을 모두 만족해야 한다.
+
+1. `class_surface is not MISSING`
+2. `instance_surface is not MISSING`
+3. `instance_surface is class_surface`
+4. `type(class_surface) is types.FunctionType`
+5. `inspect.iscoroutinefunction(class_surface) is False`
+6. `inspect.isgeneratorfunction(class_surface) is False`
+7. `inspect.isasyncgenfunction(class_surface) is False`
+
+하나라도 실패하면 `AUTHORITY_CHECK_AND_CONSUME_SURFACE_INVALID`이다.
+
+passive inspection은 다음을 실행하지 않아야 한다.
+
+- property getter
+- arbitrary descriptor `__get__`
+- adapter `__getattr__`
+- adapter custom `__getattribute__`
+- adapter operation body
+
+### Supported and unsupported surface
+
+지원:
+
+- class-defined ordinary synchronous Python instance method
+- inherited ordinary synchronous Python instance method
+- decorator 결과의 final stored class surface가 exact `types.FunctionType`이고 coroutine/generator/async-generator로 분류되지 않는 경우
+
+지원하지 않음:
+
+- missing surface
+- instance-level shadow
+- staticmethod
+- classmethod
+- property
+- arbitrary custom descriptor
+- callable object surface
+- dynamic `__getattr__` only surface
+- custom `__getattribute__`로만 노출되는 surface
+- built-in/extension callable descriptor
+- native `async def`
+- generator function
+- async-generator function
+- `inspect.markcoroutinefunction()`으로 coroutine function으로 표시된 sync function
+- `types.coroutine` 기반 generator function
+
+decorator의 내부 의도나 wrapped target은 역추적하지 않는다. final stored static surface만 local gate의 판단 근거이다.
+
+### Invocation binding
+
+모든 local validation이 성공하면 passive inspection에서 검증한 exact `class_surface`를 사용한다.
+
+`bound_operation = types.MethodType(class_surface, authority)`
+
+일반 `getattr(authority, "check_and_consume")`로 method를 다시 resolve하지 않는다.
+
+dynamic descriptor resolution, `__getattr__`, custom `__getattribute__`를 invocation binding에 사용하지 않는다.
+
+### Invocation attempt boundary
+
+`authority_invocation_attempted`는 exact bound operation call expression을 시작하기 직전에 True로 간주한다.
+
+valid local gate 이후 actual authority operation attempt는 exact 1회이다.
+
+- prefetch call 없음
+- second check 없음
+- second consume 없음
+- repeated invocation 없음
+- automatic retry 없음
+
+runtime signature prevalidation은 하지 않는다. 실제 call에서 signature mismatch `TypeError` 또는 ordinary exception이 발생하면 post-attempt `AUTHORITY_EXCEPTION` INDETERMINATE로 처리한다.
+
+### Decision model
+
+exact decision values 3:
+
+1. `AUTHORITY_REPORTED_CONSUMED`
+2. `AUTHORITY_REPORTED_BLOCKED`
+3. `INDETERMINATE`
+
+reported decision은 adapter report evidence이며 durable backend truth가 아니다.
+
+### Authority result schema
+
+`KiwoomOrderAuthorizationAuthorityReportedResult`는 frozen immutable dataclass이다.
+
+exact field order 13:
+
+1. `authorization_claim_identity`
+2. `authorization_replay_guard`
+3. `claim_fingerprint`
+4. `asserted_authority_approval_reference`
+5. `asserted_authority_conformance_reference`
+6. `authority_result_reference`
+7. `decision`
+8. `block_reason`
+9. `indeterminate_reason`
+10. `consumption_reference`
+11. `authority_reported_authorization_consumption_committed`
+12. `authority_reported_replay_guard_consumption_committed`
+13. `commit_state_known`
+
+`authorization_claim_identity`, `authorization_replay_guard`, `claim_fingerprint`, asserted references는 exact call input과 일치해야 한다.
+
+### Authority result references
+
+present `authority_result_reference`와 present `consumption_reference`는 exact opaque reference이다.
+
+각 reference는:
+
+- exact `str`
+- length `1..128`
+- non-empty
+- `value == value.strip()`
+- whitespace-only 금지
+- U+0000..U+001F 금지
+- U+007F 금지
+- normalization/trim/case-fold/replacement 금지
+
+### Block reasons
+
+exact 10:
+
+1. `CLAIM_ALREADY_CONSUMED`
+2. `REPLAY_GUARD_ALREADY_CONSUMED`
+3. `AUTHORITY_NAMESPACE_MISMATCH`
+4. `EVIDENCE_SNAPSHOT_MISMATCH`
+5. `SUBMISSION_ATTEMPT_MISMATCH`
+6. `SEND_AUTHORIZATION_MISMATCH`
+7. `GRANT_ATTEMPT_BINDING_INVALID`
+8. `AUTHORIZATION_REVOKED`
+9. `AUTHORIZATION_STALE`
+10. `AUTHORIZATION_INVALID`
+
+block-reason precedence는 concrete authoritative backend의 normative responsibility이며 Phase 32 local layer가 재유도하거나 독립 증명하지 않는다.
+
+### Indeterminate reasons
+
+exact 4:
+
+1. `AUTHORITY_TIMEOUT`
+2. `AUTHORITY_EXCEPTION`
+3. `AUTHORITY_REPORTED_INDETERMINATE`
+4. `AUTHORITY_RESULT_CONTRACT_VIOLATION`
+
+### AUTHORITY_REPORTED_CONSUMED result
+
+valid consumed result는 모두 만족해야 한다.
+
+- exact input echoes
+- valid `authority_result_reference`
+- valid `consumption_reference`
+- `decision == "AUTHORITY_REPORTED_CONSUMED"`
+- `block_reason is None`
+- `indeterminate_reason is None`
+- `commit_state_known is True`
+- both reported commit fields are exact True
+
+snapshot normalized state:
+
+- `consumption_evidence_candidate_ready=True`
+- `authority_trust_independently_verified=False`
+- `automatic_retry_permitted=False`
+- `reconciliation_required=False`
+- `authority_invocation_attempted=True`
+- Phase32 direct safety flags=False
+
+candidate-ready는 transport/post/send permission이 아니다.
+
+### AUTHORITY_REPORTED_BLOCKED result
+
+valid blocked result는 모두 만족해야 한다.
+
+- exact input echoes
+- valid `authority_result_reference`
+- allowed block reason
+- `decision == "AUTHORITY_REPORTED_BLOCKED"`
+- `indeterminate_reason is None`
+- `consumption_reference is None`
+- `commit_state_known is True`
+- both reported commit fields are exact False
+
+snapshot normalized state:
+
+- `consumption_evidence_candidate_ready=False`
+- `authority_trust_independently_verified=False`
+- `automatic_retry_permitted=False`
+- `reconciliation_required=False`
+- `authority_invocation_attempted=True`
+- Phase32 direct safety flags=False
+
+### Explicit authority-reported INDETERMINATE result
+
+valid explicit INDETERMINATE result는 모두 만족해야 한다.
+
+- exact input echoes
+- valid `authority_result_reference`
+- `decision == "INDETERMINATE"`
+- `block_reason is None`
+- `indeterminate_reason == "AUTHORITY_REPORTED_INDETERMINATE"`
+- `consumption_reference is None`
+- `commit_state_known is False`
+- both reported commit fields are None
+
+snapshot normalized state:
+
+- `consumption_evidence_candidate_ready=False`
+- `authority_trust_independently_verified=False`
+- `automatic_retry_permitted=False`
+- `reconciliation_required=True`
+- `authority_invocation_attempted=True`
+- Phase32 direct safety flags=False
+
+### Post-attempt normalized INDETERMINATE
+
+다음은 모두 fail-closed normalized INDETERMINATE 대상이다.
+
+- `TimeoutError`
+- ordinary `Exception`
+- wrong returned exact type
+- echo mismatch
+- malformed reference
+- unsupported decision/reason
+- partial commit
+- impossible state combination
+- invalid exact type
+- invalid deferred/awaitable/Future/Task return
+
+`TimeoutError`는 `AUTHORITY_TIMEOUT`을 사용한다.
+
+ordinary `Exception`은 `AUTHORITY_EXCEPTION`을 사용한다.
+
+invalid/malformed returned result는 `AUTHORITY_RESULT_CONTRACT_VIOLATION`을 사용한다.
+
+normalized state:
+
+- `authority_result is None`
+- `decision == "INDETERMINATE"`
+- `block_reason is None`
+- applicable exact indeterminate reason
+- `authority_result_reference is None`
+- `consumption_reference is None`
+- reported commit fields=None/None
+- `commit_state_known=False`
+- `consumption_evidence_candidate_ready=False`
+- `authority_trust_independently_verified=False`
+- `automatic_retry_permitted=False`
+- `reconciliation_required=True`
+- `authority_invocation_attempted=True`
+- Phase32 direct safety flags=False
+
+### BaseException boundary
+
+다음은 ordinary authority exception으로 normalize하지 않는다.
+
+- `asyncio.CancelledError`
+- `KeyboardInterrupt`
+- `SystemExit`
+
+필요한 local cleanup 이후 재전파하며 automatic retry하지 않는다.
+
+### Adapter lifecycle ownership
+
+conforming authority adapter가 자신의 async/background lifecycle을 전적으로 소유한다.
+
+Conforming adapter는:
+
+- 자신의 async/background work lifecycle을 소유한다.
+- 필요한 strong reference를 자체 보존한다.
+- 자신의 coroutine/generator/Task/Future cleanup 책임을 Phase 32에 이전하지 않는다.
+- authority outcome을 adapter contract에 따라 settle한 뒤 Phase 32에 exact synchronous result dataclass를 반환한다.
+
+Phase 32가 adapter 내부 async implementation 자체를 금지하는 것은 아니다. 다만 Phase 32로 deferred object를 넘기는 것은 adapter-contract violation이다.
+
+### Invalid deferred returned objects
+
+최소 다음은 모두 wrong exact result type이며 adapter-contract violation이다.
+
+- bare coroutine object
+- generator object
+- async-generator object
+- custom awaitable
+- generator-based coroutine object
+- `asyncio.Future`
+- `asyncio.Task`
+- Future-like / Task-like object
+- exact result dataclass가 아닌 기타 object
+
+runtime implementation은 위 종류별 semantic probing을 할 필요가 없다.
+
+우선:
+
+`type(result) is KiwoomOrderAuthorizationAuthorityReportedResult`
+
+를 검사하고 False이면 `AUTHORITY_RESULT_CONTRACT_VIOLATION`으로 fail closed한다.
+
+### Invalid deferred object non-operations
+
+Phase 32는 invalid returned object에 대해 다음을 수행하지 않는다.
+
+- `await`
+- schedule / `create_task` / `ensure_future`
+- synchronous iteration
+- `next`
+- `send`
+- `throw`
+- async iteration
+- `anext`
+- direct `__await__`
+- `cancel`
+- coroutine `close`
+- generator `close`
+- async-generator `aclose`
+- Future/Task `result`
+- Future/Task `exception`
+- Future/Task `add_done_callback`
+- completion까지 strong-reference retention
+- semantic probing through execution
+- second authority invocation
+- automatic retry
+
+이 non-interference rule은 unknown authority outcome을 Phase 32가 임의로 변경하지 않기 위한 것이다.
+
+### Transient raw reference rule
+
+invalid returned object는 exact result-type validation과 normalized state construction에 필요한 temporary local reference로만 취급한다.
+
+invalid raw object는:
+
+- snapshot에 저장하지 않는다.
+- fingerprint에 포함하지 않는다.
+- cache하지 않는다.
+- module/global collection에 보존하지 않는다.
+- completion까지 retain하지 않는다.
+
+Phase 32 return 이후 invalid object lifetime을 보장하지 않는다.
+
+### Bare coroutine warning boundary
+
+bare coroutine을 await/schedule하지 않으면 Python runtime이 `coroutine was never awaited` RuntimeWarning을 발생시킬 수 있다.
+
+Phase 32는 이 warning을:
+
+- suppress하지 않는다.
+- success evidence로 해석하지 않는다.
+- reported consumption evidence로 해석하지 않는다.
+- provider permission으로 해석하지 않는다.
+- INDETERMINATE를 해제하는 근거로 사용하지 않는다.
+
+Phase 32 implementation은 `warnings.filterwarnings`, `warnings.simplefilter` 등 global/process warning configuration을 변경하지 않는다.
+
+### Generator / async-generator / custom-awaitable boundary
+
+returned generator는 iterate/next/send/throw/close하지 않는다.
+
+returned async-generator는 async iterate/anext/asend/athrow/aclose하지 않는다.
+
+custom awaitable은 `__await__()`를 호출하거나 await하지 않는다.
+
+해당 object의 lifecycle은 violating adapter/authority 책임이다.
+
+### Future / Task boundary
+
+returned Future 또는 Task는 pending 또는 done일 수 있고 Task는 이미 scheduled되어 있을 수 있다.
+
+Phase 32는 Future/Task를:
+
+- await하지 않는다.
+- cancel하지 않는다.
+- `result()` 호출하지 않는다.
+- `exception()` 호출하지 않는다.
+- done callback을 설치하지 않는다.
+- completion까지 strong reference로 retain하지 않는다.
+
+background Task는 Phase 32 builder return 이후에도 계속 실행될 수 있다.
+
+event loop가 Task lifecycle을 strong-own한다고 가정하지 않는다. reliable background Task가 필요한 adapter는 필요한 strong-reference ownership을 자체적으로 가져야 한다.
+
+Future/Task exception이 회수되지 않아 runtime/asyncio diagnostic이 발생할 수 있으며 Phase 32는 이를 suppress하거나 success/BLOCKED/CONSUMED evidence로 재분류하지 않는다.
+
+### No retroactive mutation
+
+background Task/Future가 Phase 32 return 이후 성공, 실패, cancellation 또는 garbage collection되더라도 이미 생성된 immutable Phase 32 snapshot을 변경하지 않는다.
+
+후속 authoritative reconciliation은 별도 boundary의 책임이다.
+
+### Direct safety flags
+
+Phase 32 direct safety fields는 Phase 32 module 자체의 direct action만 의미한다.
+
+다음 False 값은 adapter 내부 또는 adapter-created background activity의 부재를 독립 증명하지 않는다.
+
+- `phase32_direct_credential_accessed`
+- `phase32_direct_network_performed`
+- `phase32_direct_account_accessed`
+- `phase32_direct_order_submitted`
+
+### Evidence snapshot
+
+`WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`은 frozen immutable dataclass이다.
+
+exact field order 22:
+
+1. `source_snapshot`
+2. `asserted_authority_approval_reference`
+3. `asserted_authority_conformance_reference`
+4. `authority_result`
+5. `decision`
+6. `block_reason`
+7. `indeterminate_reason`
+8. `authority_result_reference`
+9. `consumption_reference`
+10. `evidence_fingerprint`
+11. `authority_reported_authorization_consumption_committed`
+12. `authority_reported_replay_guard_consumption_committed`
+13. `commit_state_known`
+14. `consumption_evidence_candidate_ready`
+15. `authority_trust_independently_verified`
+16. `automatic_retry_permitted`
+17. `reconciliation_required`
+18. `authority_invocation_attempted`
+19. `phase32_direct_credential_accessed`
+20. `phase32_direct_network_performed`
+21. `phase32_direct_account_accessed`
+22. `phase32_direct_order_submitted`
+
+local validation failure에서는 snapshot이 없다.
+
+### Evidence fingerprint
+
+fingerprint field name은 exact `evidence_fingerprint`이다.
+
+canonical envelope exact key set / logical field order 20:
+
+1. `claim_fingerprint`
+2. `asserted_authority_approval_reference`
+3. `asserted_authority_conformance_reference`
+4. `decision`
+5. `block_reason`
+6. `indeterminate_reason`
+7. `authority_result_reference`
+8. `consumption_reference`
+9. `authority_reported_authorization_consumption_committed`
+10. `authority_reported_replay_guard_consumption_committed`
+11. `commit_state_known`
+12. `consumption_evidence_candidate_ready`
+13. `authority_trust_independently_verified`
+14. `automatic_retry_permitted`
+15. `reconciliation_required`
+16. `authority_invocation_attempted`
+17. `phase32_direct_credential_accessed`
+18. `phase32_direct_network_performed`
+19. `phase32_direct_account_accessed`
+20. `phase32_direct_order_submitted`
+
+canonical JSON:
+
+`json.dumps(`
+`    envelope,`
+`    sort_keys=True,`
+`    separators=(",", ":"),`
+`    ensure_ascii=True,`
+`    allow_nan=False,`
+`)`
+
+UTF-8 encode 후:
+
+`hashlib.sha256(canonical_bytes).hexdigest()`
+
+를 사용한다.
+
+`evidence_fingerprint`는 lowercase 64-hex string이다.
+
+raw authority result object 또는 invalid deferred object 자체는 fingerprint envelope에 포함하지 않는다.
+
+### Permission isolation
+
+Phase 30 `transport_allowed == False`를 exact preserve한다.
+
+Phase 32 snapshot에는 `post_permitted`, `transport_allowed`, `send_permitted`, `provider_send_eligible` 같은 permission-grant field를 추가하지 않는다.
+
+`consumption_evidence_candidate_ready=True`는 non-authoritative evidence candidate이며 provider/send/transport permission이 아니다.
+
+`authority_trust_independently_verified`는 Phase 32에서 항상 False이다.
+
+### Reported versus durable truth
+
+`authority_reported_authorization_consumption_committed`와 `authority_reported_replay_guard_consumption_committed`는 adapter-reported fields이다.
+
+두 값이 True라도:
+
+- concrete backend identity
+- durable atomic commit
+- persistent ledger write
+- authoritative current validity
+- provider-send eligibility
+
+를 Phase 32가 독립 증명하지 않는다.
+
+### Forbidden side effects
+
+Phase 32 module 자체에서 다음을 금지한다.
+
+- provider REST/WebSocket call
+- OAuth/token access
+- `.env`/credential access
+- account access
+- actual network
+- actual `kt10000` POST
+- order submission
+- response parsing
+- order-number handling
+- durable ledger/storage mutation
+- upstream object mutation
+- file I/O
+- wall-clock/time dependency
+- UUID generation
+- randomness
+- retry/backoff/retransmission
+- dependency mutation
+- Git mutation
+
+authority adapter invocation 자체는 이 module boundary의 유일한 external operation이며 exact once-attempt contract를 따른다. adapter 내부 side-effect 부재를 Phase 32 direct flags가 독립 증명하지 않는다.
+
+### Dependencies and export boundary
+
+Phase 32 implementation은 Python standard library `inspect`, `types`, `json`, `hashlib`, `dataclasses`, `typing` 등 필요한 stdlib만 사용한다.
+
+new third-party dependency는 추가하지 않는다.
+
+다음은 변경하지 않는다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- `pyproject.toml`
+- `uv.lock`
+
+### Runtime targeted test manifest
+
+Phase 32 future implementation targeted test total은 exact `190`개이다.
+
+`EXPECTED_PRE_IMPLEMENTATION_FULL_REGRESSION=878`
+`EXPECTED_NEW_TEST_DELTA=190`
+`EXPECTED_POST_IMPLEMENTATION_FULL_REGRESSION=1068`
+
+exact test names:
+1. `test_public_api_exact_five_symbols`
+2. `test_error_is_runtime_error`
+3. `test_authority_adapter_protocol_is_typing_only_not_trust_proof`
+4. `test_authority_result_exact_thirteen_fields_and_frozen`
+5. `test_snapshot_exact_twenty_two_fields_and_frozen`
+6. `test_builder_exact_signature_and_return_type`
+7. `test_builder_is_synchronous`
+8. `test_no_package_reexport`
+9. `test_rejects_nonexact_phase31_snapshot_type`
+10. `test_preserves_phase31_snapshot_identity`
+11. `test_requires_phase31_claim_prepared_true`
+12. `test_requires_phase31_authorization_consumption_committed_false`
+13. `test_requires_phase31_post_permitted_false`
+14. `test_requires_phase31_automatic_retry_permitted_false`
+15. `test_requires_phase31_network_performed_false`
+16. `test_requires_phase31_order_submitted_false`
+17. `test_recomputes_and_requires_exact_phase31_claim_fingerprint`
+18. `test_requires_phase31_claim_identity_exact_four_tuple`
+19. `test_requires_phase31_replay_guard_exact_two_tuple`
+20. `test_revalidates_phase30_request_materialization_and_reference_bindings`
+21. `test_requires_phase30_transport_allowed_false_without_override`
+22. `test_does_not_mutate_phase29_phase30_or_phase31_upstream_objects`
+23. `test_accepts_valid_asserted_authority_approval_reference`
+24. `test_rejects_invalid_asserted_authority_approval_reference_variants`
+25. `test_accepts_valid_asserted_authority_conformance_reference`
+26. `test_rejects_invalid_asserted_authority_conformance_reference_variants`
+27. `test_passive_surface_accepts_class_defined_synchronous_python_instance_method`
+28. `test_passive_surface_accepts_inherited_synchronous_python_instance_method`
+29. `test_passive_surface_rejects_missing_surface`
+30. `test_passive_surface_rejects_nonfunction_class_attribute`
+31. `test_passive_surface_rejects_staticmethod`
+32. `test_passive_surface_rejects_classmethod`
+33. `test_passive_surface_rejects_property_without_executing_getter`
+34. `test_passive_surface_rejects_custom_descriptor_without_executing_get`
+35. `test_passive_surface_rejects_dynamic_getattr_without_executing_it`
+36. `test_passive_surface_does_not_execute_custom_getattribute`
+37. `test_passive_surface_rejects_instance_level_shadow`
+38. `test_passive_surface_rejects_callable_object_surface`
+39. `test_passive_surface_does_not_use_getattr_hasattr_or_callable`
+40. `test_passive_surface_validation_is_not_authority_trust_proof`
+41. `test_passive_surface_rejects_native_coroutine_function`
+42. `test_passive_surface_rejects_native_generator_function`
+43. `test_passive_surface_rejects_native_async_generator_function`
+44. `test_passive_surface_rejects_markcoroutinefunction_sync_function`
+45. `test_passive_surface_rejects_types_coroutine_generator_function`
+46. `test_function_kind_rejection_executes_no_authority_body`
+47. `test_function_kind_rejection_uses_surface_invalid_reason`
+48. `test_function_kind_rejection_attempts_authority_zero_times`
+49. `test_function_kind_rejection_returns_no_snapshot_fingerprint_or_partial_result`
+50. `test_function_kind_rejection_is_not_normalized_to_indeterminate`
+51. `test_ordinary_sync_decorator_wrapping_sync_target_is_accepted`
+52. `test_decorated_final_coroutine_function_is_rejected_locally`
+53. `test_unmarked_sync_wrapper_around_async_target_passes_local_surface_classification`
+54. `test_unmarked_sync_wrapper_returning_generator_passes_local_surface_classification`
+55. `test_unmarked_sync_wrapper_returning_async_generator_passes_local_surface_classification`
+56. `test_unmarked_sync_wrapper_returning_generic_awaitable_passes_local_surface_classification`
+57. `test_validated_function_is_bound_with_types_methodtype`
+58. `test_invocation_binding_does_not_use_dynamic_attribute_resolution`
+59. `test_custom_getattribute_not_executed_during_invocation_binding`
+60. `test_dynamic_getattr_not_executed_during_invocation_binding`
+61. `test_valid_local_gate_invokes_exact_validated_function_once`
+62. `test_does_not_prefetch_second_check_or_retry_authority`
+63. `test_passes_exact_claim_replay_and_claim_fingerprint`
+64. `test_passes_exact_asserted_authority_references`
+65. `test_sync_wrapper_returning_coroutine_becomes_contract_violation_indeterminate`
+66. `test_returned_coroutine_is_not_awaited_or_driven_by_phase32`
+67. `test_sync_wrapper_returning_generator_becomes_contract_violation_indeterminate`
+68. `test_returned_generator_is_not_iterated_or_driven_by_phase32`
+69. `test_sync_wrapper_returning_async_generator_becomes_contract_violation_indeterminate`
+70. `test_returned_async_generator_is_not_iterated_or_driven_by_phase32`
+71. `test_sync_wrapper_returning_generic_awaitable_becomes_contract_violation_indeterminate`
+72. `test_returned_generic_awaitable_dunder_await_is_not_called_by_phase32`
+73. `test_invalid_deferred_return_is_not_closed_awaited_iterated_or_driven_by_phase32`
+74. `test_invalid_deferred_return_sets_authority_invocation_attempted_true`
+75. `test_invalid_deferred_return_sets_authority_result_none`
+76. `test_invalid_deferred_return_sets_result_and_consumption_references_none`
+77. `test_invalid_deferred_return_sets_commit_state_unknown_and_reconciliation_required`
+78. `test_invalid_deferred_return_never_sets_consumption_evidence_candidate_ready`
+79. `test_invalid_deferred_return_never_grants_transport_or_provider_permission`
+80. `test_invalid_deferred_return_is_never_retried`
+81. `test_signature_mismatch_at_call_becomes_authority_exception_indeterminate`
+82. `test_actual_call_runtime_error_becomes_authority_exception_indeterminate`
+83. `test_actual_call_timeout_becomes_authority_timeout_indeterminate`
+84. `test_actual_call_cancelled_error_is_reraised`
+85. `test_actual_call_keyboard_interrupt_is_reraised`
+86. `test_actual_call_system_exit_is_reraised`
+87. `test_authority_invocation_attempted_is_true_when_call_expression_starts`
+88. `test_authority_invocation_attempted_is_true_for_every_returned_snapshot`
+89. `test_authority_reported_consumed_requires_exact_echo_bindings`
+90. `test_authority_reported_consumed_requires_valid_authority_result_reference`
+91. `test_malformed_consumed_authority_result_reference_becomes_contract_violation_indeterminate`
+92. `test_authority_reported_consumed_requires_no_block_or_indeterminate_reason`
+93. `test_authority_reported_consumed_accepts_valid_consumption_reference`
+94. `test_blank_consumption_reference_becomes_contract_violation_indeterminate`
+95. `test_whitespace_consumption_reference_becomes_contract_violation_indeterminate`
+96. `test_control_character_consumption_reference_becomes_contract_violation_indeterminate`
+97. `test_overlength_consumption_reference_becomes_contract_violation_indeterminate`
+98. `test_authority_reported_consumed_requires_commit_state_known_exact_true`
+99. `test_authority_reported_consumed_requires_both_reported_commit_flags_exact_true`
+100. `test_authority_reported_consumed_sets_candidate_ready_true_without_permission`
+101. `test_authority_reported_consumed_snapshot_matches_exact_state_matrix`
+102. `test_authority_reported_blocked_requires_exact_echo_bindings`
+103. `test_authority_reported_blocked_requires_valid_authority_result_reference`
+104. `test_malformed_blocked_authority_result_reference_becomes_contract_violation_indeterminate`
+105. `test_authority_reported_blocked_requires_allowed_block_reason`
+106. `test_unsupported_block_reason_becomes_contract_violation_indeterminate`
+107. `test_authority_reported_blocked_requires_indeterminate_reason_none`
+108. `test_authority_reported_blocked_requires_consumption_reference_none`
+109. `test_authority_reported_blocked_requires_commit_state_known_exact_true`
+110. `test_authority_reported_blocked_requires_both_reported_commit_flags_exact_false`
+111. `test_authority_reported_blocked_sets_candidate_ready_false_reconciliation_false_no_retry`
+112. `test_authority_reported_blocked_snapshot_matches_exact_state_matrix`
+113. `test_block_reason_precedence_is_backend_normative_not_locally_rederived`
+114. `test_explicit_indeterminate_requires_exact_echo_bindings`
+115. `test_explicit_indeterminate_requires_valid_authority_result_reference`
+116. `test_malformed_explicit_indeterminate_authority_result_reference_becomes_contract_violation_indeterminate`
+117. `test_explicit_indeterminate_requires_block_reason_none`
+118. `test_explicit_indeterminate_requires_reason_authority_reported_indeterminate`
+119. `test_explicit_indeterminate_requires_consumption_reference_none`
+120. `test_explicit_indeterminate_requires_commit_state_known_exact_false`
+121. `test_explicit_indeterminate_requires_both_reported_commit_flags_none`
+122. `test_explicit_indeterminate_sets_candidate_false_reconciliation_true_no_retry`
+123. `test_explicit_indeterminate_preserves_valid_authority_result`
+124. `test_explicit_indeterminate_snapshot_matches_exact_state_matrix`
+125. `test_wrong_authority_result_type_becomes_contract_violation_indeterminate`
+126. `test_echo_mismatch_becomes_contract_violation_indeterminate`
+127. `test_partial_true_false_commit_becomes_contract_violation_indeterminate`
+128. `test_partial_false_true_commit_becomes_contract_violation_indeterminate`
+129. `test_impossible_commit_state_combination_becomes_contract_violation_indeterminate`
+130. `test_authority_result_reported_commit_fields_reject_int_zero_and_one`
+131. `test_authority_result_commit_state_known_rejects_int_zero_and_one`
+132. `test_snapshot_boolean_fields_reject_int_zero_and_one`
+133. `test_exact_string_fields_reject_string_subclasses`
+134. `test_identity_tuple_fields_reject_nonexact_tuple_shapes`
+135. `test_local_validation_failure_raises_phase32_error`
+136. `test_local_validation_failure_returns_no_snapshot_fingerprint_or_partial_result`
+137. `test_local_validation_failure_is_not_normalized_to_indeterminate`
+138. `test_local_validation_failure_attempts_authority_zero_times`
+139. `test_local_validation_failure_raises_exact_allowed_reason`
+140. `test_multiple_local_errors_obey_exact_first_error_precedence`
+141. `test_local_validation_order_source_type_precedes_source_contract`
+142. `test_local_validation_order_phase30_binding_precedes_claim_fingerprint`
+143. `test_local_validation_order_asserted_references_precedes_surface_validation`
+144. `test_evidence_fingerprint_envelope_has_exact_twenty_fields`
+145. `test_evidence_fingerprint_repeat_stable_and_lowercase_sha256`
+146. `test_evidence_fingerprint_changes_with_authority_result_reference`
+147. `test_evidence_fingerprint_changes_with_consumption_reference`
+148. `test_evidence_fingerprint_changes_with_reported_commit_state`
+149. `test_evidence_fingerprint_changes_with_candidate_reconciliation_and_direct_safety_flags`
+150. `test_evidence_fingerprint_changes_with_authority_invocation_attempted`
+151. `test_snapshot_exposes_no_post_permitted_transport_allowed_or_send_permission_field`
+152. `test_consumption_evidence_candidate_ready_never_grants_transport`
+153. `test_authority_trust_independently_verified_is_always_false`
+154. `test_phase32_direct_safety_flags_are_always_false`
+155. `test_does_not_access_credentials_account_network_provider_or_order`
+156. `test_does_not_use_file_io_wall_clock_uuid_randomness_retry_or_backoff`
+157. `test_does_not_mutate_dependencies_git_or_upstream_contracts`
+158. `test_bare_coroutine_invalid_return_is_adapter_contract_violation`
+159. `test_bare_coroutine_invalid_return_may_emit_never_awaited_runtimewarning`
+160. `test_phase32_does_not_await_returned_bare_coroutine`
+161. `test_phase32_does_not_cancel_returned_bare_coroutine`
+162. `test_phase32_does_not_close_returned_bare_coroutine`
+163. `test_phase32_does_not_suppress_never_awaited_runtimewarning`
+164. `test_phase32_does_not_mutate_global_warning_filters`
+165. `test_returned_generator_is_not_closed_by_phase32`
+166. `test_returned_async_generator_is_not_aclose_by_phase32`
+167. `test_returned_custom_awaitable_is_not_closed_cancelled_or_driven_by_phase32`
+168. `test_returned_future_is_not_awaited_cancelled_or_result_retrieved_by_phase32`
+169. `test_returned_task_is_not_awaited_cancelled_or_result_retrieved_by_phase32`
+170. `test_returned_task_may_already_be_scheduled_before_result_validation`
+171. `test_scheduled_task_background_activity_may_continue_after_builder_returns`
+172. `test_scheduled_task_background_activity_is_not_interpreted_as_success`
+173. `test_scheduled_task_does_not_create_candidate_ready_or_permission`
+174. `test_returned_future_and_task_remain_reconciliation_required`
+175. `test_phase32_does_not_retain_invalid_task_or_future_to_completion`
+176. `test_phase32_does_not_install_done_callback_on_invalid_task_or_future`
+177. `test_invalid_deferred_object_lifecycle_remains_adapter_authority_responsibility`
+178. `test_conforming_adapter_must_return_exact_synchronous_result_dataclass`
+179. `test_conforming_adapter_must_own_and_settle_async_background_work_before_return`
+180. `test_invalid_deferred_object_is_not_stored_in_snapshot`
+181. `test_invalid_deferred_object_is_only_transiently_referenced_for_result_validation`
+182. `test_invalid_deferred_return_never_triggers_second_authority_attempt`
+183. `test_invalid_deferred_return_never_triggers_automatic_retry`
+184. `test_task_exception_never_retrieved_diagnostic_is_not_suppressed_or_reclassified`
+185. `test_future_exception_never_retrieved_diagnostic_is_not_suppressed_or_reclassified`
+186. `test_background_task_completion_after_builder_return_does_not_retroactively_change_snapshot`
+187. `test_background_task_failure_after_builder_return_does_not_retroactively_change_snapshot`
+188. `test_direct_safety_flags_do_not_claim_adapter_background_work_absent`
+189. `test_already_done_future_with_result_is_still_wrong_exact_type_contract_violation`
+190. `test_phase32_does_not_call_future_result_exception_or_add_done_callback`
+
+`TARGETED_TEST_COUNT=190`
+`TARGETED_TEST_UNIQUE_COUNT=190`
+`TARGETED_TEST_DUPLICATE_COUNT=0`
+
+### Future implementation allowed paths
+
+Phase 32 future implementation mutation allowlist 후보는 exact 다음 2개 경로로 제한한다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_authorization_adapter_evidence.py`
+- `tests/test_watchlist_order_authorization_adapter_evidence.py`
+
+README registration approval만으로 위 source/test 경로 생성 또는 수정은 승인되지 않는다.
+
+`README.md`, `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`, 기존 Phase29/Phase30/Phase31/upstream source/test, `pyproject.toml`, `uv.lock`, `.venv`, `.env`, credential 관련 파일, Git index/commit/remote 및 Current Phase는 implementation allowlist에 포함하지 않는다.
+
+### README registration boundary
+
+이 official contract candidate의 actual README registration 단계에서 허용 가능한 project write path 후보는 exact `README.md` 1개뿐이다.
+
+actual registration 전까지:
+
+- README mutation 금지
+- source/test mutation 금지
+- dependency mutation 금지
+- credential/token/account/network/provider/order 접근 금지
+- Git add/commit/push 금지
+- Current Phase 변경 금지
+- Phase 32 implementation 금지
+
+actual README registration은 별도 명시승인 및 Actual Rerun 검증 대상이다.
+
+### Acceptance / Closure conditions
+
+Phase 32는 다음 전체가 별도 승인 및 실제 검증되기 전 완료로 간주하지 않는다.
+
+1. Final Contract Review 승인
+2. README exact official contract registration 별도 승인 및 Actual 검증
+3. frozen contract identity exact match
+4. implementation 별도 승인
+5. exact two-path implementation
+6. targeted tests `190/190`
+7. expected full regression `1068/1068`
+8. failures=0
+9. errors=0
+10. 미승인 skipped=0
+11. expected failures=0
+12. unexpected successes=0
+13. passive surface semantics exact
+14. local validation failure attempt=0
+15. successful local validation authority attempt exact 1
+16. second invocation/retry 없음
+17. invalid deferred lifecycle adapter/authority-owned
+18. Phase 32 await/cancel/close/aclose/retain-to-completion 없음
+19. warning suppression/global warning mutation 없음
+20. permission isolation 유지
+21. authority-reported versus durable truth 분리
+22. evidence fingerprint exact 20-field algorithm
+23. Phase29/Phase30/Phase31 및 protected hashes 불변
+24. dependency 변경 없음
+25. package re-export 변경 없음
+26. credential/token/account/provider/order direct action 없음
+27. Git 변경 범위 승인 경로와 exact 일치
+28. 별도 commit 승인 및 검증
+29. 별도 Closure 승인 및 Current Phase alignment
+
+### Concrete backend boundary
+
+별도 concrete backend evidence 및 승인 전까지 exact 다음 상태를 유지한다.
+
+`CONCRETE_AUTHORITY_BACKEND_PROVEN=NO`
+`AUTHORITATIVE_CONSUMPTION_CAPABILITY_PROVEN=NO`
+`PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+`PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+
+### Current Phase
+
+Phase 32 official contract를 README에 등록하더라도 implementation, commit, Closure 및 Current Phase alignment가 별도 승인·검증되기 전까지 top-level `Current Phase`는 `PHASE31`로 유지한다.
