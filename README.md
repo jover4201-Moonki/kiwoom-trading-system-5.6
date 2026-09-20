@@ -5057,3 +5057,1857 @@ Phase 32는 다음 전체가 별도 승인 및 실제 검증되기 전 완료로
 ### Current Phase
 
 Phase 32 official contract를 README에 등록하더라도 implementation, commit, Closure 및 Current Phase alignment가 별도 승인·검증되기 전까지 top-level `Current Phase`는 `PHASE31`로 유지한다.
+
+## Phase 33 — demo Kiwoom Cash BUY-Order Concrete SQLite Authority Durable Check-and-Consume Ledger & Local Verification Evidence Snapshot 기반선 v1.0
+
+Status: CONTRACT APPROVED FOR README REGISTRATION
+Implementation: NOT YET APPROVED
+Current Phase: PHASE32 UNTIL SEPARATE CLOSURE / CURRENT-PHASE ALIGNMENT
+Provider Send Eligibility: NOT AUTHORIZED
+Production Authority Use: NOT AUTHORIZED
+
+Source Contract Artifact: `Phase33_New_Contract_DRAFT_A11_Independent_Revision_FINAL_REVIEW_PREPARATION_DESIGN_ONLY_NOT_APPROVED.txt`
+Source Contract Bytes: `94998`
+Source Contract SHA256: `16DD3E11560767B730F9B1ECD0EF623ABC34668906C7D13AA3D370F5F8338CF8`
+Approved A11 Sections 1-33 CRLF Bytes: `93987`
+Approved A11 Sections 1-33 CRLF SHA256: `90083F6C3F3CB926FB396F6AB0AA2C95623A4395FAE248E3E137268F774711AE`
+
+### Approved-source body preservation rule
+
+Sections 1 through 33 below preserve the approved DRAFT-A11 contract-body text exactly; the only representation change is canonical line-ending conversion from source LF to README CRLF.
+
+The DRAFT-A11 front matter and DRAFT-A11 section 34 governance are not part of this official README payload. Section 34 below is the superseding official governance for README registration.
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=B628FE9DB2509DB31D8511E7A3FD296385B5B179C4902EAFEC49C973825A9C2C`
+
+### Frozen contract identity rule
+
+`FROZEN_CONTRACT_IDENTITY_SHA256` is the SHA-256 uppercase hex of this exact CRLF UTF-8 payload after removing exactly the marker line and its immediately following blank CRLF.
+
+The complete payload raw SHA-256 is tracked separately from the frozen contract identity.
+
+## 1. Official review basis
+
+The A11 revision is based on a fresh current-request review of these official contracts:
+
+1. Kiwoom REST API official portal:
+   `https://openapi.kiwoom.com/guide/apiguide`
+2. Kiwoom-Securities official REST API repository:
+   `https://github.com/Kiwoom-Securities/Kiwoom-REST-API`
+3. Python 3.13.15 `sqlite3` documentation:
+   `https://docs.python.org/3.13/library/sqlite3.html`
+4. SQLite transaction / PRAGMA / schema-table documentation:
+   `https://sqlite.org/lang_transaction.html`
+   `https://sqlite.org/pragma.html`
+   `https://sqlite.org/schematab.html`
+   `https://sqlite.org/lang_createtable.html`
+5. Git status/diff documentation:
+   `https://git-scm.com/docs/git-status`
+   `https://git-scm.com/docs/git-diff`
+
+Contract-relevant conclusions:
+
+- Kiwoom demo and real environments remain distinct; Phase33 must not access credentials, tokens, accounts, provider transport, or order submission;
+- Python 3.13 `Connection.autocommit=True` selects SQLite autocommit mode, and Python `Connection.commit()` / `Connection.rollback()` have no effect in that mode;
+- `Connection.isolation_level` has no functional transaction-control effect when `autocommit=True`; A11 nevertheless freezes `isolation_level is None` as a redundant exact caller-visible surface invariant;
+- Python `Connection.row_factory` controls the representation returned by newly created cursors and is `None` by default; A11 therefore freezes `connection.row_factory is None` so authoritative rows remain ordinary tuples;
+- Python `Connection.text_factory` is invoked for SQLite TEXT values and is `str` by default; A11 freezes `connection.text_factory is str`;
+- Python's process-global adapter/converter registry can transform DB-API-bound Python values and declared SQLite values; A11 therefore avoids authoritative DB-API parameter binding for persisted/lookup `str`/`int`, uses deterministic SQL BLOB/integer literal encoding, and keeps authoritative persisted-value reads converter-neutral instead of assuming `detect_types=0` or a pristine registry;
+- A11 uses explicit SQL transaction control and `Connection.in_transaction` as the low-level transaction-state observation;
+- `PRAGMA busy_timeout=0` is required so Phase33 does not create an SQLite busy-wait/retry window;
+- SQLite WAL + synchronous FULL remains the single accepted local durability profile;
+- `PRAGMA table_list` exposes ordinary-table/virtual-table, column-count, WITHOUT-ROWID, and STRICT state;
+- `PRAGMA foreign_key_list` exposes REFERENCES constraints;
+- `main.sqlite_schema.sql` stores normalized CREATE SQL capable of recreating the object and therefore can be frozen as an exact stored-DDL identity in addition to structural PRAGMA checks;
+- an SQLite read transaction provides one read snapshot until transaction end, so the verifier must use one explicit read transaction for all authoritative verification reads;
+- Git/project mutation remains outside this DRAFT preparation step.
+
+---
+
+## 2. Phase32 boundary and Phase33 A11 responsibility
+
+Phase32 remains the official current boundary.
+
+Phase32:
+
+- accepts exact `WatchlistOrderAuthorizationConsumptionClaimSnapshot`;
+- performs deterministic local validation;
+- invokes one authority adapter operation at most once;
+- normalizes authority-reported result evidence into exact `WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`;
+- does not prove concrete backend identity;
+- does not independently prove durable local persistence;
+- does not independently prove external approval/conformance provenance;
+- does not authorize provider transport or production authority use.
+
+Phase33 A11 candidate responsibility is limited to:
+
+1. provide one concrete demo-only local SQLite authority implementation identity;
+2. enforce exact caller-owned SQLite connection and exclusive-use preconditions;
+3. freeze the Python DB-API result-conversion surface needed by Phase33 (`row_factory=None`, `text_factory=str`), use converter-neutral BLOB/INTEGER reads, and use deterministic SQL literal encoding with no authoritative DB-API parameter binding for persisted/lookup `str`/`int`;
+4. perform authoritative persisted BLOB/INTEGER reads without relying on declared-type converters;
+5. initialize and verify one exact `main` schema with frozen stored-DDL identity;
+6. persist one replay-protected local consumption row under a fixed SQLite durability profile;
+7. bind persistent claim identity and replay guard independently of `backend_instance_reference`;
+8. derive deterministic domain-separated references and fingerprints;
+9. eliminate pre-transaction schema/profile TOCTOU by authoritative in-transaction revalidation;
+10. allow exact Phase32 consumed-candidate evidence to be rebound read-only to the durable row under one explicit SQLite read snapshot;
+11. materialize immutable local verification evidence limited to observable identity/schema/connection-surface/durability/record bindings;
+12. continue to withhold provider-send eligibility, production use, and external governance provenance.
+
+A11 does not create or imply provider transport permission.
+
+---
+
+## 3. Scope
+
+Phase33 A11 candidate exact scope:
+
+- environment=`demo` only
+- side=`BUY` only
+- exchange=`KRX` only
+- cash order only
+- exact Phase32 `WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot` integration
+- concrete backend=`sqlite3`
+- exact caller-owned `sqlite3.Connection`
+- caller-provided exclusive use of that connection for each Phase33 API invocation
+- explicit connection surface precondition including `row_factory is None` and `text_factory is str`
+- converter-neutral authoritative persisted BLOB/INTEGER reads
+- deterministic UTF-8 BLOB / signed-64 integer SQL literal encoding with no authoritative DB-API placeholder binding
+- caller/process stability contract prohibiting adapter/converter registry or connection conversion-surface mutation during an invocation
+- explicit schema initialization
+- exact `main` structural introspection
+- exact frozen stored-DDL identity
+- file-backed `main` database only
+- exact declared authority transaction protocol
+- exact local durability profile
+- exact atomic check-and-consume algorithm
+- authoritative schema/profile revalidation after successful `BEGIN IMMEDIATE`
+- persistent claim identity uniqueness
+- persistent replay-guard uniqueness
+- deterministic authority-result reference
+- deterministic consumption reference
+- deterministic durable-record fingerprint
+- read-only local durable-row verification under one explicit read transaction
+- immutable Phase33 verification snapshot
+- no provider REST/WebSocket call
+- no credential/token/account access
+- no `kt10000` POST
+- no order submission
+- no order-response parsing
+- no order-number handling
+- no provider-send permission
+- no production-authority enablement
+- no automatic retry
+- no second consumption attempt
+- no hidden thread/task/lock manager
+- no third-party dependency
+- no package-level re-export
+
+Out of scope:
+
+- real environment
+- SELL
+- NXT/SOR
+- credit
+- amend/cancel
+- provider transport
+- provider response
+- provider order number
+- external approval-governance proof
+- cryptographic signing or tamper-proof storage
+- remote database
+- distributed consensus
+- cross-database global uniqueness
+- cross-process lease service
+- automatic recovery/retry
+- schema migration
+- package-level re-export
+- physical-storage durability proof beyond the declared SQLite contract profile
+- concurrent use of the same caller-owned connection during a Phase33 invocation
+- mutation of Python's global sqlite3 adapter/converter registries by Phase33
+
+---
+
+## 4. Safety invariants
+
+`PHASE32_CONSUMPTION_EVIDENCE_CANDIDATE_READY != LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED`
+
+`LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED != PROVIDER_SEND_ELIGIBILITY`
+
+`CONCRETE_SQLITE_AUTHORITY_IDENTITY_VERIFIED != EXTERNAL_AUTHORITY_TRUST_VERIFIED`
+
+`CONFIGURED_APPROVAL_REFERENCE != INDEPENDENT_APPROVAL_PROVENANCE`
+
+`CONFIGURED_CONFORMANCE_REFERENCE != INDEPENDENT_CONFORMANCE_PROVENANCE`
+
+`SQLITE_WAL_FULL_PROFILE_VERIFIED != CRYPTOGRAPHIC_TAMPER_PROOF`
+
+`SQLITE_CONNECTION_SURFACE_VERIFIED != DECLARED_TRANSACTION_PROTOCOL_EXECUTION_PROVEN`
+
+`DECLARED_TRANSACTION_PROFILE_ID_BOUND != HISTORICAL_TRANSACTION_EXECUTION_PROVEN`
+
+`SINGLE_READ_SNAPSHOT_VERIFIED != HISTORICAL_WRITE_TRANSACTION_PROVEN`
+
+`PROVIDER_SEND_ELIGIBILITY_AUTHORIZED == False`
+
+`PRODUCTION_AUTHORITY_USE_AUTHORIZED == False`
+
+`AUTOMATIC_RETRY == PROHIBITED`
+
+`SECOND_AUTHORITY_CONSUMPTION_ATTEMPT == PROHIBITED`
+
+`SQLITE_TRANSACTION_ROLLBACK != PROJECT_OR_GIT_ROLLBACK`
+
+SQLite rollback is local database transaction cleanup only.
+
+---
+
+## 5. Candidate module-level public API
+
+Candidate public API remains exact 7 symbols:
+
+1. `WatchlistOrderAuthorizationDurableAuthorityError`
+2. `KiwoomOrderAuthorizationDurableAuthorityConfig`
+3. `KiwoomOrderAuthorizationDurableLedgerRecord`
+4. `KiwoomOrderAuthorizationSQLiteAuthority`
+5. `WatchlistOrderAuthorizationDurableVerificationSnapshot`
+6. `initialize_demo_watchlist_order_authorization_durable_ledger`
+7. `verify_demo_watchlist_order_authorization_durable_consumption`
+
+`WatchlistOrderAuthorizationDurableAuthorityError` inherits `RuntimeError`.
+
+No package-level re-export from `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`.
+
+---
+
+## 6. Future implementation paths
+
+Candidate future implementation mutation allowlist remains exact 2 paths:
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_authorization_durable_authority.py`
+- `tests/test_watchlist_order_authorization_durable_authority.py`
+
+Not included:
+
+- `README.md`
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- any Phase29/30/31/32 source/test path
+- `pyproject.toml`
+- `uv.lock`
+- `.venv`
+- `.env`
+- credential files
+- Git index/commit/remote
+
+DRAFT-A11 preparation does not authorize either future path to be created or modified in the project.
+
+---
+
+## 7. Durable authority config
+
+`KiwoomOrderAuthorizationDurableAuthorityConfig` remains a frozen dataclass with exact field order 4:
+
+1. `backend_instance_reference: str`
+2. `authorization_authority_reference: str`
+3. `authority_approval_reference: str`
+4. `authority_conformance_reference: str`
+
+Each reference:
+
+- exact `str`
+- length `1..128`
+- non-empty
+- `value == value.strip()`
+- whitespace-only prohibited
+- U+0000..U+001F prohibited
+- U+007F prohibited
+- no trim
+- no case-fold
+- no Unicode normalization
+- no replacement
+
+These are configured local bindings only.
+They are not independent external approval or conformance proof.
+
+---
+
+## 8. Caller-owned SQLite connection and adapter/callback-independent SQL-value contract
+
+`KiwoomOrderAuthorizationSQLiteAuthority` candidate constructor:
+
+`KiwoomOrderAuthorizationSQLiteAuthority(`
+`    connection: sqlite3.Connection,`
+`    config: KiwoomOrderAuthorizationDurableAuthorityConfig,`
+`)`
+
+Exact preconditions:
+
+1. `type(connection) is sqlite3.Connection`
+2. caller owns connection lifecycle
+3. Phase33 never closes the connection
+4. connection must be open
+5. `connection.in_transaction is False` before initializer, `check_and_consume`, or verifier transaction start
+6. `connection.autocommit is True`
+7. `connection.isolation_level is None`
+8. `connection.row_factory is None`
+9. `connection.text_factory is str`
+10. `PRAGMA busy_timeout` result is exact integer `0`
+11. no Python `Connection` context manager is used by Phase33
+12. no `executescript()` is used by Phase33
+13. transaction boundaries use explicit SQL only
+14. `PRAGMA database_list` must show a non-empty file path for schema `main`
+15. in-memory `main` databases are rejected
+16. attached databases may exist but are never used as Phase33 storage
+17. every Phase33 storage table/index/metadata SQL reference is explicitly `main.` qualified
+18. no unqualified Phase33 storage table name is permitted
+19. TEMP or attached objects with the same base names must not redirect Phase33 storage away from `main`
+20. no hidden database open/path derivation/default path
+21. no automatic connection-setting mutation
+22. caller provides exclusive use of the same connection for the full Phase33 invocation
+23. the same connection must not be concurrently used by another thread, task, callback, signal handler, or reentrant application path
+24. caller must not mutate `connection.row_factory` or `connection.text_factory` during the invocation
+25. Phase33 creates no background thread/task and no hidden lock manager
+26. Phase33 does not register, remove, replace, restore, or otherwise mutate global sqlite3 adapters/converters or connection-local SQL callbacks/collations/authorizers
+
+`connection.isolation_level is None` remains a redundant exact surface invariant while `autocommit=True`.
+
+`row_factory=None` and `text_factory=str` remain exact observable surface invariants. A pre-transaction mismatch routes to `AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID`; no twelfth local reason is created.
+
+### 8.1 Exact deterministic SQL literal encoding — no DB-API authoritative parameter binding
+
+A11 removes A8's separate effective-binding probe model entirely.
+
+Phase33 authoritative storage/schema lookup or mutation SQL MUST NOT bind Phase33 authority-critical `str` or `int` values through DB-API placeholders. Therefore registered Python adapters cannot transform the value between a probe and a later authoritative use because there is no such later parameter adaptation.
+
+For every exact Python `str` used as persisted or lookup data:
+
+1. require `type(value) is str`;
+2. require the field-specific Phase33 validation rules first;
+3. require `value.encode("utf-8", "strict")` to succeed;
+4. let `raw = value.encode("utf-8", "strict")`;
+5. let `hex_upper = raw.hex().upper()`;
+6. the exact SQL value expression is `X'<HEX_UPPER>'`;
+7. `<HEX_UPPER>` contains only `0-9A-F`, therefore no user-controlled quote/token can enter SQL syntax;
+8. the resulting SQLite storage value is BLOB and exact byte equality is the authoritative persisted/lookup identity.
+
+No `CAST(... AS TEXT)`, SQL collation, user-defined function, or Python adapter is used to construct an authority-critical bound value.
+
+For every exact Python `int` used as persisted data:
+
+1. require `type(value) is int` and not bool;
+2. require signed 64-bit range `-9223372036854775808 <= value <= 9223372036854775807`;
+3. canonical SQL decimal literal is Python `str(value)` with no leading plus and no redundant leading zero;
+4. only ASCII `-0123456789` can occur;
+5. the integer literal is embedded directly in the Phase33 SQL statement and is never passed through DB-API parameter adaptation.
+
+Phase33 therefore performs **zero DB-API parameter binding for authority-critical Phase33 persisted/lookup values**.
+
+Static table/schema identifiers are hard-coded constants. The only dynamically rendered PRAGMA object argument permitted is an SQLite-generated index name already obtained from verified structural metadata. The accepted exact internal autoindex-name set is frozen to:
+
+- `sqlite_autoindex_kiwoom_order_authorization_meta_1`
+- `sqlite_autoindex_kiwoom_order_authorization_consumption_1`
+- `sqlite_autoindex_kiwoom_order_authorization_consumption_2`
+- `sqlite_autoindex_kiwoom_order_authorization_consumption_3`
+- `sqlite_autoindex_kiwoom_order_authorization_consumption_4`
+- `sqlite_autoindex_kiwoom_order_authorization_consumption_5`
+
+No other dynamic PRAGMA object name is accepted. Autoindex numeric suffixes are not treated as semantic proof of a particular UNIQUE key; semantic key-set/order/ascending/non-expression/non-partial verification continues to come from the corresponding `main.index_list` / `main.index_xinfo` rows. For `PRAGMA main.index_xinfo(...)`, the accepted name is rendered only after exact-set membership succeeds, by replacing each ASCII single quote `'` with two single quotes `''` and surrounding the resulting text with one SQL single-quoted string delimiter pair. The six accepted names contain no single quote, so their canonical rendered arguments are the same names surrounded by single quotes. No user-provided identifier is rendered into SQL.
+
+### 8.2 Adapter/converter/callback independence
+
+A11 does not infer `detect_types` and does not use direct declared-column conversion as authoritative data.
+
+A11's authoritative path intentionally does not depend on:
+
+- `sqlite3.register_adapter()` output;
+- `sqlite3.register_converter()` output;
+- caller-defined SQL scalar/aggregate/window functions, including a function named `typeof`;
+- caller-defined text collations for authority-critical persistent identity;
+- generic sentinel parameter probes.
+
+Phase33 never calls authority-critical named SQL scalar functions such as `typeof()`, `hex()`, `length()`, or caller-defined equivalents.
+
+Persistent identity/reference/fingerprint columns are exact BLOB columns in STRICT tables. Equality and UNIQUE enforcement for these values therefore use BLOB byte identity and do not depend on text collation behavior. A caller-defined collation named `BINARY` cannot redefine BLOB byte equality.
+
+Connection-local authorizer/progress callbacks are not modified by Phase33. If they deny/ignore/abort an operation such that required structural/read/write invariants are not obtained exactly, the existing SQLite/read/schema failure path fails closed; Phase33 does not attempt to clear or restore those callbacks.
+
+Global adapter/converter registry stability may still be required as ordinary process hygiene, but it is **not** evidence of adapter callable output determinism and is not part of the authoritative value proof.
+
+### 8.3 Converter-neutral authoritative reads
+
+Because the two Phase33 application tables are exact STRICT tables with BLOB identity/reference/fingerprint storage and INTEGER synchronous-level storage, their declared storage classes are enforced by SQLite schema semantics.
+
+For an authoritative persisted BLOB-backed logical string:
+
+1. select `CAST(column AS BLOB)` in an unannotated expression;
+2. require exact Python `bytes`;
+3. strict-decode UTF-8 using `bytes_value.decode("utf-8", "strict")`;
+4. use only the decoded Python string as the logical contract value;
+5. direct declared-column converter output is never authoritative.
+
+For persisted INTEGER:
+
+1. select `CAST(column AS INTEGER)` in an unannotated expression;
+2. require `type(value) is int` and not bool;
+3. require the field-specific exact numeric value/range.
+
+No authority-critical persisted-value decision uses SQL `typeof()`.
+
+For `main.sqlite_schema`, non-null `type`, `name`, `tbl_name`, and `sql` are read using `CAST(... AS BLOB)` and strict UTF-8 decode. Contractually null `sql` values require exact SQL/Python NULL semantics. Comparisons of `main.sqlite_schema` names required by Phase33 are made with `CAST(name AS BLOB)=X'<CONSTANT_HEX>'`, not text-collation equality.
+
+PRAGMA result sets remain accepted only with `row_factory is None` and `text_factory is str`, plus exact primitive-type checks.
+
+---
+
+## 9. Exact SQLite transaction profile
+
+Exact transaction profile ID:
+
+`sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1`
+
+Required exact surface/profile state:
+
+- `connection.autocommit is True`
+- `connection.isolation_level is None`
+- `PRAGMA busy_timeout` result=`0`
+- `connection.in_transaction is False` before transaction start
+- transaction start SQL exact semantic operation=`BEGIN IMMEDIATE`
+- transaction success finish SQL exact semantic operation=`COMMIT`
+- failure cleanup SQL exact semantic operation=`ROLLBACK`
+- no `Connection.commit()`
+- no `Connection.rollback()`
+- no `with connection:`
+- no `executescript()`
+- no nested transaction
+- no SAVEPOINT
+- no second transaction for retry
+- no SQLite busy-wait/retry window; lock contention is a single failure path
+
+`isolation_level=None` is a frozen surface invariant, not an independent transaction-control mechanism while `autocommit=True`.
+
+After successful `BEGIN IMMEDIATE`, `connection.in_transaction` must be True.
+
+After successful `COMMIT` or successful cleanup `ROLLBACK`, `connection.in_transaction` must be False.
+
+---
+
+## 10. Exact SQLite durability profile
+
+Candidate durability profile reference:
+
+`sqlite-main-wal-synchronous-full-v1`
+
+Exact accepted profile:
+
+- `PRAGMA main.journal_mode` result=`wal`
+- `PRAGMA main.synchronous` result=`2` (`FULL`)
+
+No alternate durability profile is accepted in A11.
+
+Rejected:
+
+- rollback-journal modes including `delete`, `truncate`, `persist`
+- `memory`
+- `off`
+- synchronous=`0` / `OFF`
+- synchronous=`1` / `NORMAL`
+- synchronous=`3` / `EXTRA`
+
+`EXTRA` is not rejected as unsafe; it is rejected because A11 freezes one exact profile and does not silently broaden the contract.
+
+Phase33 does not silently change `journal_mode` or `synchronous`.
+The caller must configure the connection/database before Phase33 initialization.
+
+Durability statement is intentionally bounded:
+
+`SQLITE_MAIN_WAL_FULL_CONTRACT_PROFILE_VERIFIED`
+
+does not mean:
+
+- cryptographic integrity;
+- remote replication;
+- distributed consensus;
+- storage-device failure immunity;
+- independent hardware durability attestation.
+
+---
+
+## 11. Explicit ledger initialization and exact schema verification
+
+A11 adopts schema hardening: both Phase33 application tables are exact SQLite STRICT tables, and all logical string/reference/fingerprint storage columns are exact `BLOB` containing canonical UTF-8 bytes. `WITHOUT ROWID` remains prohibited.
+
+The exact ledger schema reference remains:
+
+`kiwoom-watchlist-order-authorization-durable-ledger-v1`
+
+The exact schema metadata keys remain:
+
+- `schema_id`
+- `transaction_profile_id`
+- `durability_profile_id`
+
+The exact metadata values remain the existing Phase33 string constants but are persisted as canonical UTF-8 BLOB bytes.
+
+### 11.1 Meta table exact logical schema
+
+`main.kiwoom_order_authorization_meta`
+
+exact columns/order:
+
+1. `schema_key BLOB NOT NULL PRIMARY KEY`
+2. `schema_value BLOB NOT NULL`
+
+exact rows: three and only three logical keys encoded as UTF-8 BLOB:
+
+- `schema_id`
+- `transaction_profile_id`
+- `durability_profile_id`
+
+No extra metadata row is allowed.
+
+### 11.2 Consumption table exact logical schema
+
+`main.kiwoom_order_authorization_consumption`
+
+exact columns/order:
+
+1. `backend_instance_reference BLOB NOT NULL`
+2. `authorization_authority_reference BLOB NOT NULL`
+3. `authorization_evidence_snapshot_id BLOB NOT NULL`
+4. `submission_attempt_reference BLOB NOT NULL`
+5. `send_authorization_reference BLOB NOT NULL`
+6. `claim_fingerprint BLOB NOT NULL`
+7. `authority_approval_reference BLOB NOT NULL`
+8. `authority_conformance_reference BLOB NOT NULL`
+9. `authority_result_reference BLOB NOT NULL`
+10. `consumption_reference BLOB NOT NULL`
+11. `sqlite_journal_mode BLOB NOT NULL`
+12. `sqlite_synchronous_level INTEGER NOT NULL`
+13. `record_fingerprint BLOB NOT NULL`
+
+Required exact UNIQUE key sets remain:
+
+- claim identity: `(authorization_authority_reference, authorization_evidence_snapshot_id, submission_attempt_reference, send_authorization_reference)`
+- replay guard: `(authorization_authority_reference, send_authorization_reference)`
+- `authority_result_reference`
+- `consumption_reference`
+- `record_fingerprint`
+
+`backend_instance_reference` remains provenance only and is excluded from persistent claim/replay uniqueness.
+
+Because all unique identity terms are BLOB, their authority semantics are byte equality; text collations do not participate in identity or uniqueness.
+
+### 11.3 Exact STRICT creation SQL and frozen stored-DDL identity
+
+Exact initializer CREATE SQL:
+
+`CREATE TABLE main.kiwoom_order_authorization_meta(schema_key BLOB NOT NULL PRIMARY KEY,schema_value BLOB NOT NULL) STRICT`
+
+`CREATE TABLE main.kiwoom_order_authorization_consumption(backend_instance_reference BLOB NOT NULL,authorization_authority_reference BLOB NOT NULL,authorization_evidence_snapshot_id BLOB NOT NULL,submission_attempt_reference BLOB NOT NULL,send_authorization_reference BLOB NOT NULL,claim_fingerprint BLOB NOT NULL,authority_approval_reference BLOB NOT NULL,authority_conformance_reference BLOB NOT NULL,authority_result_reference BLOB NOT NULL,consumption_reference BLOB NOT NULL,sqlite_journal_mode BLOB NOT NULL,sqlite_synchronous_level INTEGER NOT NULL,record_fingerprint BLOB NOT NULL,UNIQUE(authorization_authority_reference,authorization_evidence_snapshot_id,submission_attempt_reference,send_authorization_reference),UNIQUE(authorization_authority_reference,send_authorization_reference),UNIQUE(authority_result_reference),UNIQUE(consumption_reference),UNIQUE(record_fingerprint)) STRICT`
+
+SQLite-normalized exact stored DDL after creation:
+
+Meta:
+
+`CREATE TABLE kiwoom_order_authorization_meta(schema_key BLOB NOT NULL PRIMARY KEY,schema_value BLOB NOT NULL) STRICT`
+
+- UTF-8 bytes=`116`
+- SHA256=`55FDBAD5B3992B06F98D132FC881B7090E83E00E92CE20B5A05CD73B52F68AFE`
+
+Consumption:
+
+`CREATE TABLE kiwoom_order_authorization_consumption(backend_instance_reference BLOB NOT NULL,authorization_authority_reference BLOB NOT NULL,authorization_evidence_snapshot_id BLOB NOT NULL,submission_attempt_reference BLOB NOT NULL,send_authorization_reference BLOB NOT NULL,claim_fingerprint BLOB NOT NULL,authority_approval_reference BLOB NOT NULL,authority_conformance_reference BLOB NOT NULL,authority_result_reference BLOB NOT NULL,consumption_reference BLOB NOT NULL,sqlite_journal_mode BLOB NOT NULL,sqlite_synchronous_level INTEGER NOT NULL,record_fingerprint BLOB NOT NULL,UNIQUE(authorization_authority_reference,authorization_evidence_snapshot_id,submission_attempt_reference,send_authorization_reference),UNIQUE(authorization_authority_reference,send_authorization_reference),UNIQUE(authority_result_reference),UNIQUE(consumption_reference),UNIQUE(record_fingerprint)) STRICT`
+
+- UTF-8 bytes=`888`
+- SHA256=`52CE7F608809602658FAC025425BBBC6AB175586101898FB0AEA3C852C950FB8`
+
+The stored strings above are compared as exact strict-UTF-8-decoded bytes from `CAST(main.sqlite_schema.sql AS BLOB)`; no direct declared TEXT conversion and no caller-overridable named SQL function is authoritative.
+
+Any unapproved CHECK, REFERENCES, generated column, table constraint, non-STRICT form, WITHOUT ROWID, changed declared type, extra table option, or other stored-DDL difference is rejected.
+
+### 11.4 Exact structural introspection
+
+Required inspection remains:
+
+- `PRAGMA main.table_list('kiwoom_order_authorization_meta')`
+- `PRAGMA main.table_list('kiwoom_order_authorization_consumption')`
+- `PRAGMA main.table_xinfo('kiwoom_order_authorization_meta')`
+- `PRAGMA main.table_xinfo('kiwoom_order_authorization_consumption')`
+- `PRAGMA main.index_list('<target>')`
+- `PRAGMA main.index_xinfo('<verified-autoindex>')`
+- `PRAGMA main.foreign_key_list('<target>')`
+- converter-neutral reads from `main.sqlite_schema`
+
+Exact `table_list` requirements for each target:
+
+- schema=`main`
+- type=`table`
+- meta ncol=`2`; consumption ncol=`13`
+- `wr=0`
+- `strict=1`
+
+Meta `table_xinfo` exact types/order:
+
+- `schema_key`: type `BLOB`, notnull=1, pk=1, hidden=0, no default
+- `schema_value`: type `BLOB`, notnull=1, pk=0, hidden=0, no default
+
+Consumption `table_xinfo` exact types/order:
+
+- the twelve logical string/reference/fingerprint/journal columns are exact `BLOB`
+- `sqlite_synchronous_level` is exact `INTEGER`
+- every column notnull=1, pk=0, hidden=0, no default
+
+Exact index semantics remain five required UNIQUE constraints on the consumption table plus the metadata PK autoindex. No user-created (`origin='c'`) index may target either Phase33 table. Each index key must be the exact expected column set/order, ascending, non-expression, non-partial. `index_xinfo` may report collation metadata such as `BINARY`, but A11 persistent identity values are BLOB and authority semantics do not rely on a text-collation callback.
+
+`foreign_key_list` must be empty for both tables.
+
+No trigger may target either Phase33 table. No Phase33-namespaced view is allowed. TEMP/attached shadows do not redirect `main`-qualified access.
+
+### 11.5 Initialization transaction
+
+Initializer requires all section 8/9/10 connection preconditions, then uses exactly one `BEGIN IMMEDIATE` transaction to create missing exact tables and insert the exact three metadata rows using A11 deterministic BLOB SQL literals.
+
+If tables already exist, initializer verifies exact STRICT/BLOB schema, exact frozen stored-DDL, exact metadata, and does not migrate or rewrite them.
+
+No ALTER TABLE migration, no schema normalization, no retry, and no second transaction is permitted.
+
+### 11.6 Initializer runtime failure lifecycle
+
+Initializer runtime `sqlite3.Error` behavior remains fail-closed:
+
+- inspect `connection.in_transaction`;
+- if active, attempt cleanup-only explicit `ROLLBACK` exactly once;
+- cleanup failure does not replace the original sqlite3.Error;
+- re-raise the original sqlite3.Error;
+- no retry/second initializer transaction;
+- never infer successful initialization from an error path.
+
+`KeyboardInterrupt`/`SystemExit` after transaction start receive the same at-most-one active cleanup rollback and the original BaseException is re-raised.
+
+---
+
+## 12. Durable ledger record
+
+`KiwoomOrderAuthorizationDurableLedgerRecord` is a frozen dataclass with exact field order and exact annotations 13:
+
+1. `backend_instance_reference: str`
+2. `authorization_authority_reference: str`
+3. `authorization_evidence_snapshot_id: str`
+4. `submission_attempt_reference: str`
+5. `send_authorization_reference: str`
+6. `claim_fingerprint: str`
+7. `authority_approval_reference: str`
+8. `authority_conformance_reference: str`
+9. `authority_result_reference: str`
+10. `consumption_reference: str`
+11. `sqlite_journal_mode: str`
+12. `sqlite_synchronous_level: int`
+13. `record_fingerprint: str`
+
+No annotation may be widened to `Any`, `object`, an optional type, a union, or a subclass-specific type.
+
+`record_fingerprint` is lowercase 64-hex SHA-256 over an exact 16-key canonical envelope:
+
+1. `domain`
+2. `schema_id`
+3. `transaction_profile_id`
+4. `durability_profile_id`
+5. `backend_instance_reference`
+6. `authorization_authority_reference`
+7. `authorization_evidence_snapshot_id`
+8. `submission_attempt_reference`
+9. `send_authorization_reference`
+10. `claim_fingerprint`
+11. `authority_approval_reference`
+12. `authority_conformance_reference`
+13. `authority_result_reference`
+14. `consumption_reference`
+15. `sqlite_journal_mode`
+16. `sqlite_synchronous_level`
+
+Exact constants:
+
+- `domain="phase33-durable-record-v1"`
+- `schema_id="kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+- `transaction_profile_id="sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+- `durability_profile_id="sqlite-main-wal-synchronous-full-v1"`
+
+`record_fingerprint` itself is excluded from its source envelope.
+
+Canonical serialization:
+
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+
+UTF-8 encode, then SHA-256 lowercase hex.
+
+No rowid, timestamp, random value, UUID, PID, thread ID, process ID, machine name, raw connection identity, or filesystem path enters the fingerprint.
+
+---
+
+## 13. Concrete authority method
+
+Exact Phase32-compatible synchronous method surface:
+
+`check_and_consume(`
+`    *,`
+`    authorization_claim_identity: tuple[str, str, str, str],`
+`    authorization_replay_guard: tuple[str, str],`
+`    claim_fingerprint: str,`
+`    asserted_authority_approval_reference: str,`
+`    asserted_authority_conformance_reference: str,`
+`) -> KiwoomOrderAuthorizationAuthorityReportedResult`
+
+Exact return type remains Phase32 `KiwoomOrderAuthorizationAuthorityReportedResult`.
+
+No coroutine, Future, Task, generator, async generator, callback, background worker, or deferred result is returned.
+
+---
+
+## 14. Pre-transaction validation
+
+`check_and_consume` exact fail-fast order before `BEGIN IMMEDIATE`:
+
+1. exact authority/config runtime types and frozen config-reference validation;
+2. exact claim identity tuple and members;
+3. exact replay guard tuple and members;
+4. lowercase-64 claim fingerprint;
+5. replay guard equals claim-derived guard;
+6. configured authority reference / asserted approval / asserted conformance binding;
+7. exact connection/open/file-backed-main validation;
+8. `connection.in_transaction is False`;
+9. exact connection surface: autocommit=True, isolation_level=None, busy_timeout=0, row_factory=None, text_factory=str;
+10. every authority-critical string that can be needed before transaction is valid exact UTF-8 and can be deterministically encoded to the A11 BLOB SQL literal form; exact integers satisfy signed-64/canonical-decimal rules;
+11. WAL/FULL profile;
+12. exact Phase33 STRICT/BLOB structural schema, frozen stored-DDL, and exact metadata using converter-neutral reads.
+
+No authority transaction or ledger mutation occurs until these pass.
+
+A11 performs no preflight DB-API parameter-binding probe. The authoritative SQL itself uses the deterministic literal encoding defined in section 8, so there is no separate adapter invocation whose result must be trusted for a later statement.
+
+---
+
+## 15. Exact deterministic authority-result reference
+
+Format:
+
+`phase33-result-<64 lowercase hex>`
+
+Exact canonical envelope key set 10:
+
+1. `domain`
+2. `schema_id`
+3. `transaction_profile_id`
+4. `durability_profile_id`
+5. `backend_instance_reference`
+6. `authorization_claim_identity`
+7. `authorization_replay_guard`
+8. `claim_fingerprint`
+9. `authority_approval_reference`
+10. `authority_conformance_reference`
+
+Exact constants:
+
+- `domain="phase33-authority-result-v1"`
+- `schema_id="kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+- `transaction_profile_id="sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+- `durability_profile_id="sqlite-main-wal-synchronous-full-v1"`
+
+Tuple values are serialized by JSON as arrays without reordering member position.
+
+Canonical JSON settings are identical to the durable record fingerprint.
+
+No field may be added, removed, renamed, normalized, or substituted.
+
+---
+
+## 16. Exact deterministic consumption reference
+
+Format:
+
+`phase33-consume-<64 lowercase hex>`
+
+Exact canonical envelope key set 11:
+
+1. `domain`
+2. `schema_id`
+3. `transaction_profile_id`
+4. `durability_profile_id`
+5. `backend_instance_reference`
+6. `authorization_claim_identity`
+7. `authorization_replay_guard`
+8. `claim_fingerprint`
+9. `authority_approval_reference`
+10. `authority_conformance_reference`
+11. `authority_result_reference`
+
+Exact constants:
+
+- `domain="phase33-consumption-v1"`
+- `schema_id="kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+- `transaction_profile_id="sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+- `durability_profile_id="sqlite-main-wal-synchronous-full-v1"`
+
+Canonical JSON settings are identical to the durable record fingerprint.
+
+The distinct domain and inclusion of `authority_result_reference` provide exact domain separation from the authority-result reference.
+
+No field may be added, removed, renamed, normalized, or substituted.
+
+---
+
+## 17. Atomic check-and-consume algorithm
+
+After section 14 succeeds:
+
+1. execute explicit SQL `BEGIN IMMEDIATE` exactly once;
+2. require `connection.in_transaction is True`;
+3. immediately re-check observable connection surface (`autocommit`, `isolation_level`, `row_factory`, `text_factory`, busy_timeout), WAL/FULL, exact STRICT/BLOB schema, exact frozen stored-DDL, and exact metadata inside that same transaction;
+4. every authority-critical lookup value is rendered by the section 8 deterministic BLOB SQL literal encoder in the same SQL statement in which it is used; no DB-API parameter binding occurs;
+5. claim lookup uses exact BLOB byte equality on the four claim columns;
+6. replay lookup uses exact BLOB byte equality on the two replay columns;
+7. authoritative persisted rows are reconstructed only from converter-neutral BLOB/INTEGER expressions;
+8. no text collation or named SQL scalar function participates in claim/replay identity.
+
+### 17.1 In-transaction authoritative revalidation failure
+
+If the post-BEGIN connection/schema/metadata/durability revalidation fails semantically:
+
+- do not return CONSUMED or BLOCKED;
+- if active, attempt cleanup-only ROLLBACK exactly once;
+- return Phase32-compatible INDETERMINATE with exact `indeterminate_reason="AUTHORITY_REPORTED_INDETERMINATE"`;
+- `block_reason=None`;
+- `consumption_reference=None`;
+- reported commit fields=None;
+- `commit_state_known=False`;
+- no retry/second transaction.
+
+SQLite read/runtime error follows section 18.
+
+### 17.2 Existing claim row
+
+If exact claim identity resolves a historical row:
+
+1. normalize exact 13 fields from converter-neutral storage;
+2. recompute exact 16-key record fingerprint and require equality;
+3. recompute historical deterministic result/consumption references and require self-binding;
+4. require historical durability/profile values;
+5. require current `claim_fingerprint == historical claim_fingerprint` for exact `CLAIM_ALREADY_CONSUMED` semantics;
+6. current/historical backend equality is not required;
+7. current/historical approval/conformance equality is not required.
+
+If fully self-consistent and claim fingerprint matches, explicit COMMIT then return BLOCKED `CLAIM_ALREADY_CONSUMED`.
+
+If historical row is corrupt or same persistent claim identity has a conflicting claim fingerprint, never consume again and never return a normal BLOCKED proof; cleanup/finish as specified and return exact Phase32-compatible INDETERMINATE with `AUTHORITY_REPORTED_INDETERMINATE`.
+
+### 17.3 Existing replay row
+
+If replay guard resolves a historical row:
+
+- historical row self-integrity/reference/durability validation is mandatory;
+- historical snapshot/submission/claim fingerprint/backend/approval/conformance may differ from the current claim;
+- such differences do not release the replay guard.
+
+A valid historical replay row causes explicit COMMIT then BLOCKED `REPLAY_GUARD_ALREADY_CONSUMED`.
+
+Corrupt historical replay row returns exact fail-closed INDETERMINATE and never permits a second consumption.
+
+### 17.4 New consumption row
+
+If neither claim nor replay row exists:
+
+1. derive exact authority-result reference;
+2. derive exact consumption reference;
+3. derive exact 16-key record fingerprint;
+4. validate each new exact string is strict UTF-8 encodable and construct its deterministic BLOB SQL literal;
+5. build one exact `INSERT INTO main.kiwoom_order_authorization_consumption(...) VALUES(...)` statement using only BLOB literals for logical strings and canonical decimal INTEGER for synchronous level;
+6. execute the INSERT exactly once;
+7. execute explicit COMMIT exactly once;
+8. only successful COMMIT allows CONSUMED.
+
+No generated value is separately probed then rebound. Validation and authoritative use share the same deterministic literal representation, independent of registered Python adapters.
+
+If post-BEGIN encoding/integrity construction fails before INSERT:
+
+- decision=`INDETERMINATE`;
+- `indeterminate_reason="AUTHORITY_REPORTED_INDETERMINATE"`;
+- `block_reason=None`;
+- `consumption_reference=None`;
+- reported commit fields=None;
+- `commit_state_known=False`;
+- if active, cleanup ROLLBACK at most once;
+- no retry;
+- no second transaction.
+
+SQLite UNIQUE constraints remain the authoritative race guard. Because key columns are BLOB, custom text collations cannot weaken byte-identity uniqueness.
+
+---
+
+## 18. `check_and_consume` failure, cleanup, and commit-state-unknown semantics
+
+This entire section applies only to `KiwoomOrderAuthorizationSQLiteAuthority.check_and_consume`. Initializer runtime failures are governed by section 11.6. Verifier read-transaction failures are governed by section 20.
+
+No automatic retry is permitted.
+No failure branch may start a second authority transaction.
+
+### 18.1 `BEGIN IMMEDIATE` raises `sqlite3.Error`
+
+Immediately inspect `connection.in_transaction` without guessing whether SQLite established transaction state before raising.
+
+If `connection.in_transaction is False`:
+
+- issue no rollback;
+- return Phase32-compatible `INDETERMINATE`;
+- `indeterminate_reason="AUTHORITY_REPORTED_INDETERMINATE"`;
+- reported commit fields=None;
+- `commit_state_known=False`;
+- no second transaction and no retry.
+
+If `connection.in_transaction is True`:
+
+- attempt exactly one explicit SQL cleanup `ROLLBACK`;
+- whether cleanup succeeds or fails, return `INDETERMINATE`;
+- reported commit fields=None;
+- `commit_state_known=False`;
+- no second cleanup attempt;
+- no second transaction and no retry.
+
+### 18.2 Expected SQLite failure after transaction start but before successful COMMIT
+
+For expected `sqlite3.Error`, including authoritative schema/profile revalidation reads, claim lookup, replay lookup, fingerprint-row read, or INSERT:
+
+1. preserve the original error state locally;
+2. if `connection.in_transaction is True`, attempt exactly one explicit SQL `ROLLBACK`;
+3. never start another transaction;
+4. return `INDETERMINATE`;
+5. reported commit fields=None;
+6. `commit_state_known=False`;
+7. no retry.
+
+A successful cleanup rollback proves only that the currently open local transaction was rolled back. It does not convert the authority outcome to consumed or blocked.
+
+### 18.3 COMMIT exception
+
+If explicit SQL `COMMIT` raises `sqlite3.Error`:
+
+- outcome is `INDETERMINATE`;
+- consumed/blocked must not be guessed;
+- `commit_state_known=False`;
+- reported commit fields=None;
+- inspect `connection.in_transaction`;
+- if True, attempt exactly one cleanup `ROLLBACK`;
+- cleanup success or failure does not upgrade the decision;
+- no second cleanup attempt;
+- no second transaction;
+- no retry.
+
+### 18.4 Cleanup ROLLBACK exception
+
+If cleanup ROLLBACK itself fails:
+
+- outcome remains `INDETERMINATE` for expected SQLite failure paths;
+- no second cleanup attempt;
+- no second transaction;
+- no retry.
+
+### 18.5 Unexpected Python exception
+
+For an unexpected non-`sqlite3.Error` exception after `BEGIN IMMEDIATE` was attempted:
+
+- inspect `connection.in_transaction`;
+- if active, attempt one cleanup ROLLBACK;
+- re-raise the original exception;
+- cleanup failure must not replace the original exception as the primary exception;
+- no retry and no second transaction.
+
+### 18.6 `KeyboardInterrupt` / `SystemExit`
+
+- inspect `connection.in_transaction`;
+- if active, attempt exactly one cleanup ROLLBACK;
+- always re-raise the original base exception;
+- cleanup failure must not replace the original base exception;
+- no retry;
+- no second transaction.
+
+---
+
+## 19. Phase32 integration gate
+
+Verifier input exact type:
+
+`WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`
+
+Before any durable lookup, require:
+
+- exact Phase32 snapshot type
+- `decision == "AUTHORITY_REPORTED_CONSUMED"`
+- `block_reason is None`
+- `indeterminate_reason is None`
+- valid exact Phase32 authority result
+- valid `authority_result_reference`
+- valid `consumption_reference`
+- `commit_state_known is True`
+- both authority-reported commit fields exact True
+- `consumption_evidence_candidate_ready is True`
+- `reconciliation_required is False`
+- `automatic_retry_permitted is False`
+- `authority_invocation_attempted is True`
+- all Phase32 direct safety flags False
+- exact recomputation of Phase32 evidence fingerprint
+- exact embedded Phase31 claim fingerprint/binding
+- exact embedded Phase30 request/materialization binding
+
+Phase32 BLOCKED and INDETERMINATE evidence cannot be promoted.
+
+---
+
+## 20. Read-only local durable verification API, exact dual-reference lookup, and single-snapshot lifecycle
+
+Exact verifier API remains:
+
+`verify_demo_watchlist_order_authorization_durable_consumption(`
+`    source_snapshot: WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot,`
+`    authority: KiwoomOrderAuthorizationSQLiteAuthority,`
+`) -> WatchlistOrderAuthorizationDurableVerificationSnapshot`
+
+The verifier never calls `check_and_consume`, never INSERTs/UPDATEs/DELETEs/DDLs, never opens a write transaction, and never retries.
+
+Local prerequisites are validated first, including exact connection surface and deterministic UTF-8/literal-encoding validity for source references. No DB-API parameter-binding probe is used.
+
+Then verifier executes one explicit SQL `BEGIN` read transaction exactly once. Within that same snapshot it:
+
+1. validates exact STRICT/BLOB structural schema and frozen stored-DDL;
+2. validates exact metadata through converter-neutral BLOB reads;
+3. validates WAL/FULL and observable connection surface;
+4. independently resolves `source_snapshot.authority_result_reference` using a BLOB literal in the exact UNIQUE column lookup;
+5. independently resolves `source_snapshot.consumption_reference` the same way;
+6. reconstructs any returned durable row only from converter-neutral BLOB/INTEGER expressions;
+7. applies the dual-reference cardinality/state routing below;
+8. applies integrity-first verification precedence;
+9. finishes the same read transaction with explicit COMMIT.
+
+No caller-overridable named SQL scalar function is used for authority-critical storage or identity decisions. No text collation determines durable-row identity.
+
+Dual-reference routing remains exact:
+
+- both lookups absent -> `LEDGER_RECORD_NOT_FOUND`;
+- exactly one resolves -> `LEDGER_RECORD_BINDING_MISMATCH`;
+- both resolve but exact 13-field durable records differ -> `LEDGER_STATE_AMBIGUOUS`;
+- both resolve to the same exact 13-field durable record -> continue verification.
+
+Same-record equality uses only exact normalized 13-field values. rowid, cursor identity, Python object identity, raw connection identity, and path are excluded.
+
+After same-row resolution exact precedence remains:
+
+1. exact 13-field normalization;
+2. exact 16-key record-fingerprint recomputation;
+3. fingerprint mismatch -> `LEDGER_RECORD_FINGERPRINT_MISMATCH`;
+4. historical deterministic result/consumption reference self-binding;
+5. self-binding mismatch -> `LEDGER_RECORD_BINDING_MISMATCH`;
+6. current authority backend identity comparison;
+7. backend mismatch -> `BACKEND_IDENTITY_MISMATCH`;
+8. remaining source/config/row semantic binding;
+9. mismatch -> `LEDGER_RECORD_BINDING_MISMATCH`;
+10. success.
+
+Read/BEGIN/COMMIT SQLite error routes `LEDGER_READ_ERROR`; if transaction remains active, cleanup-only ROLLBACK is attempted at most once. No automatic retry or second read transaction.
+
+Concurrent commits by other connections cannot create a mixed verifier view because all schema/metadata/row checks occur in the one explicit read transaction.
+
+---
+
+## 21. Verification snapshot
+
+`WatchlistOrderAuthorizationDurableVerificationSnapshot` is a frozen dataclass with exact field order and exact annotations 19:
+
+1. `source_snapshot: WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`
+2. `durable_record: KiwoomOrderAuthorizationDurableLedgerRecord | None`
+3. `backend_instance_reference: str`
+4. `ledger_schema_reference: str`
+5. `verification_decision: str`
+6. `indeterminate_reason: str | None`
+7. `concrete_sqlite_authority_identity_verified: bool`
+8. `ledger_schema_verified: bool`
+9. `sqlite_connection_surface_verified: bool`
+10. `sqlite_durability_profile_verified: bool`
+11. `durable_record_present: bool`
+12. `exact_binding_verified: bool`
+13. `durable_consumption_record_verified: bool`
+14. `authority_approval_provenance_verified: bool`
+15. `authority_conformance_provenance_verified: bool`
+16. `provider_send_eligibility_authorized: bool`
+17. `production_authority_use_authorized: bool`
+18. `reconciliation_required: bool`
+19. `verification_fingerprint: str`
+
+All boolean fields require exact `bool`; integer `0/1` is not accepted as a substitute by validation logic.
+
+`ledger_schema_reference` exact successful/indeterminate contract value:
+
+`kiwoom-watchlist-order-authorization-durable-ledger-v1`
+
+`backend_instance_reference` exact value-source contract:
+
+- for every successful verification snapshot, `backend_instance_reference == authority.config.backend_instance_reference`;
+- for every verification INDETERMINATE snapshot, `backend_instance_reference == authority.config.backend_instance_reference`;
+- the historical durable row's `backend_instance_reference` is a row-self-integrity value and a comparison input for `BACKEND_IDENTITY_MISMATCH`; it never replaces the verification snapshot identity field;
+- local validation failure produces no verification snapshot, so this binding does not create a snapshot on local validation failure;
+- no fallback, normalization, historical-row substitution, or null substitution is allowed for this field after local validation succeeds.
+
+Successful local verification:
+
+- `verification_decision="LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED"`
+- `indeterminate_reason is None`
+- `durable_record` is exact `KiwoomOrderAuthorizationDurableLedgerRecord`
+- `backend_instance_reference == authority.config.backend_instance_reference`
+- `concrete_sqlite_authority_identity_verified=True`
+- `ledger_schema_verified=True`
+- `sqlite_connection_surface_verified=True`
+- `sqlite_durability_profile_verified=True`
+- `durable_record_present=True`
+- `exact_binding_verified=True`
+- `durable_consumption_record_verified=True`
+- `authority_approval_provenance_verified=False`
+- `authority_conformance_provenance_verified=False`
+- `provider_send_eligibility_authorized=False`
+- `production_authority_use_authorized=False`
+- `reconciliation_required=False`
+
+`concrete_sqlite_authority_identity_verified=True` means the verifier validated the exact authority runtime type, config identity bindings, backend-instance reference, connection object type, and exact Phase33 local storage identity requirements. It does not prove external governance trust or future execution capability.
+
+`sqlite_connection_surface_verified=True` means only that the verifier observed the current caller connection surface matching the exact read-only-observable Phase33 requirements: exact `sqlite3.Connection`, open/file-backed `main`, `autocommit is True`, `isolation_level is None`, `busy_timeout=0`, `row_factory is None`, `text_factory is str`, and clean transaction entry state before the verifier begins its own read transaction. Deterministic SQL literal encoding is a Phase33 value-transport contract and is not part of this connection-surface proof.
+
+It does not prove historical `BEGIN IMMEDIATE`, historical COMMIT/ROLLBACK execution, historical adapter/converter registry state, or the historical behavior represented by `transaction_profile_id`.
+
+## 22. Verification decision model and exact reason precedence
+
+Exact decision values remain:
+
+1. `LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED`
+2. `INDETERMINATE`
+
+No Phase33 verification `BLOCKED` decision exists.
+
+Exact INDETERMINATE reasons remain 8:
+
+1. `LEDGER_READ_ERROR`
+2. `LEDGER_SCHEMA_MISMATCH`
+3. `SQLITE_DURABILITY_PROFILE_MISMATCH`
+4. `BACKEND_IDENTITY_MISMATCH`
+5. `LEDGER_RECORD_NOT_FOUND`
+6. `LEDGER_RECORD_BINDING_MISMATCH`
+7. `LEDGER_RECORD_FINGERPRINT_MISMATCH`
+8. `LEDGER_STATE_AMBIGUOUS`
+
+For every INDETERMINATE verification snapshot:
+
+- `durable_record is None`
+- `ledger_schema_reference` remains the exact Phase33 schema-reference constant
+- all local verification success flags=False
+- approval/conformance provenance flags=False
+- provider-send eligibility=False
+- production-authority use=False
+- `reconciliation_required=True`
+- no reconciliation action is executed
+- no second consume
+- no automatic retry
+
+For `BACKEND_IDENTITY_MISMATCH` specifically:
+
+- current `authority.config.backend_instance_reference` and the self-integrity-valid historical row backend reference differ;
+- `durable_record is None`;
+- snapshot `backend_instance_reference` remains exact current `authority.config.backend_instance_reference`;
+- historical row backend is not copied into the snapshot identity field;
+- all local verification success flags remain False;
+- approval/conformance provenance flags remain False;
+- provider-send and production-use authorization flags remain False;
+- `reconciliation_required=True`.
+
+Exact post-local-precondition precedence, entirely within the one read transaction/snapshot:
+
+1. any verifier BEGIN/read/finish SQLite error -> `LEDGER_READ_ERROR`;
+2. schema introspection read error -> `LEDGER_READ_ERROR`; semantic/structural/stored-DDL mismatch -> `LEDGER_SCHEMA_MISMATCH`;
+3. durability PRAGMA read error -> `LEDGER_READ_ERROR`; WAL/FULL mismatch -> `SQLITE_DURABILITY_PROFILE_MISMATCH`;
+4. dual-reference cardinality/state:
+   - both absent -> `LEDGER_RECORD_NOT_FOUND`;
+   - exactly one resolves -> `LEDGER_RECORD_BINDING_MISMATCH`;
+   - both resolve but exact normalized 13-field durable-record values differ -> `LEDGER_STATE_AMBIGUOUS`;
+   - both resolve the same exact normalized 13-field record -> continue;
+5. if the resolved row cannot satisfy exact 13-field durable-record type/normalization requirements -> `LEDGER_RECORD_BINDING_MISMATCH`;
+6. recompute the exact 16-key historical `record_fingerprint` before trusting the row's current-backend or source/config semantic meaning; mismatch -> `LEDGER_RECORD_FINGERPRINT_MISMATCH`;
+7. recompute the historical row's deterministic `authority_result_reference` and `consumption_reference` from that same historical row and exact constants; self-binding mismatch -> `LEDGER_RECORD_BINDING_MISMATCH`;
+8. compare current authority `backend_instance_reference` to the now-self-consistent resolved historical row backend identity; mismatch -> `BACKEND_IDENTITY_MISMATCH`;
+9. validate all remaining exact source/config/row semantic bindings; mismatch -> `LEDGER_RECORD_BINDING_MISMATCH`;
+10. only after all above pass and verifier COMMIT succeeds -> `LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED`.
+
+Integrity precedence is mandatory. If a damaged durable row simultaneously creates a fingerprint mismatch and a backend or semantic-binding mismatch, `LEDGER_RECORD_FINGERPRINT_MISMATCH` wins. If the fingerprint is valid but deterministic historical reference self-binding fails, `LEDGER_RECORD_BINDING_MISMATCH` wins before current backend comparison.
+
+Exact trigger definitions:
+
+- `BACKEND_IDENTITY_MISMATCH`: only a self-integrity-valid row whose historical `backend_instance_reference` differs from the current verifier authority backend instance;
+- `LEDGER_RECORD_NOT_FOUND`: both independent UNIQUE-reference lookups resolve zero rows;
+- `LEDGER_RECORD_BINDING_MISMATCH`: one-sided reference resolution, invalid exact row normalization, historical deterministic-reference self-binding failure, or remaining source/config/row semantic mismatch after fingerprint integrity succeeds;
+- `LEDGER_RECORD_FINGERPRINT_MISMATCH`: exact 16-key recomputation differs from the stored fingerprint, regardless of simultaneous backend/binding mismatch;
+- `LEDGER_STATE_AMBIGUOUS`: both source references resolve rows, but the exact normalized 13-field durable-record values differ.
+
+If any semantic INDETERMINATE result is determined before transaction end, the verifier still ends its read transaction exactly once before returning. A verifier COMMIT failure overrides any would-be semantic success and yields `INDETERMINATE / LEDGER_READ_ERROR`.
+
+---
+
+## 23. Deterministic local validation errors and exact routing
+
+Allowed deterministic local validation reasons remain exact 11:
+
+1. `SOURCE_SNAPSHOT_TYPE_INVALID`
+2. `SOURCE_SNAPSHOT_NOT_CONSUMED_CANDIDATE`
+3. `SOURCE_SNAPSHOT_BINDING_INVALID`
+4. `AUTHORITY_BACKEND_TYPE_INVALID`
+5. `AUTHORITY_CONFIG_INVALID`
+6. `AUTHORITY_CONNECTION_INVALID`
+7. `AUTHORITY_CONNECTION_TRANSACTION_ACTIVE`
+8. `AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID`
+9. `SQLITE_DURABILITY_PROFILE_INVALID`
+10. `LEDGER_SCHEMA_INVALID`
+11. `REFERENCE_OR_FINGERPRINT_INVALID`
+
+No new reason is added for adapters, converters, named SQL functions, or collations because A11 removes those mechanisms from the authoritative value/identity proof rather than trying to introspect them.
+
+`AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID` covers observable mismatch of autocommit/isolation/busy-timeout/row_factory/text_factory.
+
+Invalid/non-UTF8-encodable authority/config/reference/fingerprint values route through the already applicable config/reference reason before transaction start.
+
+### 23.1 Initializer routing
+
+1. wrong/closed/non-file-backed connection -> `AUTHORITY_CONNECTION_INVALID`
+2. active transaction -> `AUTHORITY_CONNECTION_TRANSACTION_ACTIVE`
+3. observable exact connection-surface mismatch -> `AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID`
+4. WAL/FULL mismatch -> `SQLITE_DURABILITY_PROFILE_INVALID`
+5. existing STRICT/BLOB structural/stored-DDL/metadata mismatch -> `LEDGER_SCHEMA_INVALID`
+
+Runtime SQLite errors after transaction start follow section 11.6.
+
+### 23.2 `check_and_consume` routing
+
+Exact pre-transaction precedence:
+
+1. invalid config -> `AUTHORITY_CONFIG_INVALID`
+2. malformed claim -> `REFERENCE_OR_FINGERPRINT_INVALID`
+3. malformed replay guard -> `REFERENCE_OR_FINGERPRINT_INVALID`
+4. malformed claim fingerprint -> `REFERENCE_OR_FINGERPRINT_INVALID`
+5. replay guard/claim inconsistency -> `REFERENCE_OR_FINGERPRINT_INVALID`
+6. authority/approval/conformance binding mismatch -> `REFERENCE_OR_FINGERPRINT_INVALID`
+7. non-UTF8-encodable or non-canonical-literal-encodable authority-critical value -> `REFERENCE_OR_FINGERPRINT_INVALID`
+8. wrong/closed/non-file connection -> `AUTHORITY_CONNECTION_INVALID`
+9. active transaction -> `AUTHORITY_CONNECTION_TRANSACTION_ACTIVE`
+10. observable connection-surface mismatch -> `AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID`
+11. WAL/FULL mismatch -> `SQLITE_DURABILITY_PROFILE_INVALID`
+12. STRICT/BLOB structural/stored-DDL/metadata mismatch -> `LEDGER_SCHEMA_INVALID`
+
+No transaction starts before these pass.
+
+After `BEGIN IMMEDIATE`, semantic revalidation or newly derived exact-value encoding/integrity failure returns exact Phase32-compatible INDETERMINATE with `indeterminate_reason="AUTHORITY_REPORTED_INDETERMINATE"`, cleanup at most once, no retry, no second transaction.
+
+### 23.3 Verifier routing
+
+Exact local-precondition precedence before verifier `BEGIN`:
+
+1. source type invalid -> `SOURCE_SNAPSHOT_TYPE_INVALID`
+2. source not eligible consumed candidate -> `SOURCE_SNAPSHOT_NOT_CONSUMED_CANDIDATE`
+3. source fingerprint/Phase31/30 binding invalid -> `SOURCE_SNAPSHOT_BINDING_INVALID`
+4. authority type invalid -> `AUTHORITY_BACKEND_TYPE_INVALID`
+5. authority config invalid -> `AUTHORITY_CONFIG_INVALID`
+6. wrong/closed/non-file connection -> `AUTHORITY_CONNECTION_INVALID`
+7. active transaction -> `AUTHORITY_CONNECTION_TRANSACTION_ACTIVE`
+8. observable connection-surface mismatch -> `AUTHORITY_CONNECTION_TRANSACTION_MODE_INVALID`
+9. malformed/non-UTF8-encodable required source reference/fingerprint -> `REFERENCE_OR_FINGERPRINT_INVALID`
+
+After explicit verifier `BEGIN`:
+
+- schema/stored-DDL/metadata mismatch -> `INDETERMINATE / LEDGER_SCHEMA_MISMATCH`;
+- durability mismatch -> `INDETERMINATE / SQLITE_DURABILITY_PROFILE_MISMATCH`;
+- read/finish SQLite failure -> `INDETERMINATE / LEDGER_READ_ERROR`;
+- durable-row BLOB/INTEGER normalization failure -> `INDETERMINATE / LEDGER_RECORD_BINDING_MISMATCH`;
+- remaining identity/binding/fingerprint states follow section 22 exact precedence.
+
+---
+
+## 24. Verification fingerprint
+
+`verification_fingerprint` is lowercase 64-hex SHA-256.
+
+Exact canonical envelope key set remains 19:
+
+1. `domain`
+2. `source_evidence_fingerprint`
+3. `durable_record_fingerprint`
+4. `backend_instance_reference`
+5. `ledger_schema_reference`
+6. `verification_decision`
+7. `indeterminate_reason`
+8. `concrete_sqlite_authority_identity_verified`
+9. `ledger_schema_verified`
+10. `sqlite_connection_surface_verified`
+11. `sqlite_durability_profile_verified`
+12. `durable_record_present`
+13. `exact_binding_verified`
+14. `durable_consumption_record_verified`
+15. `authority_approval_provenance_verified`
+16. `authority_conformance_provenance_verified`
+17. `provider_send_eligibility_authorized`
+18. `production_authority_use_authorized`
+19. `reconciliation_required`
+
+The exact value source for every key is frozen:
+
+1. `domain = "phase33-local-durable-verification-v1"`;
+2. `source_evidence_fingerprint = source_snapshot.evidence_fingerprint` exactly; this is the exact Phase32 field after the Phase32 integration gate has independently recomputed and required its canonical fingerprint match;
+3. successful verification: `durable_record_fingerprint = durable_record.record_fingerprint` exactly, after that exact durable record has passed row self-integrity validation;
+4. every verification INDETERMINATE snapshot, regardless of reason: `durable_record_fingerprint = None` and canonical JSON therefore contains JSON `null`;
+5. `backend_instance_reference = verification_snapshot.backend_instance_reference = authority.config.backend_instance_reference` exactly for success and every verification INDETERMINATE snapshot;
+6. `ledger_schema_reference = "kiwoom-watchlist-order-authorization-durable-ledger-v1"`;
+7. `verification_decision = verification_snapshot.verification_decision` exactly;
+8. `indeterminate_reason = verification_snapshot.indeterminate_reason` exactly;
+9. `concrete_sqlite_authority_identity_verified = verification_snapshot.concrete_sqlite_authority_identity_verified` exactly;
+10. `ledger_schema_verified = verification_snapshot.ledger_schema_verified` exactly;
+11. `sqlite_connection_surface_verified = verification_snapshot.sqlite_connection_surface_verified` exactly;
+12. `sqlite_durability_profile_verified = verification_snapshot.sqlite_durability_profile_verified` exactly;
+13. `durable_record_present = verification_snapshot.durable_record_present` exactly;
+14. `exact_binding_verified = verification_snapshot.exact_binding_verified` exactly;
+15. `durable_consumption_record_verified = verification_snapshot.durable_consumption_record_verified` exactly;
+16. `authority_approval_provenance_verified = verification_snapshot.authority_approval_provenance_verified` exactly;
+17. `authority_conformance_provenance_verified = verification_snapshot.authority_conformance_provenance_verified` exactly;
+18. `provider_send_eligibility_authorized = verification_snapshot.provider_send_eligibility_authorized` exactly;
+19. `production_authority_use_authorized = verification_snapshot.production_authority_use_authorized` exactly;
+20. `reconciliation_required = verification_snapshot.reconciliation_required` exactly.
+
+The list above has 20 mapping clauses because `durable_record_fingerprint` has mutually exclusive success and INDETERMINATE source rules while the canonical envelope itself remains exact 19 keys.
+
+`source_evidence_fingerprint` must use only exact `source_snapshot.evidence_fingerprint`. A11 must not invent a differently named Phase32 fingerprint, fingerprint the complete source snapshot as a substitute, or copy a raw authority object into this field.
+
+Successful `durable_record_fingerprint` must use only the already self-integrity-validated exact `durable_record.record_fingerprint`. A11 creates no second durable-record fingerprint field and does not recompute a differently named value for the verification envelope.
+
+For every verification INDETERMINATE result, `durable_record is None` and `durable_record_fingerprint is None` even if a historical row was transiently read while determining the reason. The historical row fingerprint is not exposed as the verification snapshot durable-record fingerprint on an INDETERMINATE result.
+
+`verification_fingerprint` itself is never a source key in its own envelope.
+
+Canonical JSON:
+
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+
+UTF-8 encode, then SHA-256 lowercase hex.
+
+Raw SQLite connection identity, cursor identity, database path, rowid, PID, machine name, clock, UUID, and randomness are excluded.
+
+## 25. Permission isolation
+
+Phase33 A11 must never expose True for:
+
+- `provider_send_eligibility_authorized`
+- `production_authority_use_authorized`
+- `authority_approval_provenance_verified`
+- `authority_conformance_provenance_verified`
+
+Phase33 does not introduce:
+
+- `transport_allowed=True`
+- `post_permitted=True`
+- `send_permitted=True`
+- provider network permission
+- actual order-submission permission
+
+A future separate official contract is required before any such transition.
+
+---
+
+## 26. Allowed runtime side effects of a future implementation
+
+Only:
+
+- explicit creation/validation of Phase33 schema on caller-provided file-backed SQLite connection;
+- exact SQLite reads/writes for `check_and_consume`;
+- one explicit read transaction for verifier single-snapshot consistency;
+- explicit SQL COMMIT when required;
+- cleanup-only single ROLLBACK when required.
+
+Still prohibited:
+
+- provider network
+- OAuth/token access
+- account access
+- actual order call
+- provider response parsing
+- order-number handling
+- filesystem path auto-discovery
+- hidden database creation
+- `.env` access
+- external credential access
+- subprocess
+- shell
+- Git
+- dependency mutation
+- wall-clock dependency
+- UUID/randomness
+- automatic retry/backoff
+- hidden background thread/task
+- hidden lock manager
+- same-connection concurrency initiated by Phase33
+
+---
+
+## 27. Dependencies
+
+Candidate implementation dependencies remain Python standard library only:
+
+- `sqlite3`
+- `dataclasses`
+- `hashlib`
+- `json`
+- `re`
+- typing/collections helpers as needed
+
+No new third-party dependency.
+
+`pyproject.toml` unchanged.
+
+`uv.lock` unchanged.
+
+---
+
+## 28. Exact targeted test expectation
+
+DRAFT-A11 candidate targeted tests: exact `217`.
+
+Category counts:
+
+1. Public API / signatures / frozen dataclasses / annotations = `14`
+2. Config/reference validation = `10`
+3. STRICT-BLOB schema / stored-DDL / initializer / profile = `39`
+4. Check-and-consume / prevalidation / TOCTOU = `36`
+5. Replay / claim / corrupt-existing-row = `22`
+6. Phase32 integration = `16`
+7. Verification / dual-reference / integrity precedence / snapshot/fingerprint = `44`
+8. SQLite failure / rollback cleanup = `13`
+9. Safety / concurrency isolation = `8`
+10. DB-API/callback-independent literal encoding / STRICT storage = `15`
+
+Arithmetic:
+
+`14 + 10 + 39 + 36 + 22 + 16 + 44 + 13 + 8 + 15 = 217`
+
+Candidate regression arithmetic:
+
+- `EXPECTED_PRE_IMPLEMENTATION_FULL_REGRESSION=1068`
+- `EXPECTED_NEW_TEST_DELTA=217`
+- `EXPECTED_POST_IMPLEMENTATION_FULL_REGRESSION=1285`
+
+These are DRAFT-A11 candidate counts only, not execution results.
+
+---
+
+## 29. Exact named targeted test manifest
+
+The exact candidate manifest is:
+
+1. `test_public_api_symbol_set_exact_7`
+2. `test_error_inherits_runtime_error`
+3. `test_config_is_frozen_dataclass`
+4. `test_config_field_order_exact_4`
+5. `test_durable_record_is_frozen_dataclass`
+6. `test_durable_record_field_order_exact_13`
+7. `test_verification_snapshot_is_frozen_dataclass`
+8. `test_verification_snapshot_field_order_exact_19`
+9. `test_initializer_signature_exact`
+10. `test_authority_constructor_signature_exact`
+11. `test_check_and_consume_signature_exact_phase32_compatible`
+12. `test_verifier_signature_exact`
+13. `test_durable_record_field_annotations_exact_13`
+14. `test_verification_snapshot_field_annotations_exact_19`
+15. `test_config_accepts_minimum_length_references`
+16. `test_config_accepts_maximum_length_references`
+17. `test_config_rejects_empty_reference`
+18. `test_config_rejects_whitespace_only_reference`
+19. `test_config_rejects_leading_whitespace`
+20. `test_config_rejects_trailing_whitespace`
+21. `test_config_rejects_c0_control_character`
+22. `test_config_rejects_delete_control_character`
+23. `test_config_rejects_non_exact_str_subclass`
+24. `test_config_does_not_trim_casefold_normalize_or_replace`
+25. `test_initializer_requires_exact_sqlite_connection_type`
+26. `test_initializer_rejects_closed_connection`
+27. `test_initializer_rejects_active_transaction`
+28. `test_initializer_requires_autocommit_true`
+29. `test_initializer_requires_isolation_level_none_redundant_surface_invariant`
+30. `test_initializer_rejects_memory_main_database`
+31. `test_initializer_requires_file_backed_main_database`
+32. `test_initializer_requires_main_journal_mode_wal`
+33. `test_initializer_requires_main_synchronous_full_2`
+34. `test_initializer_requires_busy_timeout_zero`
+35. `test_initializer_rejects_synchronous_extra_3`
+36. `test_initializer_rejects_synchronous_normal_1`
+37. `test_initializer_rejects_synchronous_off_0`
+38. `test_initializer_creates_exact_meta_table_in_main`
+39. `test_initializer_creates_exact_consumption_table_in_main`
+40. `test_initializer_records_exact_schema_id_metadata`
+41. `test_initializer_records_exact_transaction_and_durability_profile_metadata`
+42. `test_initializer_is_idempotent_for_exact_existing_schema`
+43. `test_initializer_rejects_incompatible_existing_schema`
+44. `test_temp_shadow_objects_do_not_override_main_schema`
+45. `test_meta_table_xinfo_exact_structure`
+46. `test_consumption_table_xinfo_exact_structure`
+47. `test_phase33_autoindex_name_set_quoting_and_index_xinfo_exact_key_sets`
+48. `test_phase33_unique_index_key_collations_are_binary`
+49. `test_initializer_rejects_extra_user_created_index_on_phase33_table`
+50. `test_initializer_rejects_trigger_on_phase33_table`
+51. `test_initializer_rejects_phase33_namespaced_view`
+52. `test_attached_schema_shadow_objects_do_not_override_main_schema`
+53. `test_phase33_table_list_exact_type_ncol_wr_strict`
+54. `test_initializer_requires_strict_phase33_tables`
+55. `test_initializer_rejects_without_rowid_phase33_table`
+56. `test_initializer_requires_zero_foreign_keys_for_phase33_tables`
+57. `test_initializer_rejects_unapproved_check_constraint_via_stored_ddl`
+58. `test_initializer_rejects_unapproved_collate_or_table_option_via_stored_ddl`
+59. `test_initializer_requires_exact_canonical_stored_ddl_identity_and_hashes`
+60. `test_initializer_begin_immediate_sqlite_error_cleanup_and_reraises_original`
+61. `test_initializer_schema_ddl_or_metadata_sqlite_error_cleanup_and_reraises_original`
+62. `test_initializer_commit_sqlite_error_cleanup_and_reraises_original`
+63. `test_initializer_cleanup_rollback_error_does_not_replace_original_sqlite_error`
+64. `test_check_and_consume_starts_begin_immediate_exactly_once`
+65. `test_check_and_consume_reads_claim_key_inside_transaction`
+66. `test_check_and_consume_reads_replay_key_inside_transaction`
+67. `test_new_claim_inserts_exactly_one_row`
+68. `test_success_commits_with_explicit_sql_commit_exactly_once`
+69. `test_success_leaves_connection_not_in_transaction`
+70. `test_success_returns_phase32_exact_reported_result_type`
+71. `test_success_decision_is_authority_reported_consumed`
+72. `test_success_commit_state_known_is_true`
+73. `test_success_reported_commit_flags_are_true`
+74. `test_authority_result_reference_prefix_exact`
+75. `test_consumption_reference_prefix_exact`
+76. `test_authority_result_reference_domain_separator_exact`
+77. `test_consumption_reference_domain_separator_exact`
+78. `test_authority_result_reference_envelope_key_set_and_profile_constants_exact`
+79. `test_consumption_reference_envelope_key_set_and_profile_constants_exact`
+80. `test_references_are_deterministic_for_same_inputs`
+81. `test_record_fingerprint_envelope_key_set_exact_16_with_schema_and_durability_profiles`
+82. `test_record_fingerprint_excludes_record_fingerprint_field`
+83. `test_success_persists_wal_full_profile_fields`
+84. `test_check_and_consume_rejects_invalid_config_before_transaction`
+85. `test_check_and_consume_rejects_malformed_claim_identity_before_transaction`
+86. `test_check_and_consume_rejects_malformed_replay_guard_before_transaction`
+87. `test_check_and_consume_rejects_malformed_claim_fingerprint_before_transaction`
+88. `test_check_and_consume_rejects_replay_guard_claim_mismatch_before_transaction`
+89. `test_check_and_consume_rejects_asserted_binding_mismatch_before_transaction`
+90. `test_check_and_consume_rejects_invalid_connection_before_transaction`
+91. `test_check_and_consume_rejects_active_transaction_before_transaction`
+92. `test_check_and_consume_rejects_connection_surface_mismatch_before_transaction`
+93. `test_check_and_consume_rejects_durability_profile_mismatch_before_transaction`
+94. `test_check_and_consume_rejects_schema_or_metadata_mismatch_before_transaction`
+95. `test_check_and_consume_validation_precedence_config_before_reference_errors`
+96. `test_check_and_consume_validation_precedence_connection_before_profile_and_schema`
+97. `test_check_and_consume_local_validation_starts_no_transaction_and_mutates_no_ledger`
+98. `test_check_and_consume_revalidates_schema_metadata_and_stored_ddl_inside_begin_before_lookup`
+99. `test_check_and_consume_revalidates_wal_full_inside_begin_before_lookup_and_drift_is_indeterminate`
+100. `test_claim_identity_unique_scope_ignores_backend_instance_reference`
+101. `test_replay_guard_unique_scope_ignores_backend_instance_reference`
+102. `test_same_claim_same_backend_is_blocked`
+103. `test_same_claim_different_backend_is_blocked`
+104. `test_same_replay_guard_same_backend_is_blocked`
+105. `test_same_replay_guard_different_backend_is_blocked`
+106. `test_claim_conflict_reason_is_claim_already_consumed`
+107. `test_replay_conflict_reason_is_replay_guard_already_consumed`
+108. `test_claim_conflict_performs_no_insert`
+109. `test_replay_conflict_performs_no_insert`
+110. `test_claim_conflict_commits_read_transaction_exactly_once`
+111. `test_replay_conflict_commits_read_transaction_exactly_once`
+112. `test_claim_conflict_leaves_connection_not_in_transaction`
+113. `test_replay_conflict_leaves_connection_not_in_transaction`
+114. `test_claim_conflict_does_not_modify_existing_row`
+115. `test_replay_conflict_does_not_modify_existing_row`
+116. `test_claim_unique_constraint_matches_exact_phase33_columns`
+117. `test_replay_unique_constraint_matches_exact_phase33_columns`
+118. `test_claim_conflict_does_not_start_second_transaction`
+119. `test_replay_conflict_does_not_start_second_transaction`
+120. `test_corrupt_existing_claim_row_returns_indeterminate_not_blocked_or_consumed`
+121. `test_corrupt_existing_replay_row_returns_indeterminate_not_blocked_or_consumed`
+122. `test_verifier_requires_exact_phase32_snapshot_type`
+123. `test_verifier_rejects_phase32_blocked_snapshot`
+124. `test_verifier_rejects_phase32_indeterminate_snapshot`
+125. `test_verifier_requires_phase32_consumed_decision`
+126. `test_verifier_requires_phase32_commit_state_known_true`
+127. `test_verifier_requires_phase32_commit_flags_true`
+128. `test_verifier_requires_consumption_evidence_candidate_ready_true`
+129. `test_verifier_requires_phase32_reconciliation_required_false`
+130. `test_verifier_requires_phase32_automatic_retry_false`
+131. `test_verifier_requires_authority_invocation_attempted_true`
+132. `test_verifier_requires_all_phase32_direct_safety_flags_false`
+133. `test_verifier_recomputes_phase32_evidence_fingerprint_exactly`
+134. `test_verifier_revalidates_embedded_phase31_claim_binding`
+135. `test_verifier_revalidates_embedded_phase30_materialization_binding`
+136. `test_verifier_requires_source_result_references_match_durable_row`
+137. `test_verifier_never_calls_check_and_consume_again`
+138. `test_success_verification_decision_is_local_durable_consumption_record_verified`
+139. `test_success_concrete_sqlite_authority_identity_verified_true`
+140. `test_success_ledger_schema_verified_true`
+141. `test_success_sqlite_connection_surface_verified_true`
+142. `test_success_sqlite_durability_profile_verified_true`
+143. `test_success_durable_record_present_true`
+144. `test_success_exact_binding_verified_true`
+145. `test_success_durable_consumption_record_verified_true`
+146. `test_success_approval_provenance_verified_false`
+147. `test_success_conformance_provenance_verified_false`
+148. `test_success_provider_send_eligibility_authorized_false`
+149. `test_success_production_authority_use_authorized_false`
+150. `test_success_reconciliation_required_false`
+151. `test_verification_fingerprint_domain_exact`
+152. `test_verification_fingerprint_envelope_key_set_exact_19_with_identity_and_connection_surface_fields`
+153. `test_verification_fingerprint_deterministic_for_same_evidence`
+154. `test_verification_fingerprint_changes_when_durable_record_changes`
+155. `test_raw_connection_identity_never_enters_verification_fingerprint`
+156. `test_ledger_schema_reference_exact_constant`
+157. `test_verifier_schema_drift_routes_indeterminate_ledger_schema_mismatch`
+158. `test_verifier_durability_drift_routes_indeterminate_sqlite_durability_profile_mismatch`
+159. `test_verifier_rejects_invalid_authority_type_before_read_transaction`
+160. `test_verifier_rejects_invalid_authority_config_before_read_transaction`
+161. `test_verifier_rejects_invalid_connection_before_read_transaction`
+162. `test_verifier_rejects_active_transaction_before_read_transaction`
+163. `test_verifier_rejects_connection_surface_mismatch_before_read_transaction`
+164. `test_verifier_rejects_malformed_local_reference_or_fingerprint_before_read_transaction`
+165. `test_verifier_uses_single_explicit_read_transaction_from_begin_through_commit`
+166. `test_verifier_single_read_transaction_prevents_mixed_snapshot_under_concurrent_row_or_schema_commit`
+167. `test_verifier_read_or_commit_sqlite_error_routes_ledger_read_error_and_cleanup_once_without_retry`
+168. `test_verifier_both_source_references_absent_routes_ledger_record_not_found`
+169. `test_verifier_authority_result_reference_only_match_routes_ledger_record_binding_mismatch`
+170. `test_verifier_consumption_reference_only_match_routes_ledger_record_binding_mismatch`
+171. `test_verifier_source_references_resolve_different_rows_routes_ledger_state_ambiguous`
+172. `test_verifier_current_backend_identity_mismatch_routes_backend_identity_mismatch`
+173. `test_verifier_source_config_row_binding_mismatch_routes_ledger_record_binding_mismatch`
+174. `test_verifier_record_fingerprint_mismatch_routes_ledger_record_fingerprint_mismatch`
+175. `test_verifier_dual_reference_resolution_and_reason_precedence_exact`
+176. `test_verifier_record_fingerprint_mismatch_precedes_backend_identity_mismatch`
+177. `test_verifier_record_fingerprint_mismatch_precedes_record_binding_mismatch`
+178. `test_verification_snapshot_backend_instance_reference_always_binds_current_authority_config`
+179. `test_verification_fingerprint_source_evidence_fingerprint_binds_phase32_snapshot_evidence_fingerprint`
+180. `test_verification_fingerprint_success_durable_record_fingerprint_binds_record_field_exactly`
+181. `test_verification_fingerprint_indeterminate_uses_null_durable_record_fingerprint_and_current_backend_binding`
+182. `test_begin_immediate_sqlite_error_without_active_transaction_returns_indeterminate_without_rollback_or_retry`
+183. `test_begin_immediate_sqlite_error_with_active_transaction_attempts_cleanup_once_then_indeterminate`
+184. `test_in_transaction_authoritative_revalidation_sqlite_error_attempts_cleanup_once`
+185. `test_claim_lookup_sqlite_error_attempts_cleanup_once`
+186. `test_replay_lookup_sqlite_error_attempts_cleanup_once`
+187. `test_insert_sqlite_error_attempts_cleanup_once`
+188. `test_commit_error_returns_indeterminate_commit_state_unknown_and_never_consumed_or_blocked`
+189. `test_cleanup_rollback_failure_remains_indeterminate_without_second_cleanup`
+190. `test_sqlite_failure_never_starts_second_transaction`
+191. `test_unexpected_python_exception_cleans_up_then_reraises`
+192. `test_keyboard_interrupt_cleans_up_then_reraises`
+193. `test_system_exit_cleans_up_then_reraises`
+194. `test_initializer_keyboard_interrupt_or_system_exit_cleans_up_then_reraises_original`
+195. `test_phase33_performs_no_provider_network_call`
+196. `test_phase33_performs_no_credential_token_or_account_access`
+197. `test_phase33_performs_no_env_lookup`
+198. `test_phase33_performs_no_subprocess_shell_or_git_action`
+199. `test_phase33_uses_no_wall_clock_uuid_or_randomness`
+200. `test_phase33_adds_no_third_party_dependency_and_no_package_level_reexport`
+201. `test_phase33_never_authorizes_provider_send_or_production_use`
+202. `test_phase33_requires_caller_exclusive_connection_use_and_creates_no_hidden_thread_task_or_lock_manager`
+203. `test_initializer_rejects_non_none_connection_row_factory`
+204. `test_initializer_rejects_non_str_connection_text_factory`
+205. `test_check_and_consume_rejects_non_none_connection_row_factory_before_transaction`
+206. `test_check_and_consume_rejects_non_str_connection_text_factory_before_transaction`
+207. `test_verifier_rejects_non_none_connection_row_factory_before_read_transaction`
+208. `test_verifier_rejects_non_str_connection_text_factory_before_read_transaction`
+209. `test_authoritative_blob_backed_string_reads_decode_strict_utf8_without_typeof_dependency`
+210. `test_authoritative_integer_reads_use_strict_integer_schema_and_converter_neutral_cast`
+211. `test_authoritative_string_sql_blob_literal_encoding_bypasses_registered_adapter`
+212. `test_authoritative_integer_sql_literal_encoding_bypasses_registered_adapter`
+213. `test_stateful_str_adapter_cannot_pass_check_then_change_authoritative_binding`
+214. `test_stateful_int_adapter_cannot_pass_check_then_change_authoritative_binding`
+215. `test_connection_local_typeof_override_cannot_spoof_text_storage_contract`
+216. `test_connection_local_typeof_override_cannot_spoof_integer_storage_contract`
+217. `test_post_begin_binding_integrity_failure_reason_is_exact_authority_reported_indeterminate`
+
+Manifest invariants:
+
+- `TARGETED_TEST_COUNT=217`
+- `TARGETED_TEST_UNIQUE_COUNT=217`
+- `TARGETED_TEST_DUPLICATE_COUNT=0`
+- exact numeric sequence=`1..217`
+
+The A10 exact runtime test manifest is retained count-neutral in A11. A11 adds no runtime behavioral contract and therefore adds no new targeted test; tests 1-217 remain the exact candidate manifest. Three existing test names are count-neutral governance/exactness renames only: test 47 strengthens the previously required autoindex-name/quoting/index_xinfo exactness, and tests 116-117 replace stale A6-specific column wording with stable `phase33_columns` wording.
+
+---
+
+## 30. A10 -> A11 semantic diff
+
+A11 is a governance/exactness consistency revision. It preserves A10's runtime behavior, public API, STRICT+BLOB/INTEGER storage model, deterministic SQL literal transport, Phase32 integration, transaction ownership, WAL/FULL profile, dual-reference routing, integrity-first precedence, claim/replay semantics, verification snapshot/fingerprint mapping, and permission isolation.
+
+A11 changes only governance provenance and exactness wording that remained inconsistent in A10:
+
+1. corrects the revision-chain status so A8, A9, and A10 Final Reviews are recorded as `STOP_HOLD`, while A11 is `DESIGN_ONLY` and not approved;
+2. replaces the incorrect A7 source baseline with the exact A10 source artifact identity and declares that A10 artifact the sole Phase33 revision source of truth for A11;
+3. renames targeted tests 116 and 117 from stale A6-specific column wording to exact stable `phase33_columns` wording without changing their behavior;
+4. freezes the exact six-name SQLite internal autoindex set for the exact Phase33 DDL;
+5. freezes the dynamic `PRAGMA main.index_xinfo(...)` object-name acceptance and exact SQL single-quote-doubling rendering rule;
+6. explicitly states that SQLite autoindex numeric suffixes are not semantic proof of UNIQUE-key meaning and preserves `index_list` / `index_xinfo` key-set verification as normative;
+7. renames/strengthens targeted test 47 count-neutrally to cover the accepted autoindex-name set, safe quoting, and exact `index_xinfo` key sets;
+8. retains Candidate acceptance gates as exact unique contiguous `1..60`, while strengthening the structural-index gate to include the exact accepted autoindex-name set and quoting rule;
+9. adds no new runtime behavioral contract, no new public API, no new field, no new reason, no new implementation path, and no new targeted test.
+
+Exact historical count chain:
+
+- A8 targeted tests=`212`
+- A9 targeted tests=`217`
+- A10 targeted tests=`217`
+- A11 targeted tests=`217`
+- A8 expected post-implementation regression=`1280`
+- A9 expected post-implementation regression=`1285`
+- A10 expected post-implementation regression=`1285`
+- A11 expected post-implementation regression=`1285`
+
+Frozen stored-DDL identities remain unchanged from A10:
+
+- meta bytes=`116`, SHA256=`55FDBAD5B3992B06F98D132FC881B7090E83E00E92CE20B5A05CD73B52F68AFE`
+- consumption bytes=`888`, SHA256=`52CE7F608809602658FAC025425BBBC6AB175586101898FB0AEA3C852C950FB8`
+
+---
+
+## 31. Phase32 compatibility analysis
+
+A11 requires no modification to the Phase32 public API.
+
+A11:
+
+- consumes the exact Phase32 result snapshot;
+- returns the exact Phase32 authority-reported result type from `check_and_consume`;
+- does not invoke Phase32 authority twice;
+- preserves Phase31/32 claim/replay identities while strengthening only the downstream concrete SQLite persistence layer;
+- does not reinterpret Phase32 reported-consumed evidence as provider permission;
+- uses Phase32-compatible INDETERMINATE rather than inventing a new Phase32 decision for in-transaction drift, corrupt existing rows, or post-BEGIN conversion-surface failure;
+- does not change Phase29/30/31/32 source/test contracts;
+- does not alter package exports;
+- does not alter dependencies;
+- does not grant transport permission;
+- does not grant production authority;
+- does not independently verify external approval/conformance provenance;
+- consumes the exact Phase32 `evidence_fingerprint` field as the sole `source_evidence_fingerprint` value and does not modify the Phase32 fingerprint contract;
+- treats Python sqlite3 row/text/adaptation/conversion behavior strictly as a downstream Phase33 concrete-backend execution boundary.
+
+A11's exact-schema, converter-neutral-read, deterministic-literal-encoding/no-authoritative-DBAPI-binding, single-read-snapshot, initializer-error, and connection-exclusivity safeguards are downstream local persistence safeguards only. They do not add fields to Phase32 public dataclasses or change Phase32 decisions.
+
+Therefore static contract analysis finds no intended Phase32 responsibility collision. Final compatibility still requires a separately approved read-only actual preflight against the current repository and approved `.venv`.
+
+---
+
+## 32. Candidate acceptance gates
+
+A future official Phase33 contract cannot be considered complete until separately approved gates include at minimum the following exact `1..60` sequence:
+
+1. DRAFT-A11 Final Contract Review / Approval Decision
+2. exact README registration
+3. frozen contract identity creation
+4. separate implementation approval
+5. exact two-path implementation
+6. targeted tests `217/217` if this count survives final approval
+7. full regression `1285/1285` if this count survives final approval
+8. failures=0
+9. errors=0
+10. unapproved skipped=0
+11. exact Python/sqlite runtime confirmation
+12. exact caller connection surface confirmation including exact `sqlite3.Connection`, open/file-backed `main`, `autocommit=True`, `isolation_level=None`, `busy_timeout=0`, `row_factory is None`, `text_factory is str`, and clean transaction entry state
+13. no authoritative DB-API placeholder binding for persisted/lookup Phase33 `str`/`int` values
+14. deterministic UTF-8-to-BLOB SQL literal encoding and signed-64 canonical integer literal encoding verified
+15. converter-neutral authoritative BLOB/INTEGER read contract verified
+16. caller-exclusive-use and process adapter/converter registry-stability contracts preserved, without treating registry stability as proof of adapter-callable output determinism
+17. exact WAL/FULL durability profile confirmation
+18. exact `main` schema qualification
+19. exact `table_list` / `table_xinfo` / foreign-key structural verification plus exact accepted six-name autoindex set, exact SQL single-quote-doubling for dynamic `main.index_xinfo(...)` arguments, and exact `index_list` / `index_xinfo` key-set semantics
+20. exact frozen stored-DDL identity for both Phase33 tables
+21. STRICT required; WITHOUT ROWID/FOREIGN KEY/unapproved CHECK/table options absent; authority identity uses BLOB byte semantics independent of text collations
+22. exact metadata verification through converter-neutral BLOB/INTEGER reads
+23. exact ledger schema reference binding
+24. exact schema/transaction/durability profile binding in deterministic references/fingerprints
+25. cross-backend-instance persistent replay protection
+26. exact claim/replay UNIQUE semantics
+27. deterministic domain-separated references
+28. exact 16-key durable-record fingerprint
+29. exact 19-key verification fingerprint
+30. verification snapshot backend identity always binds exact current authority config backend identity
+31. `source_evidence_fingerprint` binds exact Phase32 `source_snapshot.evidence_fingerprint` after Phase32 recomputation/match
+32. successful `durable_record_fingerprint` binds exact self-integrity-validated durable record field
+33. every verification INDETERMINATE uses null durable-record fingerprint and current-authority backend identity
+34. authoritative schema/profile revalidation inside `BEGIN IMMEDIATE` before claim/replay lookup
+35. corrupt existing claim/replay rows fail closed as INDETERMINATE
+36. verifier uses one explicit read transaction and cannot observe a mixed snapshot
+37. dual UNIQUE-reference cardinality and same-record equality follow section 20 exactly
+38. durable-row fingerprint/self-integrity precedence occurs before current backend/source semantic interpretation
+39. claim conflict requires current claim-fingerprint consistency while preserving backend/provenance independence
+40. replay conflict remains blocked for a self-consistent historical replay row even when historical claim-specific fields differ
+41. initializer runtime errors preserve and re-raise original exceptions after at most one cleanup rollback
+42. no second authority consumption invocation
+43. no automatic retry
+44. fail-closed BEGIN/COMMIT/ROLLBACK exception handling
+45. provider-send eligibility=False
+46. production authority use=False
+47. approval provenance=False
+48. conformance provenance=False
+49. protected Phase29-32 paths unchanged
+50. dependency files unchanged
+51. package re-export unchanged
+52. no provider/account/order action
+53. approved Git paths only
+54. separate commit approval
+55. separate Closure/Current Phase alignment
+56. exact STRICT/BLOB storage for both Phase33 tables
+57. no authority-critical reliance on caller-overridable named SQL scalar functions such as `typeof`
+58. stateful adapter counterexamples cannot alter authoritative SQL values because those values are not DB-API parameter-bound
+59. post-BEGIN encoding/integrity failure uses exact `AUTHORITY_REPORTED_INDETERMINATE`
+60. Candidate acceptance-gate numbering itself is exact, unique, and contiguous `1..60`
+
+---
+
+## 33. Candidate boundary after eventual Phase33 completion
+
+Only if all later official gates pass:
+
+- `CONCRETE_SQLITE_AUTHORITY_IDENTITY_VERIFIED=YES_DEMO_LOCAL_IDENTITY_ONLY`
+- `SQLITE_CONNECTION_SURFACE_VERIFIED=YES_CURRENT_CONNECTION_SURFACE_ONLY`
+- `SQLITE_DBAPI_CONVERSION_SURFACE_VERIFIED=YES_CURRENT_INVOCATION_ONLY`
+  - meaning is limited to exact `row_factory is None`, `text_factory is str`, and converter-neutral authoritative BLOB/INTEGER read boundaries; it does not prove Python adapter output determinism or historical registry state
+- `CONVERTER_NEUTRAL_LEDGER_READS_VERIFIED=YES_LOCAL_READ_PATH_ONLY`
+- `DETERMINISTIC_SQL_LITERAL_ENCODING_VERIFIED=YES_CURRENT_INVOCATION_VALUES_ONLY`
+- `DECLARED_TRANSACTION_PROFILE_BOUND=YES_RECORD_REFERENCE_BINDING_ONLY`
+- `SQLITE_DURABILITY_PROFILE_VERIFIED=YES_WAL_FULL_CONTRACT_PROFILE_ONLY`
+- `SINGLE_VERIFIER_READ_SNAPSHOT_VERIFIED=YES_LOCAL_VERIFIER_INVOCATION_ONLY`
+- `LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED=YES`
+- `VERIFICATION_BACKEND_REFERENCE_BOUND_TO_CURRENT_AUTHORITY_CONFIG=YES_LOCAL_EVIDENCE_IDENTITY_ONLY`
+- `VERIFICATION_FINGERPRINT_VALUE_PROVENANCE_VERIFIED=YES_EXACT_LOCAL_MAPPING_ONLY`
+- `AUTHORITY_APPROVAL_PROVENANCE_VERIFIED=NO`
+- `AUTHORITY_CONFORMANCE_PROVENANCE_VERIFIED=NO`
+- `PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+- `PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+
+A11 does not claim historical physical durability, historical `BEGIN IMMEDIATE`/COMMIT/ROLLBACK execution proof, historical process-global adapter/converter registry state, external authority trust, or provider-send permission.
+
+A later separate contract is mandatory before provider send eligibility can even be considered.
+
+---
+
+## 34. Official governance
+
+The status below is normative when this exact payload is present in `README.md`:
+
+- `PHASE33_DRAFT_A11_FINAL_CONTRACT_REVIEW=PASS`
+- `DRAFT_A11_OFFICIAL_CONTRACT_APPROVAL=PASS`
+- `DRAFT_A11_APPROVED_AS_OFFICIAL=YES`
+- `DRAFT_A11_CONTENT_REVISION_REQUIRED=NO`
+- `DRAFT_A12_REQUIRED=NO`
+- `PHASE33_OFFICIAL_CONTRACT_REGISTERED_IN_README=YES`
+- `IMPLEMENTATION_AUTHORIZED=NO`
+- `CURRENT_PHASE=PHASE32`
+- `PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+- `PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+- `EXTERNAL_APPROVAL_PROVENANCE_VERIFIED=NO`
+- `EXTERNAL_CONFORMANCE_PROVENANCE_VERIFIED=NO`
+
+Exact README registration does not authorize Phase33 implementation, source/test mutation, dependency or environment mutation, Git mutation, credential/token/provider/account/order action, provider transport, production authority use, or Current Phase alignment.
+
+Phase33 implementation remains a separately approved step after exact README registration.
