@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 32 — demo Kiwoom Cash BUY-Order Authority Adapter Check-and-Consume Result Evidence Snapshot 기반선 v1.0
+Phase 33 — demo Kiwoom Cash BUY-Order Concrete SQLite Authority Durable Check-and-Consume Ledger & Local Verification Evidence Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
