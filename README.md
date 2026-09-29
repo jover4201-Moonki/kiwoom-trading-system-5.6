@@ -6911,3 +6911,1366 @@ The status below is normative when this exact payload is present in `README.md`:
 Exact README registration does not authorize Phase33 implementation, source/test mutation, dependency or environment mutation, Git mutation, credential/token/provider/account/order action, provider transport, production authority use, or Current Phase alignment.
 
 Phase33 implementation remains a separately approved step after exact README registration.
+
+## Phase 34 — demo Kiwoom Cash BUY-Order Provider Send Eligibility Candidate Snapshot 기반선 v1.0
+
+Status: CONTRACT APPROVED FOR README REGISTRATION
+Implementation: NOT YET APPROVED
+Current Phase: PHASE33 UNTIL SEPARATE CLOSURE / CURRENT-PHASE ALIGNMENT
+Provider Send Eligibility: NOT AUTHORIZED
+Transport: NOT AUTHORIZED
+Production Authority Use: NOT AUTHORIZED
+
+Source Contract Artifact: `Phase34_New_Contract_DRAFT_A6_Independent_Revision_FINAL_REVIEW_PREPARATION_DESIGN_ONLY_NOT_APPROVED.txt`
+Source Contract Bytes: `87987`
+Source Contract SHA256: `2A6DE6DB1C8F84C5F62DBEDEA01CBC1CC2BAB22FC6A11B263EE27DE01BD6BB9E`
+Preserved Approved DRAFT-A6 Full Source CRLF Bytes: `89292`
+Preserved Approved DRAFT-A6 Full Source CRLF SHA256: `46EF353E6CDBF54392ACC51CA66B1A037AEDA72C74631A6C659212BCDE7A311B`
+
+### Approved-source preservation and status-supersession rule
+
+The complete approved DRAFT-A6 source payload below is preserved text-for-text; the only representation change is canonical line-ending conversion from source LF to README CRLF. No DRAFT-A6 source line is deleted, renumbered, rewritten, or normalized.
+
+DRAFT-stage approval/authorization/governance statements inside that preserved source payload are historical provenance describing the source artifact before its separate Final Contract Review completed. They do not override the current official registration status. For current Phase34 approval/registration governance, `## 24. Official governance` below is the sole normative status authority. All technical contracts, algorithms, invariants, field/key cardinalities, validation precedence, acceptance criteria, safety boundaries, recovery rules, and future-boundary semantics in the preserved DRAFT-A6 source remain normative exactly as approved.
+
+This status-supersession rule changes governance state only; it does not alter any technical requirement in the preserved DRAFT-A6 source.
+
+`FROZEN_CONTRACT_IDENTITY_SHA256=425ABC17469812C772F6041C90B0BF76F445256E52547B9CC426FD5B23231026`
+
+### Frozen contract identity rule
+
+`FROZEN_CONTRACT_IDENTITY_SHA256` is the SHA-256 uppercase hex of this exact CRLF UTF-8 payload after removing exactly the marker line and its immediately following blank CRLF.
+
+The complete payload raw SHA-256 is tracked separately from the frozen contract identity.
+
+### Preserved approved DRAFT-A6 source payload
+
+Phase34 — New Contract DRAFT-A6 Independent Revision / Final Contract Review Preparation
+DESIGN_ONLY_NOT_APPROVED
+
+PROPOSED CONTRACT NAME
+Phase 34 — demo Kiwoom Cash BUY-Order Provider Send Eligibility Candidate Snapshot 기반선 v1.0
+
+STATUS
+- PHASE34_DRAFT_A6=DESIGN_ONLY_NOT_APPROVED
+- PHASE34_DRAFT_A6_APPROVED_AS_OFFICIAL=NO
+- PHASE34_DRAFT_A6_FINAL_CONTRACT_REVIEW=NOT_PERFORMED
+- README_REGISTRATION_AUTHORIZED=NO
+- IMPLEMENTATION_AUTHORIZED=NO
+- CURRENT_PHASE=PHASE33
+- PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO
+- TRANSPORT_ALLOWED=NO
+- ACTUAL_ORDER_SUBMISSION_AUTHORIZED=NO
+- PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO
+- GIT_ADD_COMMIT_PUSH_AUTHORIZED=NO
+
+1. Revision basis / source-of-truth identity
+
+DRAFT-A6 is an independent revision of exact DRAFT-A5 only.
+No prior DRAFT-A6 artifact, prior-request search/review/analysis/validation count, or partial A6 judgment is reused.
+
+Exact DRAFT-A5 source-of-truth identity supplied and independently byte-verified for this revision:
+- filename=Phase34_New_Contract_DRAFT_A5_Independent_Revision_FINAL_REVIEW_PREPARATION_DESIGN_ONLY_NOT_APPROVED.txt
+- bytes=86461
+- SHA256=46CA4D006904BC810F1435D631E3D79E52F1D29490C9C1B58C75BF4186096F98
+- encoding=UTF-8 without BOM
+- EOL=LF-only
+
+DRAFT-A5 official Final Contract Review disposition used as governance input:
+- PHASE34_DRAFT_A5_FINAL_CONTRACT_REVIEW=STOP_HOLD
+- PHASE34_DRAFT_A5_APPROVED_AS_OFFICIAL=NO
+- DRAFT_A5_CONTENT_REVISION_REQUIRED=YES
+- DRAFT_A6_REQUIRED=YES
+- README_REGISTRATION_AUTHORIZED=NO
+- IMPLEMENTATION_AUTHORIZED=NO
+- CURRENT_PHASE=PHASE33
+
+A5 Final Contract Review defect set carried into A6:
+- A5_FCR_01_PHASE33_LEDGER_SCHEMA_REFERENCE_EXACT_RUNTIME_TYPE_GAP=VALID_DEFECT
+- A5_FCR_02_PHASE33_VERIFICATION_FINGERPRINT_LEDGER_SCHEMA_VALUE_SOURCE_DRIFT=VALID_DEFECT
+- A5_FCR_03_LEDGER_SCHEMA_ACCEPTANCE_COVERAGE_GAP=VALID_DEFECT
+
+All earlier still-valid corrections remain preserved, including:
+- A2_FCR_01_RETRACTED=YES;
+- A2_FCR_01_OBJECT_GRAPH_DEFECT=NO;
+- A2_EXISTING_PHASE30_REQUEST_PATH_PRESERVED=YES;
+- A3_FCR_01_STALE_IMPLEMENTATION_APPROVAL_TARGET=REVISED_IN_A4_AND_PRESERVED_IN_A6;
+- A3_FCR_02_DRAFT_STATUS_EXACT_VALUE_CONFLICT=REVISED_IN_A4_AND_PRESERVED_IN_A6;
+- A3_FCR_03_DURABLE_RECORD_SELF_INTEGRITY_SOURCE_BINDING_GAP=REVISED_IN_A4_AND_PRESERVED_IN_A6;
+- A3_FCR_04_SAFETY_STATE_PUBLIC_ERROR_REACHABILITY_GAP=REVISED_IN_A4_AND_PRESERVED_IN_A6.
+
+FCR-01 object-graph correction remains frozen and is not reopened:
+- local variable `source_snapshot` is the Phase33 verification snapshot;
+- `phase32_snapshot = source_snapshot.source_snapshot`;
+- `phase31_snapshot = phase32_snapshot.source_snapshot`;
+- `request_snapshot = phase31_snapshot.source_snapshot`;
+- equivalent direct Phase30 expression is exactly `source_snapshot.source_snapshot.source_snapshot.source_snapshot`;
+- the leading token is the Phase33 local-variable name and there are exactly three `.source_snapshot` attribute traversals;
+- `source_snapshot.source_snapshot.source_snapshot` stops at Phase31 and is never treated as Phase30.
+
+Current official repository baseline carried into this DRAFT-A6 review preparation:
+- Project=C:\Users\HP\Projects\kiwoom-trading-system
+- Branch=main
+- HEAD=4e9445fe85170461ecce0341e5b5862cb382b51d
+- Parent=709b842b384835a0ae7c8d5a4b72c8a024df36ed
+- Tree=e5acae8ad6d07f7bbcb24db91a5f240871d77931
+- Commit subject=docs: align current phase with phase 33
+- Repository=CLEAN as inherited evidence only; current-request PC Git state requires a separate Actual Rerun
+- Current Phase=PHASE33
+- Full Regression inherited baseline=1285/1285; not reused as a current-request Actual Rerun
+
+This document is a candidate contract only. It is not an official Phase34 contract and does not authorize README registration, implementation, Git mutation, provider transport, credential/account access, or order action.
+
+2. DRAFT-A5 Final Contract Review / A6 closure map
+
+DRAFT-A6 preserves the A5 contract except for the exact `ledger_schema_reference` runtime-type/value-source and acceptance-coverage gaps found by the DRAFT-A5 Final Contract Review.
+
+A5-FCR-01 — Phase33 `ledger_schema_reference` exact runtime-type gap
+- CLOSED IN A6 CANDIDATE DESIGN by sections 9.1 and 9.3, section 15 step 7, and AC-125/AC-128.
+- On both SUCCESS and Phase33 INDETERMINATE branches, `source_snapshot.ledger_schema_reference` must first satisfy `type(value) is str`.
+- Only after the exact runtime-type gate passes may the field be compared to the exact literal `kiwoom-watchlist-order-authorization-durable-ledger-v1`.
+- A Python `str` subclass is rejected even when equality to the literal is True and JSON serialization is byte-identical to the literal.
+- Violation maps to existing step-7 `PHASE33_STATE_INVARIANT_INVALID`; no new public error code is introduced.
+
+A5-FCR-02 — Phase33 verification-fingerprint `ledger_schema_reference` value-source drift
+- CLOSED IN A6 CANDIDATE DESIGN by section 9.1 and AC-127.
+- The Phase33 verification-fingerprint envelope source for key `ledger_schema_reference` is frozen to the exact literal constant `"kiwoom-watchlist-order-authorization-durable-ledger-v1"`, matching the official Phase33 contract.
+- The snapshot field is validated separately by section 9.3 but is never used as the fingerprint envelope's source value for this key.
+
+A5-FCR-03 — acceptance coverage gap
+- CLOSED IN A6 CANDIDATE DESIGN by AC-125..AC-128.
+- The acceptance set explicitly tests non-exact-str `ledger_schema_reference`, wrong exact-str literal, literal-source fingerprint mapping, and the str-subclass/equal-hash edge.
+
+A4-FCR-01 and A4-FCR-02 remain closed exactly as in A5. A5 strict-UTF8 Phase33-verifier source-producibility hardening remains preserved for SUCCESS and INDETERMINATE branches.
+
+No new public validation error code is required. The exact 24-code/24-step precedence is preserved.
+
+No closure statement in this section is an approval decision. It means only that the A6 candidate text contains a proposed correction. A separate Final Contract Review / Approval Decision is mandatory.
+
+3. Necessity / unresolved contract gap
+
+The unresolved responsibility after Phase33 remains provider-send eligibility governance, not provider transmission.
+
+Phase33 proves a local durable authorization-consumption record and local bindings, while successful Phase33 verification still requires:
+- authority_approval_provenance_verified == False
+- authority_conformance_provenance_verified == False
+- provider_send_eligibility_authorized == False
+- production_authority_use_authorized == False
+- reconciliation_required == False
+
+Phase33 does not grant:
+- transport_allowed=True
+- post_permitted=True
+- send_permitted=True
+- provider network permission
+- actual order-submission permission
+
+Phase34 DRAFT-A6 therefore remains a pure-local bridge. It can only materialize an immutable provider-send eligibility CANDIDATE snapshot after independently revalidating the already existing local object graph. It cannot create provider-send authority.
+
+4. Exact scope
+
+Phase34 DRAFT-A6 candidate exact scope:
+- environment=`demo` only
+- side=`BUY` only
+- exchange=`KRX` only
+- cash order only
+- exact Phase33 `WatchlistOrderAuthorizationDurableVerificationSnapshot` upstream
+- exact preservation of embedded Phase32 -> Phase31 -> Phase30 object identity graph
+- exact extraction of embedded Phase30 `WatchlistOrderSendRequestSnapshot`; no copy/remap/rebuild
+- independent pure-local validation of Phase33 success durable-record exact 13-field primitives/format
+- independent recomputation/match of the exact Phase33 16-key durable-record `record_fingerprint`
+- independent recomputation/match of Phase33 deterministic historical `authority_result_reference` and `consumption_reference`
+- independent binding of the Phase33 durable record to validated Phase33/Phase32/Phase31 source semantics
+- independent recomputation/match of Phase33 `verification_fingerprint` only after applicable durable-record gates
+- independent recomputation/match of Phase32 `evidence_fingerprint`
+- independent exact Phase31 claim/replay revalidation
+- independent recomputation/match of Phase31 `claim_fingerprint`
+- independent recomputation/match of Phase30 `materialization_fingerprint`
+- exact static provider-request contract validation for `kt10000`
+- deterministic frozen Phase34 eligibility-candidate snapshot
+- deterministic Phase34 eligibility fingerprint
+- no SQLite connection access
+- no durable-ledger read/write
+- no Phase33 verifier rerun or refresh
+- no second authority consumption attempt
+- no authority adapter/controller invocation
+- no credential/token/.env access
+- no account access
+- no provider/client call
+- no external network
+- no actual `kt10000` POST
+- no provider response parsing
+- no order-number handling
+- no retry/retransmission
+- no broker-side reconciliation action or mutation
+- no production authority permission
+- no provider-send authorization
+
+Out of scope:
+- real environment
+- SELL
+- NXT/SOR
+- credit
+- amend/cancel
+- token acquisition
+- account selection
+- account/buying-power refresh
+- provider transport
+- provider response
+- order number
+- fill/reject handling
+- broker-side reconciliation mutation
+- external authority approval provenance verification
+- external authority conformance provenance verification
+- production authority use
+- automatic retry
+- package-level re-export
+- dependency changes
+
+5. Safety invariants
+
+The following are exact semantic invariants:
+
+`LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED != PROVIDER_SEND_ELIGIBILITY_AUTHORIZED`
+`PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY != PROVIDER_SEND_ELIGIBILITY_AUTHORIZED`
+`PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY != TRANSPORT_ALLOWED`
+`PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY != POST_PERMITTED`
+`PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY != ORDER_SUBMITTED`
+`PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY != ORDER_ACCEPTED`
+
+For every returned Phase34 snapshot:
+- `authority_approval_provenance_verified is False`
+- `authority_conformance_provenance_verified is False`
+- `provider_send_eligibility_authorized is False`
+- `production_authority_use_authorized is False`
+- `transport_allowed is False`
+- `credential_accessed is False`
+- `network_performed is False`
+- `account_accessed is False`
+- `order_submitted is False`
+- `automatic_retry_permitted is False`
+
+Phase34 must never:
+- convert a Phase33 INDETERMINATE into READY or AUTHORIZED;
+- execute reconciliation merely because `reconciliation_required=True`;
+- perform a second authorization-consumption attempt;
+- refresh or rerun Phase33;
+- access credentials/token/account/provider/network state;
+- call `kt10000`;
+- consume or interpret a provider response/order number.
+
+6. Source of truth hierarchy
+
+Candidate source-of-truth hierarchy:
+
+1. current official repository README contracts for Phase27 through Phase33;
+2. current official HEAD Phase30/31/32/33 implementation/test identities;
+3. exact Phase33 public contract:
+   - `WatchlistOrderAuthorizationDurableVerificationSnapshot`
+   - `verify_demo_watchlist_order_authorization_durable_consumption`
+4. exact Phase32 evidence contract embedded by Phase33:
+   - `WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`
+   - canonical `evidence_fingerprint`
+5. exact Phase31 claim contract embedded by Phase32:
+   - `KiwoomOrderAuthorizationConsumptionClaimContext`
+   - `WatchlistOrderAuthorizationConsumptionClaimSnapshot`
+   - canonical `claim_fingerprint`
+6. exact Phase30 provider request contract embedded by Phase31:
+   - `WatchlistOrderSendRequestSnapshot`
+   - canonical `materialization_fingerprint`
+   - api_id=`kt10000`
+   - http_method=`POST`
+   - api_path=`/api/dostk/ordr`
+   - body exact key set: `dmst_stex_tp`, `stk_cd`, `ord_qty`, `ord_uv`, `trde_tp`, `cond_uv`
+7. current official Kiwoom REST API documentation/examples only as static corroboration of the already-materialized request shape; not as runtime permission;
+8. Python 3.13 canonical JSON behavior only where the frozen fingerprint algorithms use it;
+9. no new external-governance trust source is invented by Phase34.
+
+Historical design drafts may explain intent but are not authority over current official Phase30-33 contracts.
+
+7. Future implementation mutation allowlist candidate
+
+Only after a separate Final Contract Review explicitly approves this exact DRAFT-A6 identity as the Phase34 official contract candidate, and implementation is separately approved after that review, the future implementation mutation allowlist candidate is exact two paths:
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_send_eligibility.py`
+- `tests/test_watchlist_order_provider_send_eligibility.py`
+
+A STOP-HOLD DRAFT-A2, DRAFT-A3, DRAFT-A4, or DRAFT-A5 artifact is never an implementation authorization prerequisite or substitute for DRAFT-A6 approval.
+
+Explicitly excluded:
+- `README.md`
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- every Phase27/28/29/30/31/32/33 source/test
+- `pyproject.toml`
+- `uv.lock`
+- `.venv`
+- `.env`
+- credential/token files
+- account/provider configuration files
+- Git index/commit/remote
+
+This DRAFT-A6 preparation authorizes no repository path mutation.
+
+8. Candidate public API and exact enum member-name/value pairs
+
+Candidate module-level public API is exact 5 symbols:
+
+1. `WatchlistOrderProviderSendEligibilityError`
+2. `KiwoomOrderProviderSendEligibilityDecision`
+3. `KiwoomOrderProviderSendEligibilityIndeterminateReason`
+4. `WatchlistOrderProviderSendEligibilityCandidateSnapshot`
+5. `build_demo_watchlist_order_provider_send_eligibility_candidate_snapshot`
+
+`WatchlistOrderProviderSendEligibilityError` inherits `RuntimeError`.
+No package-level re-export from `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`.
+
+Exact synchronous builder signature:
+
+`build_demo_watchlist_order_provider_send_eligibility_candidate_snapshot(`
+`    source_snapshot: WatchlistOrderAuthorizationDurableVerificationSnapshot,`
+`) -> WatchlistOrderProviderSendEligibilityCandidateSnapshot`
+
+No defaults. No context object. No authority object. No sqlite3.Connection. No client/provider/token/account argument.
+
+8.1 Decision enum
+
+`KiwoomOrderProviderSendEligibilityDecision` is exactly `class KiwoomOrderProviderSendEligibilityDecision(str, Enum)`.
+Exact member order, member names, and values are:
+
+1. member name `PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY`
+   - value `"PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY"`
+2. member name `INDETERMINATE`
+   - value `"INDETERMINATE"`
+
+No aliases. No additional members.
+
+8.2 Indeterminate-reason enum
+
+`KiwoomOrderProviderSendEligibilityIndeterminateReason` is exactly `class KiwoomOrderProviderSendEligibilityIndeterminateReason(str, Enum)`.
+Exact member order, member name, and value are:
+
+1. member name `SOURCE_DURABLE_VERIFICATION_INDETERMINATE`
+   - value `"SOURCE_DURABLE_VERIFICATION_INDETERMINATE"`
+
+No aliases. No additional members.
+
+Malformed or contract-inconsistent input is not represented as a Phase34 INDETERMINATE business result. It raises `WatchlistOrderProviderSendEligibilityError` before a snapshot is returned.
+
+9. Exact Phase33 upstream structural prerequisites, durable-record revalidation, and verification-fingerprint revalidation
+
+`source_snapshot` must be exact type `WatchlistOrderAuthorizationDurableVerificationSnapshot`.
+
+A6 separates SAFE PREREQUISITE VALIDATION, DURABLE-RECORD INTEGRITY/BINDING, and FINGERPRINT RECOMPUTATION. No fingerprint envelope is built until every object/type/state/primitive needed by that envelope has passed the earlier exact validation stages in sections 15 and 16.
+
+Exact object-graph locals are frozen:
+`phase32_snapshot = source_snapshot.source_snapshot`
+`phase31_snapshot = phase32_snapshot.source_snapshot`
+`request_snapshot = phase31_snapshot.source_snapshot`
+
+These assignments are conceptually performed only after the immediately preceding exact-type gate has succeeded. An implementation may factor helpers but must preserve the same externally observable first-error precedence and must not dereference a deeper object before its exact parent/source type is validated.
+
+9.1 Exact Phase33 verification-fingerprint envelope
+
+Exact 19 keys:
+1. `domain`
+2. `source_evidence_fingerprint`
+3. `durable_record_fingerprint`
+4. `backend_instance_reference`
+5. `ledger_schema_reference`
+6. `verification_decision`
+7. `indeterminate_reason`
+8. `concrete_sqlite_authority_identity_verified`
+9. `ledger_schema_verified`
+10. `sqlite_connection_surface_verified`
+11. `sqlite_durability_profile_verified`
+12. `durable_record_present`
+13. `exact_binding_verified`
+14. `durable_consumption_record_verified`
+15. `authority_approval_provenance_verified`
+16. `authority_conformance_provenance_verified`
+17. `provider_send_eligibility_authorized`
+18. `production_authority_use_authorized`
+19. `reconciliation_required`
+
+Exact mapping is used only after the section 15 prerequisite sequence has completed through the applicable durable-record gates:
+- `domain = "phase33-local-durable-verification-v1"`
+- `source_evidence_fingerprint = phase32_snapshot.evidence_fingerprint`
+- success only: `durable_record_fingerprint = source_snapshot.durable_record.record_fingerprint` after sections 9.4-9.7 pass
+- Phase33 INDETERMINATE only: `durable_record_fingerprint = None`
+- `backend_instance_reference = source_snapshot.backend_instance_reference`
+- `ledger_schema_reference = "kiwoom-watchlist-order-authorization-durable-ledger-v1"` literal constant; the separately validated snapshot field is not the envelope value source
+- remaining decision/reason/bool values = exact same-named Phase33 snapshot fields
+
+Canonicalization is exact:
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+then UTF-8 encode and `hashlib.sha256(...).hexdigest()`.
+
+The recomputed value must equal exact `source_snapshot.verification_fingerprint`, a lowercase 64-hex string.
+Phase34 does not substitute a complete-object hash, object id, or differently named fingerprint.
+
+9.2 Exact Phase33 decision prerequisite
+
+Before decision-dependent state validation or fingerprint mapping:
+- `verification_decision` must be exact `str`;
+- exact allowed values are only `LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED` and `INDETERMINATE`.
+
+Any other type/value raises exact `PHASE33_DECISION_INVALID` before any use of durable-record fields and before Phase33 fingerprint recomputation.
+
+9.3 Exact Phase33 branch-state invariants
+
+For `verification_decision == "LOCAL_DURABLE_CONSUMPTION_RECORD_VERIFIED"`, before any durable-record field is trusted:
+- `indeterminate_reason is None`;
+- `durable_record` is exact `KiwoomOrderAuthorizationDurableLedgerRecord`;
+- `backend_instance_reference` exact str satisfying the official Phase33 reference contract and strict UTF-8 encodability;
+- `type(ledger_schema_reference) is str` (subclasses rejected);
+- `ledger_schema_reference == "kiwoom-watchlist-order-authorization-durable-ledger-v1"`;
+- `verification_fingerprint` exact lowercase 64-hex str;
+- every Phase33 bool below is exact `bool`, not integer 0/1;
+- `concrete_sqlite_authority_identity_verified is True`;
+- `ledger_schema_verified is True`;
+- `sqlite_connection_surface_verified is True`;
+- `sqlite_durability_profile_verified is True`;
+- `durable_record_present is True`;
+- `exact_binding_verified is True`;
+- `durable_consumption_record_verified is True`;
+- `authority_approval_provenance_verified is False`;
+- `authority_conformance_provenance_verified is False`;
+- `provider_send_eligibility_authorized is False`;
+- `production_authority_use_authorized is False`;
+- `reconciliation_required is False`.
+
+For `verification_decision == "INDETERMINATE"`:
+- `indeterminate_reason` exact str and one of the exact official Phase33 8 reasons: `LEDGER_READ_ERROR`, `LEDGER_SCHEMA_MISMATCH`, `SQLITE_DURABILITY_PROFILE_MISMATCH`, `BACKEND_IDENTITY_MISMATCH`, `LEDGER_RECORD_NOT_FOUND`, `LEDGER_RECORD_BINDING_MISMATCH`, `LEDGER_RECORD_FINGERPRINT_MISMATCH`, `LEDGER_STATE_AMBIGUOUS`;
+- `durable_record is None`;
+- `backend_instance_reference` exact str satisfying the official Phase33 reference contract and strict UTF-8 encodability;
+- `type(ledger_schema_reference) is str` (subclasses rejected);
+- `ledger_schema_reference == "kiwoom-watchlist-order-authorization-durable-ledger-v1"`;
+- `verification_fingerprint` exact lowercase 64-hex str;
+- every Phase33 bool below is exact `bool`, not integer 0/1;
+- every local verification success flag is exact False: `concrete_sqlite_authority_identity_verified`, `ledger_schema_verified`, `sqlite_connection_surface_verified`, `sqlite_durability_profile_verified`, `durable_record_present`, `exact_binding_verified`, `durable_consumption_record_verified`;
+- `authority_approval_provenance_verified is False`;
+- `authority_conformance_provenance_verified is False`;
+- `provider_send_eligibility_authorized is False`;
+- `production_authority_use_authorized is False`;
+- `reconciliation_required is True`.
+
+The exact `ledger_schema_reference` runtime-type gate always precedes the literal equality check and always precedes Phase33 verification-fingerprint recomputation. Equality, JSON serialization, or hash equality never substitutes for `type(value) is str`.
+Any violation in this subsection raises exact `PHASE33_STATE_INVARIANT_INVALID`.
+INDETERMINATE skips sections 9.4-9.7 durable-record gates because its exact durable-record value is None.
+
+9.4 Exact Phase33 durable-record 13-field primitive/shape validation — success only
+
+The exact success `durable_record` has the official 13 fields and no field is trusted merely because the outer dataclass type is exact.
+
+Exact local primitive rules:
+1. `backend_instance_reference`: exact `str`, valid official Phase33 reference contract;
+2. `authorization_authority_reference`: exact `str`; first preserve the original Phase31 authorization-authority opaque-reference validity already required by section 11, and additionally require the exact Phase33 durable-authority config reference contract: length `1..128`, non-empty, `value == value.strip()`, whitespace-only prohibited, U+0000..U+001F prohibited, U+007F prohibited, strict UTF-8 encodable, with no trim, case-fold, Unicode normalization, or replacement; this value must later exactly equal the already validated Phase31 authorization authority reference in section 9.7;
+3. `authorization_evidence_snapshot_id`: exact `str`, valid original Phase31 evidence-snapshot binding-reference contract;
+4. `submission_attempt_reference`: exact `str`, valid original Phase31 submission-attempt binding-reference contract;
+5. `send_authorization_reference`: exact `str`, valid original Phase31 send-authorization opaque-reference contract;
+6. `claim_fingerprint`: exact lowercase 64-hex `str`;
+7. `authority_approval_reference`: exact `str`, valid Phase32 asserted-authority reference contract;
+8. `authority_conformance_reference`: exact `str`, valid Phase32 asserted-authority reference contract;
+9. `authority_result_reference`: exact `str` matching `phase33-result-[0-9a-f]{64}`;
+10. `consumption_reference`: exact `str` matching `phase33-consume-[0-9a-f]{64}`;
+11. `sqlite_journal_mode`: exact `str` equal `"wal"`;
+12. `sqlite_synchronous_level`: exact `int` equal `2`, with `bool` rejected;
+13. `record_fingerprint`: exact lowercase 64-hex `str`.
+
+In addition, every non-fixed arbitrary reference carried by the success durable record and needed by the Phase33 transaction/storage contract — fields 1 through 5 and fields 7 through 8 — must be strictly UTF-8 encodable with no surrogate-pass, replacement, normalization, or lossy fallback. This preserves Phase33's pre-transaction requirement that every authority-critical string used for deterministic BLOB SQL literal encoding be valid exact UTF-8. A Unicode encoding failure is a contract-validation failure at this same step, not a JSON/fingerprint exception.
+
+Any failure raises exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID` before record fingerprint, deterministic-reference, source-binding, or Phase33 verification-fingerprint recomputation.
+
+9.5 Exact 16-key durable-record fingerprint recomputation — success only
+
+Exact canonical envelope keys and value sources are:
+1. `domain = "phase33-durable-record-v1"`
+2. `schema_id = "kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+3. `transaction_profile_id = "sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+4. `durability_profile_id = "sqlite-main-wal-synchronous-full-v1"`
+5. `backend_instance_reference = durable_record.backend_instance_reference`
+6. `authorization_authority_reference = durable_record.authorization_authority_reference`
+7. `authorization_evidence_snapshot_id = durable_record.authorization_evidence_snapshot_id`
+8. `submission_attempt_reference = durable_record.submission_attempt_reference`
+9. `send_authorization_reference = durable_record.send_authorization_reference`
+10. `claim_fingerprint = durable_record.claim_fingerprint`
+11. `authority_approval_reference = durable_record.authority_approval_reference`
+12. `authority_conformance_reference = durable_record.authority_conformance_reference`
+13. `authority_result_reference = durable_record.authority_result_reference`
+14. `consumption_reference = durable_record.consumption_reference`
+15. `sqlite_journal_mode = durable_record.sqlite_journal_mode`
+16. `sqlite_synchronous_level = durable_record.sqlite_synchronous_level`
+
+Canonical JSON is exactly `json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`, UTF-8 encoded, then lowercase SHA-256 hex.
+The recomputed value must exactly equal `durable_record.record_fingerprint`; mismatch raises exact `PHASE33_DURABLE_RECORD_FINGERPRINT_INVALID`.
+
+9.6 Exact Phase33 deterministic historical-reference self-binding — success only
+
+Construct historical claim identity solely from the already structure-valid durable record in exact order:
+`durable_claim_identity = (durable_record.authorization_authority_reference, durable_record.authorization_evidence_snapshot_id, durable_record.submission_attempt_reference, durable_record.send_authorization_reference)`
+
+Construct historical replay guard solely from the durable record:
+`durable_replay_guard = (durable_record.authorization_authority_reference, durable_record.send_authorization_reference)`
+
+Expected authority-result reference is `"phase33-result-" + sha256(canonical_json).hexdigest()` over exact 10-key envelope:
+- `domain="phase33-authority-result-v1"`
+- `schema_id="kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+- `transaction_profile_id="sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+- `durability_profile_id="sqlite-main-wal-synchronous-full-v1"`
+- `backend_instance_reference=durable_record.backend_instance_reference`
+- `authorization_claim_identity=durable_claim_identity`
+- `authorization_replay_guard=durable_replay_guard`
+- `claim_fingerprint=durable_record.claim_fingerprint`
+- `authority_approval_reference=durable_record.authority_approval_reference`
+- `authority_conformance_reference=durable_record.authority_conformance_reference`
+
+Expected consumption reference is `"phase33-consume-" + sha256(canonical_json).hexdigest()` over exact 11-key envelope:
+- `domain="phase33-consumption-v1"`
+- `schema_id="kiwoom-watchlist-order-authorization-durable-ledger-v1"`
+- `transaction_profile_id="sqlite-autocommit-true-isolation-none-busy-zero-begin-immediate-v1"`
+- `durability_profile_id="sqlite-main-wal-synchronous-full-v1"`
+- `backend_instance_reference=durable_record.backend_instance_reference`
+- `authorization_claim_identity=durable_claim_identity`
+- `authorization_replay_guard=durable_replay_guard`
+- `claim_fingerprint=durable_record.claim_fingerprint`
+- `authority_approval_reference=durable_record.authority_approval_reference`
+- `authority_conformance_reference=durable_record.authority_conformance_reference`
+- `authority_result_reference=durable_record.authority_result_reference`
+
+Both references use exact canonical JSON `json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`, then UTF-8 encode and lowercase SHA-256 hex.
+
+Expected authority-result reference must equal `durable_record.authority_result_reference` and expected consumption reference must equal `durable_record.consumption_reference`.
+Mismatch raises exact `PHASE33_DURABLE_RECORD_REFERENCE_SELF_BINDING_INVALID`.
+
+9.7 Exact Phase33 durable-record -> validated source-graph binding — success only
+
+Only after Phase30/31/32 validation and durable-record self-integrity succeed, require all exact bindings:
+- `durable_record.backend_instance_reference == source_snapshot.backend_instance_reference`;
+- `durable_record.authorization_authority_reference == phase31_snapshot.context.authorization_authority_reference`;
+- `durable_record.authorization_evidence_snapshot_id == phase31_snapshot.context.authorization_evidence_snapshot_id`;
+- `durable_record.submission_attempt_reference == phase31_snapshot.context.submission_attempt_reference`;
+- `durable_record.send_authorization_reference == phase31_snapshot.context.send_authorization_reference`;
+- `durable_record.claim_fingerprint == phase31_snapshot.claim_fingerprint`;
+- `durable_record.authority_approval_reference == phase32_snapshot.asserted_authority_approval_reference`;
+- `durable_record.authority_conformance_reference == phase32_snapshot.asserted_authority_conformance_reference`;
+- `durable_record.authority_result_reference == phase32_snapshot.authority_result_reference`;
+- `durable_record.consumption_reference == phase32_snapshot.consumption_reference`.
+
+Any mismatch raises exact `PHASE33_DURABLE_RECORD_SOURCE_BINDING_INVALID`.
+This gate is what forbids a cross-bound `Phase32 evidence A + self-integrity-valid durable record B` from being accepted merely because both fingerprints are independently well-formed.
+
+After sections 9.4-9.7 applicable success gates pass, or after the exact INDETERMINATE branch has safely skipped them, section 9.1 Phase33 verification fingerprint is recomputed and matched. Phase34 performs no SQLite read, no Phase33 verifier rerun, and no authority invocation.
+
+10. Exact Phase32 state/result prerequisites, authority-result binding, and evidence-fingerprint revalidation
+
+Phase34 obtains the exact Phase32 object only after Phase33 source exact-type validation:
+`phase32_snapshot = source_snapshot.source_snapshot`
+
+Before any Phase32 field is used as a fingerprint source, `phase32_snapshot` must be exact type `WatchlistOrderAuthorizationAdapterResultEvidenceSnapshot`; otherwise exact error `PHASE32_SOURCE_SNAPSHOT_TYPE_INVALID` is raised.
+
+10.1 Phase32 state/result structural prerequisite
+
+Before Phase32 evidence-fingerprint recomputation require:
+- `evidence_fingerprint` exact lowercase 64-hex str;
+- `decision` exact str equal only `AUTHORITY_REPORTED_CONSUMED`;
+- `block_reason is None`;
+- `indeterminate_reason is None`;
+- `authority_result` exact `KiwoomOrderAuthorizationAuthorityReportedResult`;
+- `asserted_authority_approval_reference` valid exact Phase32 opaque reference and strict UTF-8 encodable;
+- `asserted_authority_conformance_reference` valid exact Phase32 opaque reference and strict UTF-8 encodable;
+- `authority_result_reference` valid exact Phase32 opaque reference and strict UTF-8 encodable;
+- `consumption_reference` valid exact Phase32 opaque reference and strict UTF-8 encodable;
+- every bool field used below exact bool;
+- `authority_reported_authorization_consumption_committed is True`;
+- `authority_reported_replay_guard_consumption_committed is True`;
+- `commit_state_known is True`;
+- `consumption_evidence_candidate_ready is True`;
+- `authority_trust_independently_verified is False`;
+- `automatic_retry_permitted is False`;
+- `reconciliation_required is False`;
+- `authority_invocation_attempted is True`;
+- `phase32_direct_credential_accessed is False`;
+- `phase32_direct_network_performed is False`;
+- `phase32_direct_account_accessed is False`;
+- `phase32_direct_order_submitted is False`.
+
+Violation of this structural/result state raises exact `PHASE32_STATE_OR_RESULT_INVALID`. Phase32 BLOCKED/INDETERMINATE evidence is invalid Phase34 input because Phase33 does not promote it into durable verification.
+
+10.2 Phase32 authority-result exact binding prerequisite
+
+This gate executes only after exact Phase31 type/state/claim/replay validation has made all referenced Phase31 values safe to read.
+
+The exact `authority_result` must have:
+- `authorization_claim_identity` exact tuple length 4 of exact str and exact equality to `phase31_snapshot.authorization_claim_identity`;
+- `authorization_replay_guard` exact tuple length 2 of exact str and exact equality to `phase31_snapshot.authorization_replay_guard`;
+- `claim_fingerprint` exact lowercase 64-hex str and exact equality to `phase31_snapshot.claim_fingerprint`;
+- `asserted_authority_approval_reference` exact `str`, valid exact Phase32 opaque-reference contract, and exact equality to `phase32_snapshot.asserted_authority_approval_reference`;
+- `asserted_authority_conformance_reference` exact `str`, valid exact Phase32 opaque-reference contract, and exact equality to `phase32_snapshot.asserted_authority_conformance_reference`;
+- `decision` exact `str` equal to `"AUTHORITY_REPORTED_CONSUMED"`;
+- `block_reason is None`;
+- `indeterminate_reason is None`;
+- `authority_result_reference` exact `str`, valid exact Phase32 opaque-reference contract, and exact equality to `phase32_snapshot.authority_result_reference`;
+- `consumption_reference` exact `str`, valid exact Phase32 opaque-reference contract, and exact equality to `phase32_snapshot.consumption_reference`;
+- both authority-reported commit fields exact True;
+- `commit_state_known is True`.
+
+For every exact-str requirement in this subsection, `type(value) is str` is mandatory. A subclass of `str` is invalid even when equality and JSON serialization would otherwise succeed. Equality checks occur only after exact runtime-type and, where applicable, exact opaque-reference validation.
+
+Any mismatch in this subsection raises exact `PHASE32_AUTHORITY_RESULT_BINDING_INVALID`.
+
+10.3 Exact Phase32 evidence-fingerprint recomputation
+
+Exact evidence-fingerprint envelope keys are 20:
+1. `claim_fingerprint`
+2. `asserted_authority_approval_reference`
+3. `asserted_authority_conformance_reference`
+4. `decision`
+5. `block_reason`
+6. `indeterminate_reason`
+7. `authority_result_reference`
+8. `consumption_reference`
+9. `authority_reported_authorization_consumption_committed`
+10. `authority_reported_replay_guard_consumption_committed`
+11. `commit_state_known`
+12. `consumption_evidence_candidate_ready`
+13. `authority_trust_independently_verified`
+14. `automatic_retry_permitted`
+15. `reconciliation_required`
+16. `authority_invocation_attempted`
+17. `phase32_direct_credential_accessed`
+18. `phase32_direct_network_performed`
+19. `phase32_direct_account_accessed`
+20. `phase32_direct_order_submitted`
+
+Exact value sources are the same-named Phase32 snapshot fields, except `claim_fingerprint = phase31_snapshot.claim_fingerprint` after Phase31 claim fingerprint validation.
+Canonical JSON settings are exact:
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+then UTF-8 and lowercase SHA-256 hex.
+
+The recomputed value must equal exact `phase32_snapshot.evidence_fingerprint`; otherwise exact `PHASE32_EVIDENCE_FINGERPRINT_INVALID`.
+
+Phase34 does not call the Phase32 authority adapter and does not normalize malformed Phase32 evidence into a result snapshot.
+
+11. Exact Phase31 claim/replay revalidation algorithm
+
+Phase34 obtains the exact Phase31 object only after the Phase32 exact-type gate succeeds:
+`phase31_snapshot = phase32_snapshot.source_snapshot`
+
+It must be exact type `WatchlistOrderAuthorizationConsumptionClaimSnapshot`.
+Its `context` must be exact type `KiwoomOrderAuthorizationConsumptionClaimContext`.
+
+The revalidation is pure local. It must not invoke a builder, authority, database, provider, or network.
+
+The exact algorithm is frozen in this order. No Phase31 nested field is dereferenced before exact Phase31 type, and no context field is dereferenced before exact context type:
+
+11.1 Exact Phase31 state/type validation
+1. require exact Phase31 snapshot type;
+2. require exact Phase31 context type;
+3. require `authorization_claim_identity` exact tuple, length 4, every item exact str;
+4. require `authorization_replay_guard` exact tuple, length 2, every item exact str;
+5. require `claim_fingerprint` exact str matching lowercase `[0-9a-f]{64}`;
+6. require exact bool/value pairs:
+   - `claim_prepared is True`
+   - `authorization_consumption_committed is False`
+   - `post_permitted is False`
+   - `automatic_retry_permitted is False`
+   - `network_performed is False`
+   - `order_submitted is False`.
+
+11.2 Exact Phase31 context-reference validation
+The exact original Phase31 validators are preserved:
+- `authorization_authority_reference`: exact str, non-empty, and `.strip()` truthy;
+- `authorization_evidence_snapshot_id`: exact str, length 1..128, `.strip()` truthy, no codepoint <32 and no DEL 127;
+- `submission_attempt_reference`: exact str, length 1..128, `.strip()` truthy, no codepoint <32 and no DEL 127;
+- `send_authorization_reference`: exact str, non-empty, and `.strip()` truthy.
+
+No stronger or weaker substitute validator may be silently used as the Phase31 contract itself.
+
+Phase34 then applies a separate Phase33-verifier-producibility overlay because the containing object claims to be an actual Phase33 verification snapshot. This overlay does not redefine Phase31. Before a Phase34 result may be returned on either the Phase33 success or INDETERMINATE branch, require:
+- `context.authorization_authority_reference` additionally satisfies the Phase33 durable-authority config exact-reference syntax: exact str already proven, length 1..128, `value == value.strip()`, whitespace-only prohibited, U+0000..U+001F prohibited, U+007F prohibited, no trim/case-fold/Unicode normalization/replacement, and strict UTF-8 encodable;
+- `context.authorization_evidence_snapshot_id`, `context.submission_attempt_reference`, and `context.send_authorization_reference` are strict UTF-8 encodable without surrogate-pass/replacement;
+- the same strict UTF-8 requirement applies to the already exact Phase32 top-level asserted approval/conformance references and authority-result/consumption references in section 10.1.
+
+This overlay represents the Phase33 verifier's local precondition that malformed/non-UTF8-encodable required source references cannot produce any Phase33 verification snapshot. Failure of the Phase31-context portion is routed through existing step 9 `PHASE31_STATE_OR_REFERENCE_INVALID`; failure of the Phase32 top-level portion is routed through existing step 8 `PHASE32_STATE_OR_RESULT_INVALID`. No new public validation code is added.
+
+11.3 Exact claim identity and replay guard reconstruction
+Reconstruct only from exact Phase31 context fields:
+
+`expected_claim_identity = (`
+`    context.authorization_authority_reference,`
+`    context.authorization_evidence_snapshot_id,`
+`    context.submission_attempt_reference,`
+`    context.send_authorization_reference,`
+`)`
+
+`expected_replay_guard = (`
+`    context.authorization_authority_reference,`
+`    context.send_authorization_reference,`
+`)`
+
+Require exact equality:
+- `phase31_snapshot.authorization_claim_identity == expected_claim_identity`
+- `phase31_snapshot.authorization_replay_guard == expected_replay_guard`
+
+There is no sorting, normalization, lowercasing, whitespace trimming, tuple/list coercion, or reference substitution.
+
+11.4 Exact Phase30 source/request binding as part of Phase31 revalidation
+Set exactly:
+`request_snapshot = phase31_snapshot.source_snapshot`
+
+At global validation-precedence step 6, require only the exact type `WatchlistOrderSendRequestSnapshot` before any Phase30 field dereference. The remaining section 12 checks are deliberately staged only at their exact positions in section 15; they are not collapsed into this subsection and must not run early. In particular, Phase30 structural validation occurs at step 12, safety at step 13, context/reference binding at step 14, materialization-fingerprint validation at step 15, and provider-semantic validation at step 20.
+
+At global precedence step 14, require exactly:
+- `context.submission_attempt_reference == request_snapshot.source_attempt_ref`
+- `context.authorization_evidence_snapshot_id == request_snapshot.authorization_evidence_ref`
+
+11.5 Exact Phase31 claim-fingerprint recomputation
+Exact envelope has 3 keys:
+- `materialization_fingerprint = request_snapshot.materialization_fingerprint`
+- `authorization_claim_identity = phase31_snapshot.authorization_claim_identity`
+- `authorization_replay_guard = phase31_snapshot.authorization_replay_guard`
+
+Tuple values serialize as JSON arrays by normal Python JSON serialization.
+Canonical JSON exact settings:
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+then UTF-8 encode and lowercase SHA-256 hex.
+
+Require recomputed fingerprint == exact `phase31_snapshot.claim_fingerprint`.
+
+Phase34 never reconstructs a new Phase31 snapshot and never consumes the claim/replay guard.
+
+12. Exact embedded Phase30 request binding and provider-contract validation
+
+The exact `request_snapshot` obtained in section 11.4 is preserved by object identity in the Phase34 snapshot.
+The named-local chain is exact:
+`phase32_snapshot = source_snapshot.source_snapshot`
+`phase31_snapshot = phase32_snapshot.source_snapshot`
+`request_snapshot = phase31_snapshot.source_snapshot`
+Equivalent direct expression from the Phase33 local variable is exactly `source_snapshot.source_snapshot.source_snapshot.source_snapshot`.
+It must not be copied, remapped, normalized, replaced, or rebuilt.
+
+12.1 Exact Phase30 request structural / primitive invariants
+Require before canonicalization:
+- `environment`, `side`, `exchange`, `api_id`, `http_method`, and `api_path` are each exact str; their provider-semantic values are checked separately in section 12.4 so `PROVIDER_REQUEST_CONTRACT_INVALID` has a distinct reachable meaning
+- body is a Mapping; contract-controlled `AttributeError`, `KeyError`, or `TypeError` raised while interrogating this untrusted Mapping for keys/values/index access is normalized to exact `PHASE30_REQUEST_STRUCTURE_INVALID`, while `KeyboardInterrupt`/`SystemExit` and exceptions outside this defined malformed-input boundary propagate
+- body exact key set is exactly:
+  `dmst_stex_tp`, `stk_cd`, `ord_qty`, `ord_uv`, `trde_tp`, `cond_uv`
+- every body key exact str
+- every body value exact str
+- `source_attempt_ref` passes exact Phase31 binding-reference validator
+- `authorization_evidence_ref` passes exact Phase31 binding-reference validator
+- `materialization_fingerprint` exact lowercase 64-hex str
+
+Violations of this subsection raise exact `PHASE30_REQUEST_STRUCTURE_INVALID`. The exact provider-semantic values (`demo`, `BUY`, `KRX`, `kt10000`, `POST`, path, KRX body field, cond/order-type mapping) are intentionally not consumed by this error class; they are section 12.4 / `PROVIDER_REQUEST_CONTRACT_INVALID`.
+
+12.2 Exact Phase30 safety invariants
+Require exact False, not integer 0:
+- `transport_allowed`
+- `credential_accessed`
+- `network_performed`
+- `account_accessed`
+- `order_submitted`
+
+12.3 Exact Phase30 materialization-fingerprint recomputation
+Exact envelope 9 keys:
+1. `environment`
+2. `side`
+3. `exchange`
+4. `api_id`
+5. `http_method`
+6. `api_path`
+7. `body` as `dict(request_snapshot.body)`
+8. `source_attempt_ref`
+9. `authorization_evidence_ref`
+
+Clarification: the semantic fields are 9 envelope keys because `body` is one key and both provenance references are separate keys. No field may be omitted despite historical shorthand descriptions.
+
+Before `dict(request_snapshot.body)` or `json.dumps`, exact body key/value str validation and all primitive validations in sections 12.1-12.2 must already have succeeded. Thus malformed input cannot reach canonical JSON with an unsupported value type.
+
+Canonical JSON exact settings:
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+then UTF-8 encode and lowercase SHA-256 hex.
+Require exact equality with `request_snapshot.materialization_fingerprint`.
+
+12.4 Provider request contract meaning and exact reachable validation
+
+Only after sections 12.1-12.3 and the upstream fingerprint/binding prerequisites succeed, validate the frozen static Kiwoom provider semantics:
+- `environment == "demo"`
+- `side == "BUY"`
+- `exchange == "KRX"`
+- `api_id == "kt10000"`
+- `http_method == "POST"`
+- `api_path == "/api/dostk/ordr"`
+- `body["dmst_stex_tp"] == "KRX"`
+- `body["cond_uv"] == ""`
+- exact order-type mapping:
+  - `body["trde_tp"] == "0"` requires `body["ord_uv"] != ""`;
+  - `body["trde_tp"] == "3"` requires `body["ord_uv"] == ""`;
+  - any other `body["trde_tp"]` is invalid.
+
+A mismatch in these static provider semantics raises exact `PROVIDER_REQUEST_CONTRACT_INVALID`. This distinct gate is intentionally reachable even when the internally self-consistent Phase30 snapshot and its materialization fingerprint were recomputed over a different string value.
+
+`provider_request_contract_verified=True` means only that the already-materialized Phase30 request matches this frozen local shape corroborated against current official Kiwoom documentation. It does not prove:
+- provider availability
+- server acceptance
+- token validity
+- account validity or buying power
+- execution-time authorization
+- successful transport
+- provider response semantics
+- order acceptance or order number
+
+13. Candidate snapshot — exact 21 fields and complete state matrix
+
+`WatchlistOrderProviderSendEligibilityCandidateSnapshot` is `@dataclass(frozen=True)`.
+
+13.1 Exact field order / annotations
+
+1. `source_snapshot: WatchlistOrderAuthorizationDurableVerificationSnapshot`
+2. `request_snapshot: WatchlistOrderSendRequestSnapshot`
+3. `decision: KiwoomOrderProviderSendEligibilityDecision`
+4. `indeterminate_reason: KiwoomOrderProviderSendEligibilityIndeterminateReason | None`
+5. `request_materialization_verified: bool`
+6. `authorization_claim_binding_verified: bool`
+7. `durable_consumption_verified: bool`
+8. `provider_request_contract_verified: bool`
+9. `authority_approval_provenance_verified: bool`
+10. `authority_conformance_provenance_verified: bool`
+11. `provider_send_eligibility_candidate_ready: bool`
+12. `provider_send_eligibility_authorized: bool`
+13. `production_authority_use_authorized: bool`
+14. `transport_allowed: bool`
+15. `credential_accessed: bool`
+16. `network_performed: bool`
+17. `account_accessed: bool`
+18. `order_submitted: bool`
+19. `automatic_retry_permitted: bool`
+20. `reconciliation_required: bool`
+21. `eligibility_fingerprint: str`
+
+Every bool field requires exact `bool`; integer `0/1` is invalid.
+`eligibility_fingerprint` is exact lowercase 64-hex.
+
+13.2 Complete returned-snapshot matrix
+
+Field | SUCCESS | PHASE33 INDETERMINATE | exact source rule
+source_snapshot | exact input object | exact input object | identity-preserved input
+request_snapshot | exact embedded Phase30 object | exact embedded Phase30 object | `request_snapshot = phase31_snapshot.source_snapshot`; equivalent direct Phase33-local expression `source_snapshot.source_snapshot.source_snapshot.source_snapshot`
+decision | `PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY` enum member | `INDETERMINATE` enum member | Phase34 builder result after all local revalidation
+indeterminate_reason | None | `SOURCE_DURABLE_VERIFICATION_INDETERMINATE` enum member | Phase34 fixed mapping from validated Phase33 decision
+request_materialization_verified | True | True | Phase30 canonical fingerprint + exact structure/safety validation succeeded
+authorization_claim_binding_verified | True | True | Phase31 exact claim/replay/context/binding/fingerprint validation succeeded
+durable_consumption_verified | True | False | exact copy of validated `source_snapshot.durable_consumption_record_verified`
+provider_request_contract_verified | True | True | section 12 static local request-contract validation succeeded
+authority_approval_provenance_verified | False | False | exact copy of validated `source_snapshot.authority_approval_provenance_verified`
+authority_conformance_provenance_verified | False | False | exact copy of validated `source_snapshot.authority_conformance_provenance_verified`
+provider_send_eligibility_candidate_ready | True | False | exact derived Phase34 candidate state
+provider_send_eligibility_authorized | False | False | exact copy of validated `source_snapshot.provider_send_eligibility_authorized`; Phase34 cannot upgrade
+production_authority_use_authorized | False | False | exact copy of validated `source_snapshot.production_authority_use_authorized`; Phase34 cannot upgrade
+transport_allowed | False | False | Phase34-owned constant False
+credential_accessed | False | False | Phase34-owned constant False
+network_performed | False | False | Phase34-owned constant False
+account_accessed | False | False | Phase34-owned constant False
+order_submitted | False | False | Phase34-owned constant False
+automatic_retry_permitted | False | False | Phase34-owned constant False
+reconciliation_required | False | True | exact copy of validated `source_snapshot.reconciliation_required`
+eligibility_fingerprint | computed exact A6 fingerprint | computed exact A6 fingerprint | section 14 only
+
+A valid Phase33 INDETERMINATE may still have locally valid Phase30 request materialization, Phase31 claim/replay binding, and static provider request shape; therefore fields 5, 6, and 8 remain True after those independent local checks. The unresolved durable verification is represented exclusively by `durable_consumption_verified=False`, candidate-ready False, `reconciliation_required=True`, and the Phase34 INDETERMINATE decision/reason.
+
+No snapshot is returned for malformed/inconsistent local input.
+
+14. Deterministic eligibility fingerprint — exact 25-key safety-complete contract
+
+`eligibility_fingerprint` is lowercase 64-hex SHA-256.
+
+14.1 Exact canonical envelope key set
+
+Exact 25 keys, no more and no fewer:
+1. `domain`
+2. `phase33_verification_fingerprint`
+3. `phase32_evidence_fingerprint`
+4. `phase31_claim_fingerprint`
+5. `phase30_materialization_fingerprint`
+6. `source_attempt_ref`
+7. `authorization_evidence_ref`
+8. `decision`
+9. `indeterminate_reason`
+10. `request_materialization_verified`
+11. `authorization_claim_binding_verified`
+12. `durable_consumption_verified`
+13. `provider_request_contract_verified`
+14. `authority_approval_provenance_verified`
+15. `authority_conformance_provenance_verified`
+16. `provider_send_eligibility_candidate_ready`
+17. `provider_send_eligibility_authorized`
+18. `production_authority_use_authorized`
+19. `transport_allowed`
+20. `credential_accessed`
+21. `network_performed`
+22. `account_accessed`
+23. `order_submitted`
+24. `automatic_retry_permitted`
+25. `reconciliation_required`
+
+Exact domain:
+`phase34-provider-send-eligibility-candidate-v1`
+
+14.2 Exact value-source mapping — every key frozen
+
+1. `domain = "phase34-provider-send-eligibility-candidate-v1"` literal.
+2. `phase33_verification_fingerprint = snapshot.source_snapshot.verification_fingerprint` exactly, after section 9 recomputation/match.
+3. `phase32_evidence_fingerprint = snapshot.source_snapshot.source_snapshot.evidence_fingerprint` exactly, after section 10 recomputation/match.
+4. `phase31_claim_fingerprint = snapshot.source_snapshot.source_snapshot.source_snapshot.claim_fingerprint` exactly, after section 11 recomputation/match.
+5. `phase30_materialization_fingerprint = snapshot.request_snapshot.materialization_fingerprint` exactly, after section 12 recomputation/match.
+6. `source_attempt_ref = snapshot.request_snapshot.source_attempt_ref` exactly.
+7. `authorization_evidence_ref = snapshot.request_snapshot.authorization_evidence_ref` exactly.
+8. `decision = snapshot.decision.value` exactly; JSON value is the frozen enum string value, never member repr/name derived dynamically.
+9. `indeterminate_reason = None` if snapshot field is None; otherwise `snapshot.indeterminate_reason.value` exactly.
+10. `request_materialization_verified = snapshot.request_materialization_verified` exactly.
+11. `authorization_claim_binding_verified = snapshot.authorization_claim_binding_verified` exactly.
+12. `durable_consumption_verified = snapshot.durable_consumption_verified` exactly.
+13. `provider_request_contract_verified = snapshot.provider_request_contract_verified` exactly.
+14. `authority_approval_provenance_verified = snapshot.authority_approval_provenance_verified` exactly.
+15. `authority_conformance_provenance_verified = snapshot.authority_conformance_provenance_verified` exactly.
+16. `provider_send_eligibility_candidate_ready = snapshot.provider_send_eligibility_candidate_ready` exactly.
+17. `provider_send_eligibility_authorized = snapshot.provider_send_eligibility_authorized` exactly.
+18. `production_authority_use_authorized = snapshot.production_authority_use_authorized` exactly.
+19. `transport_allowed = snapshot.transport_allowed` exactly.
+20. `credential_accessed = snapshot.credential_accessed` exactly.
+21. `network_performed = snapshot.network_performed` exactly.
+22. `account_accessed = snapshot.account_accessed` exactly.
+23. `order_submitted = snapshot.order_submitted` exactly.
+24. `automatic_retry_permitted = snapshot.automatic_retry_permitted` exactly.
+25. `reconciliation_required = snapshot.reconciliation_required` exactly.
+
+No fallback source, duplicated alias, implicit derivation at fingerprint time, source-object hash, Python object id, clock, UUID, PID, machine identity, SQLite path, credential/account value, provider-client state, or provider response may enter the envelope.
+
+14.3 Canonicalization
+
+Exact canonical JSON:
+`json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=True, allow_nan=False)`
+
+Encode UTF-8; then:
+`hashlib.sha256(canonical_bytes).hexdigest()`.
+
+The result must be lowercase 64-hex.
+
+14.4 Safety-state coverage requirement
+
+A change to any of these fields must change the canonical envelope input and therefore the expected fingerprint:
+- decision/reason
+- any four local verification summary bools
+- both provenance bools
+- candidate-ready
+- send eligibility authorization
+- production authority use
+- transport
+- credential/network/account/order state
+- automatic retry state
+- reconciliation state
+- any upstream Phase33/32/31/30 fingerprint or exact request provenance reference
+
+The fingerprint does not itself authorize any action.
+
+15. Builder exact decision algorithm — traversal-safe and integrity-first prerequisite order
+
+The builder executes the following exact externally observable validation order. A later step may not dereference or canonicalize a value whose prerequisite type/state gate is earlier and has not passed.
+
+1. require exact Phase33 `source_snapshot` type; otherwise `SOURCE_SNAPSHOT_TYPE_INVALID`;
+2. validate Phase33 decision exact type/value per 9.2; otherwise `PHASE33_DECISION_INVALID`;
+3. set `phase32_snapshot = source_snapshot.source_snapshot`, then require exact Phase32 type; otherwise `PHASE32_SOURCE_SNAPSHOT_TYPE_INVALID`;
+4. set `phase31_snapshot = phase32_snapshot.source_snapshot`, then require exact Phase31 type; otherwise `PHASE31_SOURCE_SNAPSHOT_TYPE_INVALID`;
+5. require exact Phase31 context type before any context-field dereference; otherwise `PHASE31_CONTEXT_TYPE_INVALID`;
+6. set `request_snapshot = phase31_snapshot.source_snapshot`, then require exact Phase30 request type; otherwise `PHASE30_REQUEST_SNAPSHOT_TYPE_INVALID`;
+7. validate exact Phase33 success or INDETERMINATE branch-state invariants per 9.3, including success durable-record exact outer type but not yet trusting its fields; otherwise `PHASE33_STATE_INVARIANT_INVALID`;
+8. validate Phase32 consumed-candidate structural/result state, every primitive needed later by the Phase32 envelope, and the section 10.1 Phase33-verifier strict-UTF8 source-reference overlay; otherwise `PHASE32_STATE_OR_RESULT_INVALID`;
+9. validate Phase31 state/reference primitives plus the section 11.2 Phase33-verifier-producibility overlay for all branches; otherwise `PHASE31_STATE_OR_REFERENCE_INVALID`;
+10. reconstruct/validate exact Phase31 claim identity; otherwise `PHASE31_CLAIM_IDENTITY_INVALID`;
+11. reconstruct/validate exact replay guard; otherwise `PHASE31_REPLAY_GUARD_INVALID`;
+12. validate Phase30 request structure/body/reference primitives with defined malformed Mapping exception normalization; otherwise `PHASE30_REQUEST_STRUCTURE_INVALID`;
+13. validate Phase30 safety flags; otherwise `PHASE30_REQUEST_SAFETY_INVALID`;
+14. validate Phase31 context -> Phase30 request reference bindings; otherwise `PHASE30_CONTEXT_BINDING_INVALID`;
+15. recompute/match Phase30 materialization fingerprint; otherwise `PHASE30_MATERIALIZATION_FINGERPRINT_INVALID`;
+16. recompute/match Phase31 claim fingerprint; otherwise `PHASE31_CLAIM_FINGERPRINT_INVALID`;
+17. validate exact Phase32 authority-result echo/reference/commit binding against the now-validated Phase31 claim; otherwise `PHASE32_AUTHORITY_RESULT_BINDING_INVALID`;
+18. recompute/match Phase32 evidence fingerprint; otherwise `PHASE32_EVIDENCE_FINGERPRINT_INVALID`;
+19. success only: validate all 13 durable-record fields/primitives per 9.4; otherwise `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID`; INDETERMINATE skips this step;
+20. success only: independently recompute/match the exact 16-key durable-record fingerprint per 9.5; otherwise `PHASE33_DURABLE_RECORD_FINGERPRINT_INVALID`; INDETERMINATE skips this step;
+21. success only: independently recompute/match exact Phase33 deterministic authority-result and consumption references per 9.6; otherwise `PHASE33_DURABLE_RECORD_REFERENCE_SELF_BINDING_INVALID`; INDETERMINATE skips this step;
+22. success only: validate exact durable-record -> Phase33/32/31 source graph bindings per 9.7; otherwise `PHASE33_DURABLE_RECORD_SOURCE_BINDING_INVALID`; INDETERMINATE skips this step;
+23. recompute/match Phase33 verification fingerprint using the already-validated Phase32 evidence fingerprint and, on success, the already self-integrity/source-bound durable record fingerprint; otherwise `PHASE33_VERIFICATION_FINGERPRINT_INVALID`;
+24. validate the exact section 12.4 frozen provider-semantic values after self-consistent Phase30 materialization is proven; otherwise `PROVIDER_REQUEST_CONTRACT_INVALID`.
+
+After all 24 applicable public validation gates pass, derive the exact section 13.2 Phase34 state matrix, build the exact 25-key section 14 envelope, compute `eligibility_fingerprint`, and return one frozen snapshot.
+
+Phase34-owned result state is deterministic from validated input plus fixed False constants. There is no 25th caller-validation code for candidate-state construction. An impossible post-validation contradiction caused by an implementation defect must be detected by an explicit internal invariant check and raises exact `AssertionError("PHASE34_INTERNAL_SAFETY_STATE_DEFECT")`. This internal defect is not a `WatchlistOrderProviderSendEligibilityError`, is outside the public first-error precedence, is not an INDETERMINATE business result, and must never be caught and converted by the builder.
+
+Branch result:
+- validated Phase33 success -> `PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY`, candidate-ready=True;
+- validated Phase33 INDETERMINATE -> Phase34 `INDETERMINATE / SOURCE_DURABLE_VERIFICATION_INDETERMINATE`, candidate-ready=False.
+
+Both branches still require the same valid Phase32/31/30 embedded chain because Phase34 preserves and fingerprints the request/claim evidence rather than returning a partial result from malformed nested input.
+
+16. Validation error / exception contract — exact 24-code public precedence
+
+All contract-validation failures raise exact `WatchlistOrderProviderSendEligibilityError` with one exact code string.
+Public validation code order is exactly:
+
+1. `SOURCE_SNAPSHOT_TYPE_INVALID`
+2. `PHASE33_DECISION_INVALID`
+3. `PHASE32_SOURCE_SNAPSHOT_TYPE_INVALID`
+4. `PHASE31_SOURCE_SNAPSHOT_TYPE_INVALID`
+5. `PHASE31_CONTEXT_TYPE_INVALID`
+6. `PHASE30_REQUEST_SNAPSHOT_TYPE_INVALID`
+7. `PHASE33_STATE_INVARIANT_INVALID`
+8. `PHASE32_STATE_OR_RESULT_INVALID`
+9. `PHASE31_STATE_OR_REFERENCE_INVALID`
+10. `PHASE31_CLAIM_IDENTITY_INVALID`
+11. `PHASE31_REPLAY_GUARD_INVALID`
+12. `PHASE30_REQUEST_STRUCTURE_INVALID`
+13. `PHASE30_REQUEST_SAFETY_INVALID`
+14. `PHASE30_CONTEXT_BINDING_INVALID`
+15. `PHASE30_MATERIALIZATION_FINGERPRINT_INVALID`
+16. `PHASE31_CLAIM_FINGERPRINT_INVALID`
+17. `PHASE32_AUTHORITY_RESULT_BINDING_INVALID`
+18. `PHASE32_EVIDENCE_FINGERPRINT_INVALID`
+19. `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID`
+20. `PHASE33_DURABLE_RECORD_FINGERPRINT_INVALID`
+21. `PHASE33_DURABLE_RECORD_REFERENCE_SELF_BINDING_INVALID`
+22. `PHASE33_DURABLE_RECORD_SOURCE_BINDING_INVALID`
+23. `PHASE33_VERIFICATION_FINGERPRINT_INVALID`
+24. `PROVIDER_REQUEST_CONTRACT_INVALID`
+
+A6 retains the 20 reachable A3 caller-validation code names other than the removed unreachable `PHASE34_SAFETY_STATE_CONSTRUCTION_INVALID`, and adds exactly four durable-record integrity/binding codes.
+
+`PHASE34_SAFETY_STATE_CONSTRUCTION_INVALID` is not an A6 public validation code and must not appear in `WatchlistOrderProviderSendEligibilityError` precedence.
+
+16.1 Contract-validation exception containment
+
+The implementation must not use blanket `except Exception` around the whole builder.
+Only explicitly defined interrogation boundaries may normalize malformed candidate input exceptions:
+- after exact parent dataclass type validation, malformed child field/value types are routed by the active validation step;
+- Phase30 `body` is required to satisfy exact Mapping/key/value prerequisites before indexed reads or canonicalization;
+- defined `AttributeError`, `KeyError`, or `TypeError` arising solely while interrogating a contract-controlled malformed nested value at a stage whose error code is already frozen are converted to that stage's exact `WatchlistOrderProviderSendEligibilityError`;
+- `json.dumps` is called only after all values entering the relevant envelope are validated as exact JSON-safe primitives/tuples/mapping copies, so malformed input must not escape as JSON serialization `TypeError`.
+
+These conversions are validation-boundary normalization only. They must not catch exceptions from provider/network/SQLite because those operations are prohibited and absent.
+
+16.2 Unexpected exception and internal-defect propagation
+
+A genuinely unexpected Python implementation exception that is not an explicitly defined malformed-input validation failure propagates unchanged.
+`KeyboardInterrupt` and `SystemExit` always propagate unchanged.
+No unexpected exception is normalized into a Phase34 INDETERMINATE snapshot.
+
+After all 24 public validation gates pass, any impossible contradiction among Phase34-owned fixed/copy/derived state is an implementation defect, not caller validation. Exact internal defect classification is explicit `AssertionError("PHASE34_INTERNAL_SAFETY_STATE_DEFECT")`. It is outside the 24-code public precedence, is not caught as `WatchlistOrderProviderSendEligibilityError`, and returns no snapshot.
+
+17. State / transaction / side-effect contract
+
+Phase34 is pure local and synchronous.
+
+It must:
+- create no SQLite transaction;
+- access no `sqlite3.Connection`;
+- read/write no durable ledger;
+- invoke no authority;
+- invoke no Phase33 verifier;
+- invoke no provider/client;
+- perform no network operation;
+- read no credential/token/account state;
+- mutate no upstream object;
+- persist no new state;
+- execute no reconciliation action.
+
+There is no BEGIN/COMMIT/ROLLBACK lifecycle in Phase34.
+`reconciliation_required=True` is evidence only; it grants no reconciliation permission.
+
+A later provider-send phase must define its own execution-time freshness, external provenance, credentials/account ownership, transport, ambiguity, reconciliation, and no-retry contract. The Phase34 snapshot is not timeless send authority.
+
+18. Demo / mock / live boundary
+
+Phase34 candidate is demo-only but performs no demo provider call.
+
+It must not:
+- use `https://api.kiwoom.com`;
+- use `https://mockapi.kiwoom.com`;
+- acquire OAuth token;
+- instantiate a provider client for sending;
+- inspect a live or demo account;
+- submit an order.
+
+Official Kiwoom documentation is only a static contract-review source for the request shape already frozen by Phase30.
+
+19. Public API / backward compatibility
+
+If later separately implemented, Phase34 adds one isolated module only.
+It must not change:
+- Phase27 public API
+- Phase28 public API
+- Phase29 public API
+- Phase30 public API
+- Phase31 public API
+- Phase32 public API
+- Phase33 public API
+- `rest/__init__.py` package exports
+- dependency versions
+- existing snapshot field order
+- existing decision/reason values
+- existing fingerprint algorithms
+
+Phase34 accepts the official Phase33 snapshot as-is and requires no Phase30-33 code changes.
+
+20. Acceptance criteria — exact AC-001 through AC-128
+
+A later approved implementation must prove every applicable criterion below.
+
+20.1 API / type surface
+AC-001 exact module-level public symbol set is the section 8 five symbols only.
+AC-002 error class inherits RuntimeError exactly.
+AC-003 decision enum base is `(str, Enum)` with exact two-member order.
+AC-004 decision enum exact member-name/value pairs match section 8.1 and contain no alias/additional member.
+AC-005 indeterminate-reason enum exact member-name/value pair matches section 8.2 and contain no alias/additional member.
+AC-006 frozen snapshot dataclass exact 21-field order/annotations match section 13.1.
+AC-007 every snapshot bool field rejects integer 0/1 as substitute where validation applies.
+AC-008 builder signature is exact and has no defaults/context/authority/sqlite/client/token/account parameters.
+
+20.2 Phase33 exact upstream and durable-record validation
+AC-009 exact Phase33 source type accepted; wrong type is rejected before any nested inspection.
+AC-010 Phase33 supported decision exact type/value is validated before decision-dependent mapping.
+AC-011 Phase33 exact success/INDETERMINATE branch-state matrix in section 9.3 is required before deeper trust.
+AC-012 Phase33 INDETERMINATE exact 8-reason set and None durable-record branch are frozen.
+AC-013 success durable record exact outer class is insufficient by itself; exact 13-field primitive/format contract in 9.4 is independently validated.
+AC-014 success exact 16-key durable-record fingerprint is independently recomputed and matched before deterministic-reference/source binding and before Phase33 verification-fingerprint recomputation.
+AC-015 success historical authority-result and consumption references are independently recomputed from durable-record values using exact Phase33 10-key/11-key algorithms and matched.
+AC-016 success durable record is exactly bound to validated Phase33 backend identity, Phase31 claim/context, and Phase32 approval/conformance/result/consumption references.
+AC-017 a cross-bound `Phase32 evidence A + self-integrity-valid durable record B` mismatch is rejected before Phase33 verification-fingerprint recomputation.
+AC-018 exact Phase33 19-key verification envelope/canonical JSON/SHA-256 is independently reconstructed only after all applicable durable-record gates pass; unsupported decision or state contradiction is rejected earlier.
+
+20.3 Phase32 evidence self-consistency
+AC-019 embedded Phase32 exact type is required before any Phase32 field dereference.
+AC-020 exact Phase32 consumed-candidate state/result primitives in section 10.1 are required; BLOCKED/INDETERMINATE cannot be promoted.
+AC-021 exact Phase32 authority-result echo/reference/commit binding in section 10.2 is required against already-validated Phase31 values.
+AC-022 exact Phase32 20-key evidence fingerprint envelope/canonical JSON/SHA-256 is independently reconstructed and matched only after AC-019..AC-021 prerequisites.
+
+20.4 Phase31 exact claim/replay algorithm
+AC-023 embedded Phase31 exact type is required before Phase31 field dereference.
+AC-024 Phase31 context exact type is required before context field dereference.
+AC-025 exact tuple type/length/exact-str checks for claim identity 4 and replay guard 2 are required.
+AC-026 exact Phase31 bool state matrix in section 11.1 is required.
+AC-027 exact original authorization-authority reference validator is preserved.
+AC-028 exact original evidence-snapshot-id binding-reference validator is preserved.
+AC-029 exact original submission-attempt binding-reference validator is preserved.
+AC-030 exact original send-authorization reference validator is preserved.
+AC-031 exact claim identity reconstruction/order and equality are required.
+AC-032 exact replay guard reconstruction/order and equality are required.
+AC-033 exact submission-attempt -> Phase30 source_attempt_ref binding is required.
+AC-034 exact evidence-snapshot-id -> Phase30 authorization_evidence_ref binding is required.
+AC-035 exact 3-key Phase31 claim-fingerprint envelope is independently recomputed and matched.
+AC-036 no trimming/lowercasing/sorting/coercion/substitution of claim/replay identity values occurs.
+AC-037 Phase31 malformed claim/replay/binding fails closed without consuming anything.
+
+20.5 Phase30 request/materialization contract
+AC-038 exact Phase30 request object identity is preserved in Phase34 snapshot.
+AC-039 exact named-local graph is Phase33 -> Phase32 -> Phase31 -> Phase30 and exact Phase30 direct expression is the four-token `source_snapshot.source_snapshot.source_snapshot.source_snapshot` form.
+AC-040 Phase30 top-level request fields are exact str primitives before fingerprint canonicalization; provider-semantic literal values are reserved for AC-048/AC-108.
+AC-041 exact provider body key set is required.
+AC-042 every provider body key/value exact str is required before indexed access/canonicalization.
+AC-043 Phase30 body indexing/order-type inspection occurs only after exact Mapping key-set and exact-str key/value validation.
+AC-044 Phase30 source/evidence reference validators are required.
+AC-045 all Phase30 safety flags are exact False.
+AC-046 exact Phase30 materialization envelope fields are independently reconstructed only after primitive validation.
+AC-047 exact materialization canonical JSON/hash match is required.
+AC-048 exact section 12.4 demo/BUY/KRX/kt10000/POST/path/KRX-body/cond/order-type provider semantics are required and mismatch is rejected without provider/client/network activity.
+
+20.6 Complete Phase34 returned-state matrix / reconciliation source
+AC-049 success snapshot matches every one of the 21 section 13.2 fields.
+AC-050 Phase33 INDETERMINATE snapshot matches every one of the 21 section 13.2 fields.
+AC-051 success `request_materialization_verified=True`.
+AC-052 INDETERMINATE `request_materialization_verified=True` only after independent local Phase30 validation succeeds.
+AC-053 success and INDETERMINATE `authorization_claim_binding_verified=True` only after exact section 11 succeeds.
+AC-054 success `durable_consumption_verified=True` only after 9.4-9.7 durable-record validation and Phase33 verification fingerprint all succeed; INDETERMINATE durable-consumption flag is False.
+AC-055 static provider request contract flag is True on either returned path only after exact section 12 validation.
+AC-056 both provenance fields are False on every returned snapshot.
+AC-057 candidate-ready is True only for fully validated Phase33 success and False for Phase33 INDETERMINATE.
+AC-058 provider-send eligibility authorized is always False.
+AC-059 production authority use authorized is always False.
+AC-060 transport_allowed is always False.
+AC-061 credential/network/account/order flags are always False.
+AC-062 automatic_retry_permitted is always False.
+AC-063 `reconciliation_required` is exact Phase34 snapshot field copied only from validated Phase33 source.
+AC-064 success reconciliation_required=False and INDETERMINATE reconciliation_required=True.
+AC-065 reconciliation_required=True performs no reconciliation action.
+AC-066 malformed input returns no partial snapshot.
+
+20.7 A6 eligibility fingerprint / safety-state coverage / exact mapping
+AC-067 exact domain is `phase34-provider-send-eligibility-candidate-v1`.
+AC-068 exact eligibility envelope key set is 25 keys, no more/no fewer.
+AC-069 every one of the 25 keys uses only the exact section 14.2 value source.
+AC-070 enum decision fingerprint value uses exact `.value`, not repr/object/member-name inference.
+AC-071 indeterminate reason fingerprint value uses exact None or enum `.value`.
+AC-072 same validated input/state yields the same fingerprint.
+AC-073 changing Phase33 verification fingerprint changes expected Phase34 fingerprint.
+AC-074 changing Phase32 evidence fingerprint changes expected Phase34 fingerprint.
+AC-075 changing Phase31 claim fingerprint changes expected Phase34 fingerprint.
+AC-076 changing Phase30 materialization fingerprint changes expected Phase34 fingerprint.
+AC-077 changing either exact provenance request reference changes expected Phase34 fingerprint.
+AC-078 changing any Phase34 local verification summary bool changes expected fingerprint.
+AC-079 changing either provenance bool changes expected fingerprint.
+AC-080 changing candidate-ready/send-authorization/production/transport state changes expected fingerprint.
+AC-081 changing credential/network/account/order/retry/reconciliation state changes expected fingerprint.
+AC-082 object id/clock/UUID/PID/machine/SQLite path/credential/account/provider-response state is excluded.
+
+20.8 Isolation / compatibility / inherited defect traceability
+AC-083 no SQLite/network/provider/client/credential/token/account/order/authority/retry/reconciliation side effect occurs; protected Phase27-33 APIs/files, package exports, and dependencies remain unchanged.
+AC-084 inherited D1-D7 traceability is maintained: D1 -> AC-067..AC-082; D2 -> AC-068..AC-071; D3 -> AC-063..AC-065/AC-081; D4 -> AC-049..AC-066; D5 -> AC-023..AC-048; D6 -> AC-003..AC-005/AC-070..AC-071; D7 -> AC-001..AC-128.
+
+20.9 A6 exact public validation-error / precedence criteria
+AC-085 wrong outer source type raises exact `SOURCE_SNAPSHOT_TYPE_INVALID`.
+AC-086 unsupported/non-str Phase33 decision raises exact `PHASE33_DECISION_INVALID`.
+AC-087 wrong embedded Phase32 type raises exact `PHASE32_SOURCE_SNAPSHOT_TYPE_INVALID` before any Phase32 field dereference.
+AC-088 wrong embedded Phase31 type raises exact `PHASE31_SOURCE_SNAPSHOT_TYPE_INVALID` before any Phase31 field dereference.
+AC-089 wrong Phase31 context type raises exact `PHASE31_CONTEXT_TYPE_INVALID` before any context-field dereference.
+AC-090 wrong Phase30 request type raises exact `PHASE30_REQUEST_SNAPSHOT_TYPE_INVALID` before any Phase30 request-field dereference.
+AC-091 invalid Phase33 success/INDETERMINATE branch state raises exact `PHASE33_STATE_INVARIANT_INVALID`.
+AC-092 invalid Phase32 consumed-candidate structural/result state, including non-UTF8-encodable required top-level Phase32 source references, raises exact `PHASE32_STATE_OR_RESULT_INVALID`.
+AC-093 invalid Phase31 state/reference primitive or failure of the separate Phase33-verifier-producibility overlay in section 11.2 raises exact `PHASE31_STATE_OR_REFERENCE_INVALID`; this does not redefine the original Phase31 contract.
+AC-094 invalid reconstructed Phase31 claim identity raises exact `PHASE31_CLAIM_IDENTITY_INVALID`.
+AC-095 invalid reconstructed Phase31 replay guard raises exact `PHASE31_REPLAY_GUARD_INVALID`.
+AC-096 malformed Phase30 request structure/body/mapping interrogation raises exact `PHASE30_REQUEST_STRUCTURE_INVALID`.
+AC-097 invalid Phase30 safety state raises exact `PHASE30_REQUEST_SAFETY_INVALID`.
+AC-098 invalid Phase31-context -> Phase30 reference binding raises exact `PHASE30_CONTEXT_BINDING_INVALID`.
+AC-099 invalid Phase30 materialization fingerprint raises exact `PHASE30_MATERIALIZATION_FINGERPRINT_INVALID`.
+AC-100 invalid Phase31 claim fingerprint raises exact `PHASE31_CLAIM_FINGERPRINT_INVALID`.
+AC-101 invalid Phase32 authority-result exact runtime type, exact opaque-reference validity, echo/reference equality, or commit binding raises exact `PHASE32_AUTHORITY_RESULT_BINDING_INVALID`; equality never substitutes for exact `type(value) is str` where Phase32 requires exact str.
+AC-102 invalid Phase32 evidence fingerprint raises exact `PHASE32_EVIDENCE_FINGERPRINT_INVALID`.
+AC-103 malformed/invalid success durable-record 13-field primitive/format state raises exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID`; `authorization_authority_reference` additionally satisfies the strict Phase33 durable-authority config exact-reference and strict UTF-8 contract before fingerprint recomputation.
+AC-104 exact 16-key durable-record fingerprint mismatch raises exact `PHASE33_DURABLE_RECORD_FINGERPRINT_INVALID` before historical-reference/source binding checks.
+AC-105 deterministic historical authority-result or consumption reference self-binding mismatch raises exact `PHASE33_DURABLE_RECORD_REFERENCE_SELF_BINDING_INVALID`.
+AC-106 self-integrity-valid durable record that does not exactly bind to validated Phase33/32/31 source graph raises exact `PHASE33_DURABLE_RECORD_SOURCE_BINDING_INVALID`.
+AC-107 invalid Phase33 verification fingerprint after all applicable durable-record gates raises exact `PHASE33_VERIFICATION_FINGERPRINT_INVALID`.
+AC-108 any section 12.4 provider-semantic mismatch after otherwise self-consistent Phase30 structure/materialization raises exact `PROVIDER_REQUEST_CONTRACT_INVALID`.
+
+20.10 Precedence / exception / graph / governance / Final-Review-defect traceability
+AC-109 if multiple defects coexist, the first public validation error is determined only by the 24-step ordering in sections 15 and 16; helpers/refactoring may not change this observable precedence.
+AC-110 malformed nested dataclass values/body mappings cannot expose raw `AttributeError`, `KeyError`, or JSON-serialization `TypeError`; they map only to the exact active contract error defined by sections 15-16.
+AC-111 unexpected Python exceptions outside the explicitly defined malformed-input validation boundary propagate unchanged; `KeyboardInterrupt`/`SystemExit` propagate; explicit `AssertionError("PHASE34_INTERNAL_SAFETY_STATE_DEFECT")` is an internal implementation defect outside the public error set and is never converted into a snapshot.
+AC-112 FCR-01 correction is exact: `phase32_snapshot = source_snapshot.source_snapshot`; `phase31_snapshot = phase32_snapshot.source_snapshot`; `request_snapshot = phase31_snapshot.source_snapshot`; equivalent direct Phase30 expression is `source_snapshot.source_snapshot.source_snapshot.source_snapshot`.
+AC-113 success durable-record verification is integrity-first: 13-field structure -> 16-key record fingerprint -> deterministic-reference self-binding -> source-graph binding -> Phase33 verification fingerprint; cross-bound evidence/record construction is rejected.
+AC-114 A3-FCR-04 is closed: `PHASE34_SAFETY_STATE_CONSTRUCTION_INVALID` is absent from the public validation set, no caller-controlled trigger is claimed, and impossible post-validation Phase34-state contradiction is classified only as the internal defect in AC-111.
+AC-115 prior governance fixes remain exact: future implementation gate refers to approval of this exact DRAFT-A6 identity, and the only exact `PHASE34_DRAFT_A6` draft-status value is `DESIGN_ONLY_NOT_APPROVED`.
+AC-116 prior Final-Review-defect traceability is maintained: A3-FCR-01 -> section 7/AC-115; A3-FCR-02 -> header/section 23/AC-115; A3-FCR-03 -> sections 9.4-9.7, 15-16, AC-013..AC-018/AC-103..AC-113; A3-FCR-04 -> sections 15-16, AC-111/AC-114; A2 FCR-01 correction -> sections 1-2/AC-039/AC-112; A4-FCR-01 -> section 9.4/step 19/AC-103/AC-117..AC-119; A4-FCR-02 -> section 10.2/step 17/AC-101/AC-120..AC-122; A5 strict-UTF8/source-producibility hardening -> sections 9.3-9.4/10.1/11.2, steps 7-9 and 19, AC-123..AC-124; A5-FCR-01 -> section 9.3/step 7/AC-125/AC-126/AC-128; A5-FCR-02 -> section 9.1/AC-127/AC-128; A5-FCR-03 -> AC-125..AC-128.
+
+20.11 A4 Final-Review exactness-edge closure criteria
+AC-117 with an otherwise valid upstream source graph whose Phase31 authority reference is `"authority-1"`, mutating only the success durable-record `authorization_authority_reference` to `" authority-1 "` is rejected at step 19 with exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID` even if all durable-record-dependent fingerprints/references are recomputed consistently.
+AC-118 success durable-record authorization-authority reference length 129 is rejected at step 19 with exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID` before durable-record fingerprint recomputation.
+AC-119 success durable-record authorization-authority reference containing U+0000..U+001F or U+007F is rejected at step 19 with exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID` before durable-record fingerprint recomputation.
+AC-120 any nested Phase32 `authority_result` asserted approval/conformance reference that is a `str` subclass rather than exact `str` is rejected at step 17 with exact `PHASE32_AUTHORITY_RESULT_BINDING_INVALID` even when equality to the outer snapshot value is True.
+AC-121 any nested Phase32 `authority_result.decision` that is a `str` subclass or other non-exact-str value is rejected at step 17 with exact `PHASE32_AUTHORITY_RESULT_BINDING_INVALID` before equality to `AUTHORITY_REPORTED_CONSUMED` is accepted.
+AC-122 nested Phase32 `authority_result_reference` or `consumption_reference` must be exact `str`, satisfy the exact Phase32 opaque-reference contract, and exactly equal the same-named outer Phase32 snapshot field; `str` subclasses, whitespace-padded, overlength, control-character, or mismatched values are rejected at step 17 with exact `PHASE32_AUTHORITY_RESULT_BINDING_INVALID`.
+AC-123 every Phase33-success authority-critical arbitrary reference that Phase33 had to encode for its durable transaction is strict UTF-8 encodable without surrogate-pass/replacement: a non-UTF8-encodable outer Phase33 `backend_instance_reference` is rejected at step 7 with exact `PHASE33_STATE_INVARIANT_INVALID`, and a non-UTF8-encodable success durable-record field among fields 1..5 or 7..8 is rejected at step 19 with exact `PHASE33_DURABLE_RECORD_STRUCTURE_INVALID` before record-fingerprint recomputation.
+AC-124 Phase33 verifier-producibility is branch-complete: on both success and INDETERMINATE inputs, a whitespace-padded/overlength/control-character Phase31 authorization-authority reference that cannot satisfy the Phase33 config-reference syntax, or any required embedded Phase31/Phase32 source reference that is not strict UTF-8 encodable, is rejected before snapshot construction through step 9 `PHASE31_STATE_OR_REFERENCE_INVALID` or step 8 `PHASE32_STATE_OR_RESULT_INVALID` as applicable; no synthetic Phase33 INDETERMINATE snapshot may bypass these local preconditions.
+AC-125 on both SUCCESS and Phase33 INDETERMINATE inputs, a `ledger_schema_reference` that is a `str` subclass rather than exact `str` is rejected at step 7 with exact `PHASE33_STATE_INVARIANT_INVALID` before any Phase33 verification-fingerprint recomputation.
+AC-126 on both SUCCESS and Phase33 INDETERMINATE inputs, an exact `str` `ledger_schema_reference` whose value differs from `kiwoom-watchlist-order-authorization-durable-ledger-v1` is rejected at step 7 with exact `PHASE33_STATE_INVARIANT_INVALID`.
+AC-127 the Phase33 verification-fingerprint envelope key `ledger_schema_reference` uses only the exact literal constant `"kiwoom-watchlist-order-authorization-durable-ledger-v1"`; the snapshot field is separately validated but is not the envelope value source.
+AC-128 a synthetic `str` subclass ledger-schema field that is equal to the literal and serializes to the same canonical JSON/hash is still rejected by the step-7 exact-runtime-type gate before fingerprint recomputation; hash equality cannot bypass type validation.
+
+Future implementation full regression must use the then-current exact expected count with failures=0, errors=0, unauthorized skipped=0. This DRAFT-A6 does not invent a post-implementation test total. Current inherited baseline remains 1285/1285 and is not a current-request Actual Rerun.
+
+21. Recovery / rollback contract
+
+Design/review stage:
+- no repository mutation
+- no rollback required
+
+Future implementation, only if separately approved:
+- only exact approved implementation/test paths may change
+- existing user changes must be preserved
+- no automatic reset/restore/clean/revert
+- failure preserves current state for evidence
+- any correction resets validation 1..5 and reruns from the beginning
+- Git add/commit/push require separate approval
+
+Runtime Phase34:
+- no transaction/resource owned
+- no automatic retry
+- no rollback side effect
+- no second authority attempt
+- malformed local input returns no snapshot
+- validated Phase33 INDETERMINATE remains Phase34 INDETERMINATE
+
+22. Future boundary after eventual Phase34 completion
+
+Only if separate official review, README registration, implementation, testing, commit, and closure gates later pass may Phase34 establish:
+- `PHASE33_DURABLE_VERIFICATION_BOUND=YES`
+- `PHASE32_EVIDENCE_FINGERPRINT_REVALIDATED=YES`
+- `PHASE31_CLAIM_REPLAY_BINDING_REVALIDATED=YES`
+- `PHASE30_PROVIDER_REQUEST_BINDING_VERIFIED=YES`
+- `LOCAL_PROVIDER_CONTRACT_VERIFIED=YES`
+- `PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY=YES` only on the success path
+- `AUTHORITY_APPROVAL_PROVENANCE_VERIFIED=NO`
+- `AUTHORITY_CONFORMANCE_PROVENANCE_VERIFIED=NO`
+- `PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+- `TRANSPORT_ALLOWED=NO`
+- `PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+
+A separate later contract remains mandatory before provider-send permission or any actual `kt10000` POST.
+The Phase34 candidate snapshot alone must never be treated as sufficient authorization.
+
+23. DRAFT-A6 governance
+
+Exact status:
+- `PHASE34_DRAFT_A6=DESIGN_ONLY_NOT_APPROVED`
+- `PHASE34_DRAFT_A6_APPROVED_AS_OFFICIAL=NO`
+- `PHASE34_DRAFT_A6_FINAL_CONTRACT_REVIEW=NOT_PERFORMED`
+- `A2_FCR_01_RETRACTED=YES`
+- `A2_FCR_01_OBJECT_GRAPH_DEFECT=NO`
+- `A2_EXISTING_PHASE30_REQUEST_PATH_PRESERVED=YES`
+- `A3_FCR_01_STALE_IMPLEMENTATION_APPROVAL_TARGET=REVISED_IN_A4_CANDIDATE`
+- `A3_FCR_02_DRAFT_STATUS_EXACT_VALUE_CONFLICT=REVISED_IN_A4_CANDIDATE`
+- `A3_FCR_03_DURABLE_RECORD_SELF_INTEGRITY_SOURCE_BINDING_GAP=REVISED_IN_A4_CANDIDATE`
+- `A3_FCR_04_SAFETY_STATE_PUBLIC_ERROR_REACHABILITY_GAP=REVISED_IN_A4_CANDIDATE`
+- `A4_FCR_01_PHASE33_DURABLE_AUTHORITY_REFERENCE_EXACTNESS_GAP=REVISED_IN_A5_CANDIDATE`
+- `A4_FCR_02_PHASE32_NESTED_AUTHORITY_RESULT_EXACT_RUNTIME_TYPE_GAP=REVISED_IN_A5_CANDIDATE`
+- `A5_FCR_01_PHASE33_LEDGER_SCHEMA_REFERENCE_EXACT_RUNTIME_TYPE_GAP=REVISED_IN_A6_CANDIDATE`
+- `A5_FCR_02_PHASE33_VERIFICATION_FINGERPRINT_LEDGER_SCHEMA_VALUE_SOURCE_DRIFT=REVISED_IN_A6_CANDIDATE`
+- `A5_FCR_03_LEDGER_SCHEMA_ACCEPTANCE_COVERAGE_GAP=REVISED_IN_A6_CANDIDATE`
+- `README_REGISTRATION_AUTHORIZED=NO`
+- `IMPLEMENTATION_AUTHORIZED=NO`
+- `CURRENT_PHASE=PHASE33`
+- `GIT_ADD_COMMIT_PUSH_AUTHORIZED=NO`
+- `PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+- `TRANSPORT_ALLOWED=NO`
+- `ORDER_SUBMISSION_AUTHORIZED=NO`
+- `PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+
+This artifact itself does not modify README, repository source/test files, dependencies, Git state, credentials, provider/network/account/order state, or Current Phase.
+
+The only permitted next governance action after this preparation is a separate fresh:
+`Phase34 — New Contract DRAFT-A6 Final Contract Review / Approval Decision`
+
+That separate review must perform its own current-request search/review/analysis/validation gates. This Preparation result, its searches, and its validation 1..4 must not be reused as that future review's required fresh counts.
+DRAFT-A6 must not be treated as approved merely because this artifact exists.
+
+---
+
+## 24. Official governance
+
+The status below is normative when this exact payload is present in `README.md`:
+
+- `PHASE34_DRAFT_A6_FINAL_CONTRACT_REVIEW=PASS`
+- `DRAFT_A6_OFFICIAL_CONTRACT_APPROVAL=PASS`
+- `PHASE34_DRAFT_A6_APPROVED_AS_OFFICIAL=YES`
+- `DRAFT_A6_CONTENT_REVISION_REQUIRED=NO`
+- `DRAFT_A7_REQUIRED=NO`
+- `PHASE34_README_OFFICIAL_CONTRACT_REGISTERED=YES`
+- `PHASE34_IMPLEMENTATION_APPROVED=NO`
+- `CURRENT_PHASE=PHASE33`
+- `PROVIDER_SEND_ELIGIBILITY_AUTHORIZED=NO`
+- `TRANSPORT_ALLOWED=NO`
+- `PRODUCTION_AUTHORITY_USE_AUTHORIZED=NO`
+- `CREDENTIAL_TOKEN_ACCOUNT_PROVIDER_NETWORK_ORDER_ACTION_AUTHORIZED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+
+Exact README registration does not authorize Phase34 implementation, source/test mutation, dependency or environment mutation, Git mutation, credential/token/provider/account/order action, provider transport, production authority use, or Current Phase alignment.
+
+Phase34 implementation remains a separately approved step after exact README registration.
