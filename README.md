@@ -8306,3 +8306,943 @@ Closure status:
 
 Phase34 closure establishes only the validated local provider-send eligibility candidate boundary.
 It does not authorize provider transport, credential/account access, order action, production authority use, or an actual kt10000 POST.
+
+## Phase 35 — demo Kiwoom Cash BUY Provider-Send Execution Readiness Gate Snapshot Contract v1.0
+
+Status: OFFICIAL CONTRACT REGISTERED
+Implementation: NOT APPROVED
+Current Phase: PHASE34
+Provider Transport: NOT AUTHORIZED
+Actual kt10000 POST: NOT AUTHORIZED
+Credential / Token / Account Access: NOT AUTHORIZED
+Git Add / Commit / Push: NOT APPROVED
+
+### Approved-source preservation and status-supersession rule
+
+The complete approved DRAFT-A3 source payload below is preserved as canonical CRLF UTF-8 text.
+
+DRAFT-stage governance statements inside the preserved source payload describe the historical candidate state before separate Final Contract Review and README registration. They do not override the current official registration status.
+
+For current Phase35 registration governance, the `Official governance` section below is the sole normative status authority. All technical contracts, algorithms, invariants, validation precedence, safety boundaries, acceptance criteria, recovery rules, and future-boundary semantics in the preserved DRAFT-A3 payload remain normative exactly as approved.
+
+Preserved Approved DRAFT-A3 Source CRLF Bytes: 32126
+Preserved Approved DRAFT-A3 Source CRLF SHA256: EBF9B895DC29DC76ABCF3E28C0F143253903E8310A00BDE6685E415CECADA9EE
+
+### Official governance
+
+- `PHASE35_DRAFT_A3_FINAL_CONTRACT_REVIEW=PASS`
+- `PHASE35_DRAFT_A3_APPROVED_AS_OFFICIAL=YES`
+- `PHASE35_README_OFFICIAL_CONTRACT_REGISTERED=YES`
+- `PHASE35_IMPLEMENTATION_APPROVED=NO`
+- `CURRENT_PHASE=PHASE34`
+- `PROVIDER_TRANSPORT_AUTHORIZED=NO`
+- `ACTUAL_KT10000_POST_AUTHORIZED=NO`
+- `CREDENTIAL_TOKEN_ACCOUNT_LOOKUP_AUTHORIZED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+- `RESTORE_RESET_CLEAN_APPROVED=NO`
+- `REBASELINE_APPROVED=NO`
+
+README registration does not authorize Phase35 implementation, source/test mutation, Current Phase alignment, dependency mutation, credential/token/account access, provider transport, actual order submission, Git add/commit/push, restore/reset/clean, or rebaseline.
+
+Phase35 implementation remains a separately approved step.
+
+### Preserved approved DRAFT-A3 source payload
+Phase 35 — demo Kiwoom Cash BUY Provider-Send Execution Readiness Gate Snapshot Contract v1.0 — DRAFT-A3
+
+STATUS
+- PHASE35_DRAFT_A3=DESIGN_ONLY_NOT_APPROVED
+- PHASE35_DRAFT_A3_FINAL_CONTRACT_REVIEW=PASS
+- README_REGISTRATION_AUTHORIZED=NO
+- IMPLEMENTATION_AUTHORIZED=NO
+- CURRENT_PHASE=PHASE34
+- PROVIDER_TRANSPORT_AUTHORIZED=NO
+- ACTUAL_KT10000_POST_AUTHORIZED=NO
+- CREDENTIAL_TOKEN_ACCOUNT_LOOKUP_AUTHORIZED=NO
+- GIT_MUTATION_AUTHORIZED=NO
+
+1. Purpose and non-authority boundary
+
+Phase35 is a pure-local, provider-I/O-free execution-readiness gate placed after the official Phase34 `WatchlistOrderProviderSendEligibilityCandidateSnapshot`.
+
+Phase35 may return `PROVIDER_SEND_EXECUTION_READY` only when all execution-time local evidence required by this contract is structurally valid, source-bound, trust-anchor-bound, fresh/current, non-conflicting, and compatible with the inherited single-attempt/reconciliation contract.
+
+`PROVIDER_SEND_EXECUTION_READY` is not:
+- provider transport permission,
+- credential/token lookup permission,
+- account-query permission,
+- actual order authorization,
+- `kt10000` POST permission,
+- proof that an order was submitted or accepted,
+- retry/retransmission authority,
+- production/real-account authority.
+
+Every Phase35 returned snapshot must keep:
+- `transport_authorized is False`
+- `provider_call_performed is False`
+- `actual_kt10000_post_performed is False`
+- `credential_lookup_performed is False`
+- `account_lookup_performed is False`
+- `token_acquisition_performed is False`
+- `automatic_retry_permitted is False`
+- `retransmission_permitted is False`
+
+2. Frozen provider target
+
+Phase35 exact provider target is:
+- environment=`demo`
+- scheme=`https`
+- host=`mockapi.kiwoom.com`
+- port=`443`
+- asset=`DOMESTIC_STOCK`
+- side=`BUY`
+- financing=`CASH`
+- exchange=`KRX`
+- api_id=`kt10000`
+- http_method=`POST`
+- api_path=`/api/dostk/ordr`
+
+This frozen target is validation data only. Phase35 performs no provider request.
+
+3. Exact Phase34 upstream contract
+
+The exact upstream type is:
+`WatchlistOrderProviderSendEligibilityCandidateSnapshot`
+
+The exact official Phase34 field order is:
+1. `source_snapshot`
+2. `request_snapshot`
+3. `decision`
+4. `indeterminate_reason`
+5. `request_materialization_verified`
+6. `authorization_claim_binding_verified`
+7. `durable_consumption_verified`
+8. `provider_request_contract_verified`
+9. `authority_approval_provenance_verified`
+10. `authority_conformance_provenance_verified`
+11. `provider_send_eligibility_candidate_ready`
+12. `provider_send_eligibility_authorized`
+13. `production_authority_use_authorized`
+14. `transport_allowed`
+15. `credential_accessed`
+16. `network_performed`
+17. `account_accessed`
+18. `order_submitted`
+19. `automatic_retry_permitted`
+20. `reconciliation_required`
+21. `eligibility_fingerprint`
+
+Phase35 does not invent aliases such as `phase34_schema_id`, `phase34_snapshot_fingerprint`, or `order_intent_fingerprint`.
+The inherited Phase34 fingerprint field is exact `eligibility_fingerprint`.
+
+The positive Phase34 decision is exact:
+`KiwoomOrderProviderSendEligibilityDecision.PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY`
+
+The non-positive Phase34 decision is exact:
+`KiwoomOrderProviderSendEligibilityDecision.INDETERMINATE`
+
+Phase35 must preserve exact object identity:
+`phase34_snapshot.request_snapshot is phase34_snapshot.source_snapshot.source_snapshot.source_snapshot.source_snapshot`.
+
+4. Phase34 canonical fingerprint reuse
+
+Phase35 reuses the exact Phase34 canonical SHA-256 algorithm:
+- JSON object serialization
+- `sort_keys=True`
+- `separators=(",", ":")`
+- `ensure_ascii=True`
+- `allow_nan=False`
+- UTF-8 encoding
+- `hashlib.sha256(...).hexdigest()`
+- lowercase 64-hex output
+
+Before evaluating any Phase35 evidence, Phase35 recomputes the exact Phase34 eligibility envelope and requires an exact match to `phase34_snapshot.eligibility_fingerprint`.
+
+The exact Phase34 eligibility envelope keys/values are:
+- `domain="phase34-provider-send-eligibility-candidate-v1"`
+- `phase33_verification_fingerprint`
+- `phase32_evidence_fingerprint`
+- `phase31_claim_fingerprint`
+- `phase30_materialization_fingerprint`
+- `source_attempt_ref`
+- `authorization_evidence_ref`
+- `decision`
+- `indeterminate_reason`
+- `request_materialization_verified`
+- `authorization_claim_binding_verified`
+- `durable_consumption_verified`
+- `provider_request_contract_verified`
+- `authority_approval_provenance_verified`
+- `authority_conformance_provenance_verified`
+- `provider_send_eligibility_candidate_ready`
+- `provider_send_eligibility_authorized`
+- `production_authority_use_authorized`
+- `transport_allowed`
+- `credential_accessed`
+- `network_performed`
+- `account_accessed`
+- `order_submitted`
+- `automatic_retry_permitted`
+- `reconciliation_required`
+
+Phase35 must not modify the Phase34 envelope or redefine its meaning.
+
+5. Phase34 source-chain acceptance
+
+A Phase34 snapshot may proceed toward Phase35 READY evaluation only if all of the following hold exactly:
+- decision is `PROVIDER_SEND_ELIGIBILITY_CANDIDATE_READY`
+- `indeterminate_reason is None`
+- `request_materialization_verified is True`
+- `authorization_claim_binding_verified is True`
+- `durable_consumption_verified is True`
+- `provider_request_contract_verified is True`
+- `provider_send_eligibility_candidate_ready is True`
+- `authority_approval_provenance_verified is False`
+- `authority_conformance_provenance_verified is False`
+- `provider_send_eligibility_authorized is False`
+- `production_authority_use_authorized is False`
+- `transport_allowed is False`
+- `credential_accessed is False`
+- `network_performed is False`
+- `account_accessed is False`
+- `order_submitted is False`
+- `automatic_retry_permitted is False`
+- `reconciliation_required is False`
+- `eligibility_fingerprint` is lowercase 64-hex and exact recomputation matches.
+
+If the Phase34 decision is `INDETERMINATE`, Phase35 returns `INDETERMINATE / PHASE34_SOURCE_INDETERMINATE`.
+
+A structurally malformed or internally inconsistent Phase34 object is a programmer-contract error and must fail closed before evidence evaluation.
+
+6. Gate-owned UTC clock and execution-time freshness
+
+The gate captures `evaluation_time_utc` exactly once at public builder entry using a gate-owned aware UTC clock.
+
+Production callers cannot supply or override the clock. A deterministic clock seam is permitted only for internal tests and must not be part of the public builder signature.
+
+Timestamp representation:
+- timezone-aware UTC only
+- RFC3339 canonical text with terminal `Z`
+- no naive datetime
+- no local-time interpretation
+
+Project-internal safety constants:
+- `MAX_RISK_EVIDENCE_AGE_SECONDS=5.000`
+- `MAX_BUYING_POWER_EVIDENCE_AGE_SECONDS=5.000`
+- `MAX_FUTURE_CLOCK_SKEW_SECONDS=1.000`
+
+These values are Phase35 project safety policy, not Kiwoom-published timing limits.
+
+For each freshness evidence:
+
+`age_seconds = (evaluation_time_utc - observed_at_utc).total_seconds()`
+
+Mapping:
+- `age_seconds > 5.000` → deterministic `DENIED`
+- `-1.000 <= age_seconds <= 5.000` → freshness passes
+- `age_seconds < -1.000` → `INDETERMINATE / CLOCK_REFERENCE_UNVERIFIABLE`
+- missing, malformed, naive, non-UTC, non-finite, or unparsable time → `INDETERMINATE`
+
+Phase34 snapshot age is not a substitute for either execution-time Risk freshness or execution-time Buying-Power freshness.
+
+7. Internal trusted-verifier registry
+
+Phase35 does not accept a caller boolean such as `verified=True` as proof.
+
+The implementation contains a module-internal immutable verifier registry. The registry is not a public builder parameter and cannot be overridden by caller input.
+
+Exact registered verifier identities are:
+
+1. `phase35-explicit-provider-send-approval-verifier-v1`
+   identity SHA-256=`4caaa7efb7ef985b98ed3ed8e4aa228df3a9747dae025c2700566978c9401af7`
+2. `phase35-provider-send-conformance-verifier-v1`
+   identity SHA-256=`d27104d5e61e6592a29135daa240f7d5c546ffd1ffc140281da707528d814947`
+3. `phase35-execution-risk-freshness-verifier-v1`
+   identity SHA-256=`49333769e15478e16280bd539f3751e00b5cc2597e7b5bfca05fd10c766418a6`
+4. `phase35-execution-buying-power-freshness-verifier-v1`
+   identity SHA-256=`7e0121363914e113979250bb495fbcabfbef25ef155a18816966257e124b1f57`
+5. `phase35-demo-credential-ownership-verifier-v1`
+   identity SHA-256=`8cd94990ad8914a834c3c5406641076a10ff59bcb7f9f2725c3212bf34c302d0`
+6. `phase35-demo-account-ownership-verifier-v1`
+   identity SHA-256=`79feeef34933b768ece50d68e7d1dcf1d526e21783c229c65ade954901bdea18`
+
+Each identity SHA-256 is `hashlib.sha256(verifier_id.encode("utf-8")).hexdigest()` over the exact verifier identity string.
+
+Evidence/scope/output fingerprints continue to use the Phase34 canonical JSON SHA-256 algorithm from section 4.
+
+The registry is a contractual trust anchor, not a cryptographic signature scheme. It protects against accidental/caller-state substitution within the declared trusted-process threat model; it does not claim protection against malicious code executing inside the trusted Python process.
+
+Cryptographic or OS-backed provenance, if required later, is a separate Phase and dependency/security approval.
+
+At implementation closure, the exact Phase35 source bytes/SHA-256 containing this registry must be frozen in README before any runtime result may be treated as an approved Phase35 implementation result.
+
+8. Common evidence integrity contract
+
+Every Phase35 evidence object is immutable and contains:
+- `verifier_id`
+- `verifier_identity_sha256`
+- `evidence_id`
+- `issued_at_utc`
+- `expires_at_utc` when applicable
+- `scope_fingerprint`
+- `evidence_fingerprint`
+
+Rules:
+- `verifier_id` must equal its exact registered identity.
+- `verifier_identity_sha256` must equal the internal registry value.
+- fingerprints must be exact lowercase 64-hex.
+- `evidence_id` is an opaque non-secret exact `str`, nonblank, no leading/trailing whitespace, ASCII printable only, length 1..128.
+- `issued_at_utc`/`expires_at_utc` must be aware UTC RFC3339 `Z`.
+- `expires_at_utc` must be strictly later than `issued_at_utc`.
+- `issued_at_utc > evaluation_time_utc + 1.000 seconds` → `INDETERMINATE`.
+- expired evidence (`evaluation_time_utc >= expires_at_utc`) → deterministic `DENIED`.
+- gate independently recomputes `scope_fingerprint` and `evidence_fingerprint`.
+- caller-supplied `verification_state`, `trusted`, `verified`, or equivalent boolean is forbidden and rejected.
+
+Missing/malformed/unverifiable/conflicting evidence maps to `INDETERMINATE`, never silently to READY.
+
+8.1 Exact evidence dataclass field order and fingerprint domains
+
+`Phase35ProviderSendApprovalEvidence` exact field order:
+1. `verifier_id`
+2. `verifier_identity_sha256`
+3. `evidence_id`
+4. `issued_at_utc`
+5. `expires_at_utc`
+6. `phase34_eligibility_fingerprint`
+7. `phase30_materialization_fingerprint`
+8. `source_attempt_ref`
+9. `authorization_evidence_ref`
+10. `scope_fingerprint`
+11. `evidence_fingerprint`
+
+Fingerprint domain:
+`phase35-explicit-provider-send-approval-evidence-v1`
+
+`Phase35ProviderSendConformanceEvidence` has the same exact field order and uses domain:
+`phase35-provider-send-conformance-evidence-v1`
+
+`Phase35ExecutionRiskFreshnessEvidence` exact field order:
+1. `verifier_id`
+2. `verifier_identity_sha256`
+3. `evidence_id`
+4. `issued_at_utc`
+5. `observed_at_utc`
+6. `phase34_eligibility_fingerprint`
+7. `phase30_materialization_fingerprint`
+8. `source_attempt_ref`
+9. `risk_decision`
+10. `scope_fingerprint`
+11. `evidence_fingerprint`
+
+Fingerprint domain:
+`phase35-execution-risk-freshness-evidence-v1`
+
+`Phase35ExecutionBuyingPowerFreshnessEvidence` exact field order:
+1. `verifier_id`
+2. `verifier_identity_sha256`
+3. `evidence_id`
+4. `issued_at_utc`
+5. `observed_at_utc`
+6. `phase34_eligibility_fingerprint`
+7. `phase30_materialization_fingerprint`
+8. `source_attempt_ref`
+9. `account_ref_id`
+10. `buying_power_decision`
+11. `scope_fingerprint`
+12. `evidence_fingerprint`
+
+Fingerprint domain:
+`phase35-execution-buying-power-freshness-evidence-v1`
+
+`Phase35CredentialOwnershipEvidence` exact field order:
+1. `verifier_id`
+2. `verifier_identity_sha256`
+3. `evidence_id`
+4. `issued_at_utc`
+5. `expires_at_utc`
+6. `credential_ref_id`
+7. `owner_ref`
+8. `environment`
+9. `scope_fingerprint`
+10. `evidence_fingerprint`
+
+Fingerprint domain:
+`phase35-demo-credential-ownership-evidence-v1`
+
+`Phase35AccountOwnershipEvidence` exact field order:
+1. `verifier_id`
+2. `verifier_identity_sha256`
+3. `evidence_id`
+4. `issued_at_utc`
+5. `expires_at_utc`
+6. `account_ref_id`
+7. `account_owner_ref`
+8. `bound_credential_ref_id`
+9. `environment`
+10. `scope_fingerprint`
+11. `evidence_fingerprint`
+
+Fingerprint domain:
+`phase35-demo-account-ownership-evidence-v1`
+
+For every evidence type, `evidence_fingerprint` is computed from every preceding field in exact semantic form plus the corresponding domain, excluding only `evidence_fingerprint` itself.
+
+Enums/decision strings are hashed by their exact string value. Timestamps are hashed as canonical RFC3339 UTC `Z` strings.
+
+`Phase35ProviderSendExecutionEvidenceBundle` exact field order:
+1. `approval_evidence`
+2. `conformance_evidence`
+3. `risk_evidence`
+4. `buying_power_evidence`
+5. `credential_ownership_evidence`
+6. `account_ownership_evidence`
+7. `prior_submission_state`
+8. `prior_attempt_reference`
+9. `reconciliation_reference`
+10. `automatic_retry_requested`
+11. `retransmission_requested`
+
+All seven evidence/bundle classes are frozen immutable dataclasses.
+
+9. Exact Phase35 execution scope fingerprint
+
+Phase35 scope fingerprint uses domain:
+`phase35-provider-send-execution-scope-v1`
+
+Exact envelope:
+- `phase34_eligibility_fingerprint`
+- `phase33_verification_fingerprint`
+- `phase30_materialization_fingerprint`
+- `source_attempt_ref`
+- `authorization_evidence_ref`
+- `environment="demo"`
+- `host="mockapi.kiwoom.com"`
+- `api_id="kt10000"`
+- `http_method="POST"`
+- `api_path="/api/dostk/ordr"`
+- `exchange="KRX"`
+- `side="BUY"`
+- `financing="CASH"`
+- `credential_ref_id`
+- `account_ref_id`
+
+The scope fingerprint uses the canonical SHA-256 algorithm in section 4.
+
+10. Explicit approval and conformance evidence
+
+Approval evidence proves only that an explicitly approved local authority artifact covers the exact Phase35 scope.
+
+Conformance evidence proves only that the same exact Phase35 scope has passed the registered local conformance verifier.
+
+Both must:
+- bind to the exact Phase35 scope fingerprint,
+- be issued by their exact registered verifier identity,
+- be unexpired,
+- have independently recomputed evidence fingerprints,
+- bind the same Phase34 `eligibility_fingerprint`,
+- bind the same Phase30 `materialization_fingerprint`,
+- bind the same `source_attempt_ref` and `authorization_evidence_ref`.
+
+A verified deterministic binding to another source/request/scope → `DENIED / SOURCE_BINDING_MISMATCH`.
+
+Missing, malformed, conflicting, or unverifiable provenance → `INDETERMINATE`.
+
+11. Execution-time Risk freshness evidence
+
+Risk evidence exact semantic payload:
+- exact registered risk verifier identity
+- `evidence_id`
+- `observed_at_utc`
+- `phase34_eligibility_fingerprint`
+- `phase30_materialization_fingerprint`
+- `source_attempt_ref`
+- `risk_decision`
+- `scope_fingerprint`
+- `evidence_fingerprint`
+
+`risk_decision` exact allowed values:
+- `RISK_CLEAR`
+- `RISK_BLOCKED`
+
+Rules:
+- `RISK_BLOCKED` → `DENIED / EXECUTION_RISK_BLOCKED`
+- `RISK_CLEAR` is necessary but not sufficient for READY
+- evidence must satisfy the 5.000-second freshness contract
+- stale evidence → `DENIED / RISK_EVIDENCE_STALE`
+- future-skew/unverifiable timestamp → `INDETERMINATE`
+- risk evidence must bind the exact Phase34 and Phase30 fingerprints.
+
+This execution-time risk attestation supplements rather than replaces the established upstream Risk contract.
+
+12. Execution-time Buying-Power evidence
+
+Buying-Power evidence exact semantic payload:
+- exact registered buying-power verifier identity
+- `evidence_id`
+- `observed_at_utc`
+- `phase34_eligibility_fingerprint`
+- `phase30_materialization_fingerprint`
+- `source_attempt_ref`
+- `account_ref_id`
+- `buying_power_decision`
+- `scope_fingerprint`
+- `evidence_fingerprint`
+
+`buying_power_decision` exact allowed values:
+- `BUYING_POWER_SUFFICIENT`
+- `BUYING_POWER_INSUFFICIENT`
+
+Rules:
+- `BUYING_POWER_INSUFFICIENT` → `DENIED / BUYING_POWER_INSUFFICIENT`
+- sufficient evidence is necessary but not sufficient for READY
+- evidence must satisfy the independent 5.000-second freshness contract
+- stale evidence → `DENIED / BUYING_POWER_EVIDENCE_STALE`
+- future-skew/unverifiable timestamp → `INDETERMINATE`
+- no raw account number, balance, token, secret, or credential value is required in the Phase35 snapshot.
+
+13. Credential ownership evidence
+
+Credential evidence contains only opaque, non-secret references:
+- `credential_ref_id`
+- `owner_ref`
+- `environment="demo"`
+- common verifier/evidence fields
+
+Exact local reference formats:
+- `credential_ref_id`: `credref:` + 1..96 characters from `[A-Za-z0-9._-]`
+- `owner_ref`: `ownerref:` + 1..96 characters from `[A-Za-z0-9._-]`
+
+Forbidden:
+- App Key
+- App Secret
+- access token
+- refresh token
+- credential-store value
+- `.env` secret
+- raw secret material
+
+Environment not exact `demo` → `DENIED / DEMO_BINDING_MISMATCH`.
+
+Expired ownership evidence → `DENIED / OWNERSHIP_EVIDENCE_EXPIRED`.
+
+Malformed/unverifiable ownership evidence → `INDETERMINATE`.
+
+14. Account ownership evidence
+
+Account evidence contains only:
+- `account_ref_id`
+- `account_owner_ref`
+- `bound_credential_ref_id`
+- `environment="demo"`
+- common verifier/evidence fields
+
+Exact local reference formats:
+- `account_ref_id`: `acctref:` + 1..96 characters from `[A-Za-z0-9._-]`
+- `account_owner_ref`: same exact value as credential `owner_ref`
+- `bound_credential_ref_id`: exact credential `credential_ref_id`
+
+`account_ref_id` must be an opaque reference and must not be a raw account number.
+
+READY requires:
+- credential owner == account owner
+- account bound credential == credential reference
+- both environments == `demo`
+- both evidence objects unexpired and trust-anchor-valid.
+
+Verified deterministic mismatch → `DENIED / OWNERSHIP_BINDING_MISMATCH`.
+
+Missing/malformed/conflicting/unverifiable ownership → `INDETERMINATE`.
+
+15. Phase27 prior-submission contract reuse
+
+Phase35 introduces no parallel attempt-state enum.
+
+It consumes the exact existing `KiwoomPriorSubmissionState` semantics:
+- `NEVER_ATTEMPTED`
+- `CONFIRMED_NOT_ACCEPTED`
+- `CONFIRMED_ACCEPTED`
+- `AMBIGUOUS_UNRESOLVED`
+
+Exact mapping:
+- `NEVER_ATTEMPTED`: may continue if its existing reference invariant is valid.
+- `CONFIRMED_ACCEPTED`: `DENIED / PRIOR_SUBMISSION_ALREADY_ACCEPTED`; retransmission prohibited.
+- `CONFIRMED_NOT_ACCEPTED`: `DENIED / FRESH_REAUTHORIZATION_REQUIRED`; Phase35 itself grants no retransmission authority.
+- `AMBIGUOUS_UNRESOLVED`: `INDETERMINATE / RECONCILIATION_REQUIRED`, `reconciliation_required=True`; no retry/retransmission before broker-side reconciliation.
+
+Phase35 preserves the existing `prior_attempt_reference` and `reconciliation_reference` meaning and treats them only as local opaque references, never broker idempotency keys.
+
+16. No-retry and single-attempt policy
+
+Phase35 evidence bundle contains exact booleans:
+- `automatic_retry_requested`
+- `retransmission_requested`
+
+Both must be exact `False` for READY.
+
+If either is exact `True`:
+`DENIED / RETRY_OR_RETRANSMISSION_REQUESTED`.
+
+Non-bool values are malformed evidence → `INDETERMINATE`.
+
+Phase35 never:
+- retries,
+- resends,
+- retransmits,
+- reclaims consumed authorization,
+- marks a failed/unknown request as unsent,
+- converts ambiguous remote outcome into READY.
+
+17. Remote ambiguity and reconciliation
+
+If evidence indicates a provider attempt may have begun and broker acceptance cannot be ruled out, the authoritative prior-submission state must be `AMBIGUOUS_UNRESOLVED`.
+
+That state always maps to:
+- decision=`INDETERMINATE`
+- primary reason=`RECONCILIATION_REQUIRED`
+- `reconciliation_required=True`
+- `automatic_retry_permitted=False`
+- `retransmission_permitted=False`
+
+Phase35 performs no reconciliation.
+
+A caller claim that remote outcome is known while the trusted prior-submission evidence says `AMBIGUOUS_UNRESOLVED` is `INDETERMINATE / EVIDENCE_CONFLICT`.
+
+18. Deterministic decision enum
+
+Exact Phase35 decision enum:
+- `PROVIDER_SEND_EXECUTION_READY`
+- `DENIED`
+- `INDETERMINATE`
+
+READY requires every applicable rule in this contract to pass.
+
+Decision-class rule:
+1. any unresolved integrity/trust/ambiguity condition → `INDETERMINATE`
+2. otherwise any deterministic policy/safety violation → `DENIED`
+3. otherwise → `PROVIDER_SEND_EXECUTION_READY`
+
+This ordering prevents missing/unverifiable evidence from being mislabeled as a deterministic policy denial.
+
+19. Reason codes and first-error precedence
+
+`all_reason_codes` is an immutable tuple containing every applicable reason in deterministic priority order.
+
+`primary_reason_code` is the first element, or `None` only for READY.
+
+INDETERMINATE priority:
+1000 `RECONCILIATION_REQUIRED`
+990 `PHASE34_SOURCE_INDETERMINATE`
+980 `TRUST_ANCHOR_UNVERIFIABLE`
+970 `EVIDENCE_CONFLICT`
+960 `EVIDENCE_MALFORMED`
+950 `EVIDENCE_MISSING`
+940 `CLOCK_REFERENCE_UNVERIFIABLE`
+
+DENIED priority:
+800 `PRIOR_SUBMISSION_ALREADY_ACCEPTED`
+790 `FRESH_REAUTHORIZATION_REQUIRED`
+780 `RETRY_OR_RETRANSMISSION_REQUESTED`
+770 `EXECUTION_RISK_BLOCKED`
+760 `BUYING_POWER_INSUFFICIENT`
+750 `RISK_EVIDENCE_STALE`
+740 `BUYING_POWER_EVIDENCE_STALE`
+730 `APPROVAL_OR_CONFORMANCE_EXPIRED`
+720 `OWNERSHIP_EVIDENCE_EXPIRED`
+710 `DEMO_BINDING_MISMATCH`
+700 `OWNERSHIP_BINDING_MISMATCH`
+690 `TRANSPORT_BINDING_MISMATCH`
+680 `SOURCE_BINDING_MISMATCH`
+
+Unknown/untrusted/malformed evidence is never converted into a lower-priority deterministic denial.
+
+20. Exact output snapshot
+
+Candidate output type:
+`WatchlistOrderProviderSendExecutionReadinessSnapshot`
+
+It is a frozen immutable dataclass with exact field order:
+1. `source_snapshot`
+2. `decision`
+3. `primary_reason_code`
+4. `all_reason_codes`
+5. `evaluated_at_utc`
+6. `risk_age_seconds`
+7. `buying_power_age_seconds`
+8. `phase34_eligibility_fingerprint`
+9. `phase33_verification_fingerprint`
+10. `phase30_materialization_fingerprint`
+11. `source_attempt_ref`
+12. `authorization_evidence_ref`
+13. `scope_fingerprint`
+14. `approval_evidence_fingerprint`
+15. `conformance_evidence_fingerprint`
+16. `risk_evidence_fingerprint`
+17. `buying_power_evidence_fingerprint`
+18. `credential_ownership_evidence_fingerprint`
+19. `account_ownership_evidence_fingerprint`
+20. `prior_submission_state`
+21. `prior_attempt_reference`
+22. `reconciliation_reference`
+23. `reconciliation_required`
+24. `provider_send_execution_ready`
+25. `transport_authorized`
+26. `provider_call_performed`
+27. `actual_kt10000_post_performed`
+28. `credential_lookup_performed`
+29. `account_lookup_performed`
+30. `token_acquisition_performed`
+31. `automatic_retry_permitted`
+32. `retransmission_permitted`
+33. `readiness_fingerprint`
+
+READY output invariants:
+- decision is `PROVIDER_SEND_EXECUTION_READY`
+- `primary_reason_code is None`
+- `all_reason_codes == ()`
+- `provider_send_execution_ready is True`
+- `reconciliation_required is False`
+- every side-effect/authority/retry flag listed in section 1 is `False`.
+
+DENIED/INDETERMINATE output:
+- `provider_send_execution_ready is False`
+- at least one reason code
+- all side-effect/authority/retry flags remain `False`.
+
+21. Phase35 readiness fingerprint
+
+`readiness_fingerprint` uses the exact canonical SHA-256 algorithm in section 4.
+
+Domain:
+`phase35-provider-send-execution-readiness-v1`
+
+Envelope includes every output field except:
+- object-valued `source_snapshot`
+- `readiness_fingerprint`
+
+The source object is represented by its exact immutable identity material:
+- Phase34 `eligibility_fingerprint`
+- Phase33 `verification_fingerprint`
+- Phase30 `materialization_fingerprint`
+- `source_attempt_ref`
+- `authorization_evidence_ref`
+
+Enum values are serialized by exact `.value`.
+
+`all_reason_codes` is serialized as an ordered JSON array.
+
+UTC timestamps use canonical RFC3339 `Z`.
+
+Age values are canonical decimal strings with exactly three fractional digits, not binary JSON floats.
+
+22. Exact validation order
+
+First-error/validation order is:
+
+1. exact public input type/arity validation
+2. Phase34 exact type and 21-field structural invariant
+3. Phase34 exact object-identity source chain
+4. Phase34 eligibility fingerprint recomputation
+5. Phase34 decision/safety matrix
+6. exact Phase27 prior-submission state/reference invariant
+7. capture `evaluation_time_utc` exactly once
+8. trusted-verifier registry identity checks
+9. evidence object structural/type checks
+10. evidence fingerprint recomputation
+11. Phase35 scope fingerprint recomputation
+12. Phase34/Phase30/source-attempt/authorization-evidence binding
+13. demo/transport/credential/account ownership binding
+14. timestamp format/future-skew coherence
+15. approval/conformance/ownership expiry
+16. Risk freshness and risk decision
+17. Buying-Power freshness and buying-power decision
+18. retry/retransmission request checks
+19. deterministic decision/reason collection
+20. output construction
+21. readiness fingerprint recomputation
+22. internal output safety assertion
+
+No later check may overwrite an earlier higher-priority reason.
+
+23. Exception and cancellation contract
+
+Phase35 is synchronous and provider-I/O-free.
+
+Programmer-contract violations such as wrong Phase34 source type or impossible internal output construction fail closed with Phase35-specific error/AssertionError and return no partial snapshot.
+
+Untrusted evidence conditions expected at runtime are represented by `DENIED` or `INDETERMINATE`, not by silently coercing values.
+
+`KeyboardInterrupt`, `SystemExit`, and other `BaseException` control-flow signals are not swallowed.
+
+If a future wrapper introduces cancellation, cancellation must propagate after local cleanup and must never return READY.
+
+24. No-I/O invariant
+
+Phase35 must not:
+- create an HTTP client,
+- create a WebSocket client,
+- open provider sockets,
+- call Kiwoom REST/WebSocket,
+- acquire OAuth/access tokens,
+- read App Key/Secret,
+- read or modify `.env`,
+- query credential stores,
+- query an account,
+- query buying power directly,
+- perform actual `kt10000` POST,
+- parse provider response,
+- handle broker order number,
+- mutate durable authorization/replay state,
+- perform retry/retransmission,
+- mutate Phase29-34 source objects.
+
+Execution-time evidence must already exist as trusted local evidence before the public builder is called.
+
+25. Candidate public API
+
+Candidate module:
+`src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_send_execution_gate.py`
+
+Candidate test:
+`tests/test_watchlist_order_provider_send_execution_gate.py`
+
+Candidate module-level public symbols:
+1. `WatchlistOrderProviderSendExecutionGateError`
+2. `KiwoomOrderProviderSendExecutionReadinessDecision`
+3. `KiwoomOrderProviderSendExecutionReadinessReason`
+4. `Phase35ProviderSendApprovalEvidence`
+5. `Phase35ProviderSendConformanceEvidence`
+6. `Phase35ExecutionRiskFreshnessEvidence`
+7. `Phase35ExecutionBuyingPowerFreshnessEvidence`
+8. `Phase35CredentialOwnershipEvidence`
+9. `Phase35AccountOwnershipEvidence`
+10. `Phase35ProviderSendExecutionEvidenceBundle`
+11. `WatchlistOrderProviderSendExecutionReadinessSnapshot`
+12. `build_demo_watchlist_order_provider_send_execution_readiness_snapshot`
+
+Public builder exact candidate signature:
+
+`build_demo_watchlist_order_provider_send_execution_readiness_snapshot(source_snapshot, evidence_bundle)`
+
+No public clock/verifier/registry/network/client/credential/account parameter is allowed.
+
+Package-level `rest/__init__.py` re-export is not required and is outside the candidate implementation allowlist unless separately approved.
+
+26. Required acceptance coverage
+
+Future tests must cover at least:
+- exact public `__all__`
+- frozen dataclass exact field order
+- exact Phase34 21-field source validation
+- exact reuse/recomputation of Phase34 `eligibility_fingerprint`
+- exact Phase34 canonical JSON algorithm
+- exact Phase34 positive and INDETERMINATE decisions
+- Phase34 source object identity preservation
+- exact demo/KRX/cash BUY/kt10000/POST/path validation
+- independent Risk and Buying-Power freshness
+- 5.000-second boundary inclusive behavior
+- 1.000-second future-skew boundary
+- malformed/naive/non-UTC timestamp INDETERMINATE
+- approval/conformance trust-anchor match and mismatch
+- forged caller `verified=True` or equivalent not accepted
+- evidence fingerprint tamper detection
+- expiry/not-yet-valid behavior
+- credential/account opaque-ref constraints
+- owner/credential/account binding
+- no secret/raw account material in output
+- exact reuse of Phase27 prior-submission states
+- `CONFIRMED_ACCEPTED` deny
+- `CONFIRMED_NOT_ACCEPTED` fresh-reauthorization deny
+- `AMBIGUOUS_UNRESOLVED` reconciliation INDETERMINATE
+- no automatic retry/retransmission
+- decision-class and reason precedence
+- immutable output and readiness fingerprint
+- all authority/I-O flags always false
+- no provider/network/credential/account/order calls
+- no partial result on programmer-contract error
+- `BaseException` propagation
+- no dependency changes
+- no package re-export change
+- full regression after implementation approval.
+
+27. Non-overlap with Phase29-34
+
+Phase35 does not replace:
+- Phase29 authorization evidence gate,
+- Phase30 provider request materialization,
+- Phase31 authorization claim/replay-guard preparation,
+- Phase32 authority adapter result evidence,
+- Phase33 durable authority verification,
+- Phase34 provider-send eligibility candidate.
+
+Phase35 consumes Phase34 and only adds execution-time:
+- explicit approval/conformance anchoring,
+- independent Risk freshness,
+- independent Buying-Power freshness,
+- credential/account ownership binding,
+- Phase27 prior-submission reconciliation enforcement,
+- deterministic local execution-readiness decision.
+
+28. Governance and allowed changes
+
+DRAFT-A3 Final Contract Review does not itself authorize repository mutation.
+
+Before separate README registration approval:
+- no README change
+- no source/test creation or modification
+- no Current Phase change
+- no dependency change
+- no credential/token/account access
+- no provider/network/order action
+- no Git add/commit/push
+- no restore/reset/clean
+- no rebaseline
+
+Future candidate implementation mutation allowlist is exactly:
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_send_execution_gate.py`
+- `tests/test_watchlist_order_provider_send_execution_gate.py`
+
+README registration, implementation, Git add/commit, commit, push, and Current Phase alignment each remain separately approved stages.
+
+29. Final boundary
+
+Phase35 READY means only:
+
+“All required local execution-readiness evidence for the exact frozen demo/KRX/cash BUY `kt10000` request is currently complete, trusted under the Phase35 contractual trust model, fresh, source-bound, non-conflicting, and not blocked by prior-submission safety state.”
+
+It does not mean:
+
+“Send the order.”
+
+Actual provider transport, credential/token acquisition, account access, and actual order submission remain outside Phase35 and require a separately designed and separately approved later boundary.
+
+## 30. Phase35 implementation Closure README freeze
+
+Closure status:
+
+- `PHASE35_IMPLEMENTATION=COMPLETE`
+- `PHASE35_IMPLEMENTATION_APPROVED=YES`
+- `PHASE35_IMPLEMENTATION_CLOSURE_README_FREEZE=PASS`
+- `CURRENT_PHASE=PHASE34`
+
+Frozen implementation identity:
+
+- `PHASE35_SOURCE_PATH=src\kiwoom_trading_system\brokers\kiwoom\rest\watchlist_order_provider_send_execution_gate.py`
+- `PHASE35_SOURCE_BYTES=56692`
+- `PHASE35_SOURCE_SHA256=9711D8DEFA382D6EBA1E5614AFD1CD9F6FAFDBAC64C9EDE325CD6F18CD3C2117`
+- `PHASE35_TEST_PATH=tests\test_watchlist_order_provider_send_execution_gate.py`
+- `PHASE35_TEST_BYTES=35204`
+- `PHASE35_TEST_SHA256=AB563A8F18B711FF2C3EA0C8C94919C3882C2DED782FBC73ED756EA7B8815C37`
+
+Fresh V5 full regression:
+
+- `PHASE35_FULL_REGRESSION_V5_TEST_COUNT=1469`
+- `PHASE35_FULL_REGRESSION_FAILURES=0`
+- `PHASE35_FULL_REGRESSION_ERRORS=0`
+- `PHASE35_FULL_REGRESSION_SKIPPED=0`
+- `PHASE35_FULL_REGRESSION_EXIT_CODE=0`
+
+This closure freezes only the exact Phase35 implementation source/test identity and the fresh V5 full-regression result above.
+
+The registration-stage `Implementation: NOT APPROVED` and `PHASE35_IMPLEMENTATION_APPROVED=NO` values document the pre-implementation registration state. This closure supersedes those two implementation-status values only; it does not rewrite or alter the preserved Phase35 official contract payload.
+
+Current Phase remains `PHASE34`. This closure does not authorize Current Phase transition, provider transport, credential/token/account access, actual order action or `kt10000` POST, dependency mutation, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` re-export change.
