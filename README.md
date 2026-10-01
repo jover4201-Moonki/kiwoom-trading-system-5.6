@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 34 — demo Kiwoom Cash BUY-Order Provider Send Eligibility Candidate Snapshot 기반선 v1.0
+Phase 35 — demo Kiwoom Cash BUY Provider-Send Execution Readiness Gate Snapshot 기반선 v1.0
 
 검증된 현재 기준선:
 
@@ -9246,3 +9246,23 @@ This closure freezes only the exact Phase35 implementation source/test identity 
 The registration-stage `Implementation: NOT APPROVED` and `PHASE35_IMPLEMENTATION_APPROVED=NO` values document the pre-implementation registration state. This closure supersedes those two implementation-status values only; it does not rewrite or alter the preserved Phase35 official contract payload.
 
 Current Phase remains `PHASE34`. This closure does not authorize Current Phase transition, provider transport, credential/token/account access, actual order action or `kt10000` POST, dependency mutation, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` re-export change.
+
+## 31. Phase35 Current Phase alignment
+
+Alignment status:
+
+- `PHASE35_CURRENT_PHASE_ALIGNMENT=PASS`
+- `CURRENT_PHASE=PHASE35`
+- `PHASE35_IMPLEMENTATION_COMMIT=f6154124551df65621f4ca2d35ad9b557908dbb2`
+- `PHASE35_IMPLEMENTATION_TREE=256f8166a347836b35fa4b8e3a2162343ce32438`
+- `PHASE35_FULL_REGRESSION_V5_TEST_COUNT=1469`
+- `PHASE35_FULL_REGRESSION_FAILURES=0`
+- `PHASE35_FULL_REGRESSION_ERRORS=0`
+- `PHASE35_FULL_REGRESSION_SKIPPED=0`
+- `PHASE35_FULL_REGRESSION_EXIT_CODE=0`
+
+This alignment supersedes only the repository's current-phase authority after the validated Phase35 implementation commit. Historical `Current Phase` / `CURRENT_PHASE` statements in prior registration, implementation, and closure records remain preserved as point-in-time provenance.
+
+Current Phase is now `PHASE35`.
+
+This alignment does not authorize provider transport, credential/token/account access, actual order action or `kt10000` POST, dependency mutation, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` re-export change.
