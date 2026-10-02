@@ -9266,3 +9266,643 @@ This alignment supersedes only the repository's current-phase authority after th
 Current Phase is now `PHASE35`.
 
 This alignment does not authorize provider transport, credential/token/account access, actual order action or `kt10000` POST, dependency mutation, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` re-export change.
+
+# Phase36 — Official Contract Registration
+
+Post-registration authoritative governance:
+
+- `PHASE36_OFFICIAL_CONTRACT_REGISTERED=YES`
+- `PHASE36_FINAL_CONTRACT_REVIEW=PASS`
+- `PHASE36_APPROVED_DRAFT_A2=YES`
+- `PHASE36_APPROVED_DRAFT_A2_SOURCE_SHA256=A3AB894B8951DE514015DE075C31853E19B8C5E43BCE24FEC35FE74405955BAC`
+- `README_REGISTRATION_APPROVED=YES`
+- `CURRENT_PHASE=PHASE35`
+- `IMPLEMENTATION_APPROVED=NO`
+- `PROVIDER_TRANSPORT_AUTHORIZED=NO`
+- `ACTUAL_KT10000_POST_AUTHORIZED=NO`
+- `CREDENTIAL_TOKEN_ACCOUNT_ACCESS_AUTHORIZED=NO`
+- `DEPENDENCY_CHANGE_APPROVED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+- `RESTORE_RESET_CLEAN_APPROVED=NO`
+- `REBASELINE_APPROVED=NO`
+- `CURRENT_PHASE_CHANGE_APPROVED=NO`
+
+The Approved Draft A2 source payload below is preserved byte-for-byte.
+Its embedded pre-registration governance values are retained as historical
+Final Contract Review source-state evidence. For README post-registration
+governance, the registration envelope above is authoritative.
+
+<!-- PHASE36_APPROVED_DRAFT_A2_EXACT_PAYLOAD_BEGIN -->
+# Candidate Phase 36 — demo Kiwoom Cash BUY One-Shot Provider Submission Boundary Contract v1.1 — Approved Draft A2
+
+Status: APPROVED DRAFT CANDIDATE — FINAL CONTRACT REVIEW PASS / NOT OFFICIAL / NOT REGISTERED / IMPLEMENTATION NOT APPROVED
+Candidate number: PHASE36 (repository MAX_PHASE_NUMBER=35 다음의 미사용 연속 후보 번호이며, README 공식 등록 전에는 공식 Phase가 아니다.)
+Current Phase remains: PHASE35
+
+## 1. Purpose
+
+Phase36 candidate는 유효한 Phase35 READY snapshot을 소비하여, 이후 별도 runtime 승인 시에만 demo/KRX/cash BUY `kt10000` provider submission을 최대 한 번 시도하고 그 결과를 durable하고 secret-safe한 evidence로 분류하는 최초의 provider-submission boundary를 정의한다.
+
+이 Approved Draft 자체는 provider transport, credential/token acquisition, account access, actual order submission 또는 그 밖의 network/order action을 허가하지 않는다.
+
+## 2. Non-overlap
+
+Phase36은 다음 기존 책임을 대체하거나 재계산하지 않는다.
+
+- Phase29 authorization evidence gate
+- Phase30 provider request materialization
+- Phase31 authorization claim/replay-guard preparation
+- Phase32 authority adapter result evidence
+- Phase33 durable authority verification
+- Phase34 provider-send eligibility candidate
+- Phase35 provider-send execution-readiness decision
+
+Phase36은 위 단계들의 frozen output/contract를 소비하는 one-shot submission boundary다.
+
+Phase36은 Phase35 READY를 새로 계산하지 않는다. 다만 provider order transport 직전 Phase35 READY snapshot의 identity, binding, validity/freshness 조건이 여전히 유효한지는 fail-closed로 재확인한다.
+
+## 3. Exact scope
+
+후보 scope는 다음으로 제한한다.
+
+- mode: `demo`
+- exchange: `KRX`
+- product: cash stock
+- side: `BUY`
+- API ID: `kt10000`
+- method: `POST`
+- path: `/api/dostk/ordr`
+- base endpoint: `https://mockapi.kiwoom.com`
+- content type: `application/json;charset=UTF-8`
+- single-order submission only
+
+다음은 scope 밖이다.
+
+- real/PRD
+- SELL
+- modify/cancel
+- credit order
+- NXT/SOR
+- 다른 TR
+- WebSocket order transport
+- batch/multi-order
+- automatic retry/retransmission
+
+## 4. Provider contract anchor
+
+Provider request는 Phase30/Phase34의 frozen request materialization을 의미 변경 없이 보존하고 다음 공식 `kt10000` body field에 exact mapping되어야 한다.
+
+- `dmst_stex_tp`
+- `stk_cd`
+- `ord_qty`
+- `ord_uv`
+- `trde_tp`
+- `cond_uv`
+
+필수 transport metadata:
+
+- `authorization: Bearer <token>`
+- `api-id: kt10000`
+- `Content-Type: application/json;charset=UTF-8`
+- `POST https://mockapi.kiwoom.com/api/dostk/ordr`
+
+`cont-yn`/`next-key` continuation은 Phase36 single-order submission request에 사용하지 않는다.
+
+Phase36에서 arbitrary URL, arbitrary API ID, arbitrary body 또는 caller-defined header override로 치환할 수 없다.
+
+## 5. Official-provider response anchor
+
+공식 `kt10000` response body는 최소 다음 provider fields를 알고 있어야 한다.
+
+- `ord_no` — optional provider order number
+- `dmst_stex_tp` — optional exchange indicator
+- `return_code`
+- `return_msg`
+
+`ord_no`가 공식 schema상 optional이라는 사실 때문에 Phase36은 `return_code == 0`만으로 acceptance를 확정하지 않는다.
+
+## 6. Candidate public API
+
+Candidate module:
+
+`src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_submission_boundary.py`
+
+Candidate test:
+
+`tests/test_watchlist_order_provider_submission_boundary.py`
+
+Candidate module-level public symbols:
+
+1. `WatchlistOrderProviderSubmissionBoundaryError`
+2. `KiwoomOrderProviderSubmissionOutcome`
+3. `Phase36SubmissionRegistryState`
+4. `Phase36SubmissionApprovalEvidence`
+5. `Phase36ProviderExecutionContext`
+6. `Phase36AtomicSubmissionRegistry`
+7. `KiwoomOrderProviderSubmissionReceipt`
+8. `submit_demo_watchlist_order_once`
+
+Candidate async signature:
+
+`submit_demo_watchlist_order_once(readiness_snapshot, submission_approval, execution_context, submission_registry)`
+
+public scalar parameter로 다음을 직접 받지 않는다.
+
+- raw app key
+- raw secret
+- raw bearer token
+- raw account number
+- arbitrary URL
+- arbitrary api-id
+- arbitrary request body
+- caller-defined retry policy
+
+## 7. Ordered execution sequence
+
+Phase36 실행 순서는 다음 순서를 깨뜨릴 수 없다.
+
+1. frozen Phase35 READY identity/binding 검증
+2. Phase36 one-shot approval 검증
+3. demo/KRX/cash BUY/`kt10000` local contract 검증
+4. 별도 승인된 credential/account local resolution
+5. 필요한 경우 별도 승인된 token acquisition/validation 완료
+6. token resolution 이후 Phase35 validity/freshness와 all bindings 재확인
+7. durable atomic claim을 `CLAIMED_PRE_SEND`로 획득
+8. order I/O 직전 durable compare-and-set으로 `IN_FLIGHT` 전환
+9. `IN_FLIGHT` 전환 성공 후에만 정확히 한 번의 `kt10000 POST`
+10. provider response 또는 failure를 분류
+11. terminal evidence를 durable finalize
+12. cleanup
+
+단계 8의 durable transition이 성공하지 않으면 order transport call count는 반드시 0이다.
+
+## 8. Mandatory pre-order gates
+
+어떠한 `kt10000` order POST보다 먼저 모두 통과해야 한다.
+
+- Phase35 decision=`READY`
+- Phase35 readiness fingerprint가 immutable source snapshot과 일치
+- exact demo/KRX/cash BUY/`kt10000`
+- 명시적인 one-shot Phase36 submission approval evidence 존재
+- approval evidence가 valid/unexpired/source-bound/readiness-fingerprint-bound
+- execution context mode=`demo`
+- endpoint identity가 official mock endpoint와 exact match
+- credential/account opaque identity가 Phase35 ownership evidence와 일치
+- token이 demo credential/account provenance와 결합되어 있음
+- token resolution 후 Phase35 validity/freshness가 여전히 유효
+- prior-submission state가 `CONFIRMED_ACCEPTED`가 아님
+- prior-submission state가 `AMBIGUOUS_UNRESOLVED`가 아님
+- durable atomic claim 획득 성공
+
+하나라도 실패하고 order POST가 시작되지 않았으면 provider order transport call count는 정확히 0이다.
+
+## 9. Credential / token / account boundary
+
+Credential/token/account runtime resolution은 이후 별도 승인된 execution에서만 허용한다.
+
+규칙:
+
+- opaque ref 또는 승인된 provider를 통해서만 resolution
+- raw app key/secret/token/account를 result/log/repr에 포함 금지
+- repository artifact에 credential persistence 금지
+- resolved mode/account/credential provenance를 Phase35 ownership evidence에 재결합
+- mode mismatch는 order POST 전 차단
+- token acquisition/refresh는 atomic submission claim을 소비하기 전에 완료
+- token acquisition/refresh 자체가 order retry authority가 되지 않음
+
+auth provider/network I/O와 `kt10000` order I/O를 구분한다. Phase36 outcome의 “send”는 `kt10000` order POST를 뜻한다.
+
+## 10. Transparent retry prohibition
+
+Kiwoom REST client의 일반 request 경로처럼 auth failure에서 동일 HTTP request를 자동 재호출할 수 있는 transport는 Phase36 order submission에 그대로 사용하면 안 된다.
+
+Phase36 actual order transport는 다음 중 하나를 만족해야 한다.
+
+- `retry_on_auth_failure=False`와 동등한 explicit no-retry mode로 호출하거나
+- 동일 `kt10000` request를 내부적으로 재전송하지 않음이 검증된 dedicated transport adapter를 사용한다.
+
+HTTP 401, auth-expiry return code, token expiry, rate limit 또는 provider error를 이유로 동일 claim의 `kt10000` request를 자동 재전송하는 것은 금지한다.
+
+token refresh가 필요하면 기존 order claim을 사용해 재전송하지 않고, reconciliation 및 fresh authoritative chain 규칙을 따른다.
+
+## 11. Durable registry state machine
+
+Exact registry states:
+
+- `AVAILABLE`
+- `CLAIMED_PRE_SEND`
+- `IN_FLIGHT`
+- `ABORTED_BEFORE_SEND`
+- `CONFIRMED_ACCEPTED`
+- `CONFIRMED_NOT_ACCEPTED`
+- `AMBIGUOUS_UNRESOLVED`
+
+허용 transition:
+
+- `AVAILABLE -> CLAIMED_PRE_SEND`
+- `CLAIMED_PRE_SEND -> IN_FLIGHT`
+- `CLAIMED_PRE_SEND -> ABORTED_BEFORE_SEND`
+- `IN_FLIGHT -> CONFIRMED_ACCEPTED`
+- `IN_FLIGHT -> CONFIRMED_NOT_ACCEPTED`
+- `IN_FLIGHT -> AMBIGUOUS_UNRESOLVED`
+
+다른 transition은 invalid다.
+
+`IN_FLIGHT` 전환은 order transport보다 반드시 먼저 durable commit되어야 한다.
+
+actual provider execution에서 registry는 process crash를 넘어 상태가 보존되는 durable storage와 atomic compare-and-set/transaction semantics를 제공해야 한다.
+
+in-memory registry/fake는 unit test 전용이며 actual provider/network/order execution authority로 사용할 수 없다.
+
+## 12. Claim consumption and crash recovery
+
+동일 readiness fingerprint + submission approval + attempt identity는 최대 한 번의 claim만 성공적으로 획득할 수 있다.
+
+claim은 어떤 terminal state에서도 재사용하지 않는다.
+
+### failure/cancellation before IN_FLIGHT
+
+durable state가 `CLAIMED_PRE_SEND`이고 order transport call count가 0임을 증명할 수 있으면:
+
+- registry를 `ABORTED_BEFORE_SEND`로 terminalize
+- order acceptance로 분류하지 않음
+- 자동 재시도하지 않음
+- 다음 시도는 fresh Phase35 readiness + new Phase36 approval + new claim을 요구
+
+### crash recovery with CLAIMED_PRE_SEND
+
+복구 시 durable `IN_FLIGHT` marker가 존재하지 않고 contract상 order transport가 `IN_FLIGHT` 이후에만 가능했음이 보장되면:
+
+- `ABORTED_BEFORE_SEND`
+- no order transport assumed
+- fresh authoritative chain 없이는 재시도 금지
+
+### IN_FLIGHT without terminal record
+
+process crash, cancellation, timeout, storage failure 또는 recovery 시:
+
+- `AMBIGUOUS_UNRESOLVED`
+- reconciliation 전 재submission 금지
+
+`IN_FLIGHT` 이후 claim을 release하여 `AVAILABLE`로 되돌리는 transition은 존재하지 않는다.
+
+## 13. One-shot transport rule
+
+claimed Phase36 attempt 하나당 `kt10000 POST`는 최대 정확히 한 번이다.
+
+다음 모든 경우에 automatic retry/retransmission을 금지한다.
+
+- timeout
+- connection reset
+- HTTP error
+- provider API error
+- rate limit
+- token expiry
+- mode mismatch
+- device authentication error
+- cancellation
+- malformed response
+- close/finalization failure
+- unknown exception
+
+새로운 시도는 reconciliation 상태가 허용하는 fresh authoritative chain에서만 가능하며 같은 claim의 내부 retry가 아니다.
+
+## 14. Return-code normalization
+
+`return_code` normalization은 다음을 따른다.
+
+- bool은 invalid/absent 취급
+- int는 그대로 사용
+- numeric string은 base-10 integer로 normalize
+- surrounding whitespace는 제거
+- blank/None/non-numeric은 absent 취급
+
+normalization 실패를 success로 추정하지 않는다.
+
+## 15. Outcome model
+
+Public outcome:
+
+- `BLOCKED_BEFORE_SEND`
+- `CONFIRMED_ACCEPTED`
+- `CONFIRMED_NOT_ACCEPTED`
+- `AMBIGUOUS_UNRESOLVED`
+
+`ABORTED_BEFORE_SEND`는 durable registry terminal state이며 cancellation처럼 public call이 exception을 재전파하는 경우에도 zero-send proof를 보존하기 위한 내부 evidence state다.
+
+### BLOCKED_BEFORE_SEND
+
+다음을 모두 만족한다.
+
+- `IN_FLIGHT` 전환 전 차단
+- order transport call count=0
+- acceptance 가능성 없음
+
+일반 validation failure는 `BLOCKED_BEFORE_SEND` receipt를 반환할 수 있다.
+
+외부 cancellation처럼 exception 재전파가 필요한 경우 public outcome으로 변환하지 않고 registry의 `ABORTED_BEFORE_SEND` evidence를 남긴다.
+
+### CONFIRMED_ACCEPTED
+
+다음을 모두 요구한다.
+
+- `IN_FLIGHT` 상태에서 exact one transport attempt
+- syntactically valid provider JSON response
+- normalized `return_code == 0`
+- exact request/attempt에 결합 가능한 stripped nonblank `ord_no`
+- response `dmst_stex_tp`가 존재하는 경우 `KRX`와 모순되지 않음
+
+`ord_no` 요구는 provider schema보다 엄격한 프로젝트 안전규칙이다.
+
+`return_code == 0`인데 `ord_no`가 없거나 blank이면 acceptance로 추정하지 않고 `AMBIGUOUS_UNRESOLVED`다.
+
+### CONFIRMED_NOT_ACCEPTED
+
+다음을 모두 요구한다.
+
+- `IN_FLIGHT` 상태에서 exact one transport attempt
+- syntactically valid provider JSON response
+- normalized `return_code`가 존재하며 0이 아님
+- stripped nonblank `ord_no`가 없음
+- acceptance를 나타내는 conflicting evidence가 없음
+
+HTTP status만으로 `CONFIRMED_NOT_ACCEPTED`를 만들지 않는다. provider-format rejection evidence가 필요하다.
+
+### AMBIGUOUS_UNRESOLVED
+
+`IN_FLIGHT` 이후 acceptance를 배제할 수 없는 모든 상태:
+
+- timeout
+- network loss/reset
+- bare HTTP failure without definitive provider rejection body
+- I/O 중 cancellation
+- malformed/partial/non-JSON response
+- absent/unparseable `return_code`
+- `return_code == 0` + missing/blank `ord_no`
+- nonzero `return_code` + nonblank `ord_no`
+- conflicting exchange/request identity
+- possible-send 이후 persistence/finalization failure
+- 결과를 확정할 수 없는 unknown transport failure
+
+## 16. Provider error and auth semantics
+
+provider raw `return_code` / `return_msg`는 secret-safe evidence로 보존하고 별도 normalized classification을 만든다.
+
+공식 client의 automatic credential recovery/retry behavior는 Phase36 order submission에서는 비활성화되어야 한다.
+
+valid provider response가 explicit auth rejection을 나타내고 nonblank order number가 없으면 `CONFIRMED_NOT_ACCEPTED` 후보가 될 수 있다.
+
+auth refresh 후 재전송에는 fresh Phase35 readiness + new Phase36 approval + new atomic claim이 필요하다.
+
+## 17. Timeout and cancellation
+
+bounded timeout을 사용한다.
+
+`asyncio.timeout()`이 변환한 `TimeoutError`와 외부 `CancelledError`를 구분한다.
+
+### cancellation before IN_FLIGHT
+
+- order transport call count=0
+- claim을 `ABORTED_BEFORE_SEND`로 best-effort durable finalize
+- cleanup
+- `CancelledError` 재전파
+- 같은 claim 자동 재사용 금지
+
+### cancellation after IN_FLIGHT
+
+- durable `AMBIGUOUS_UNRESOLVED` evidence를 best-effort 기록
+- cleanup
+- `CancelledError` 재전파
+- reconciliation 전 재전송 금지
+
+underlying transport가 cancellation으로 즉시 중단된다는 보장이 없으면 `IN_FLIGHT` 이후 cancellation은 항상 ambiguous로 취급한다.
+
+possible-send 이후 `TimeoutError`는 `AMBIGUOUS_UNRESOLVED`다.
+
+Cancellation은 success/rejection/retry permission으로 변환하지 않는다.
+
+## 18. Response evidence
+
+Receipt는 immutable하고 secret-safe해야 한다.
+
+허용 candidate fields:
+
+- attempt fingerprint
+- request fingerprint
+- readiness fingerprint
+- submission approval fingerprint
+- claim fingerprint
+- mode=`demo`
+- endpoint identity
+- api-id=`kt10000`
+- normalized provider `return_code`
+- sanitized provider `return_msg`
+- provider order number when present
+- provider exchange indicator when present
+- outcome
+- registry terminal state
+- transport-attempt count
+- timestamps
+- provenance fingerprints
+
+금지:
+
+- raw app key
+- raw secret
+- raw bearer token
+- raw account number
+- sensitive arbitrary response headers
+- unsanitized credential-bearing exception text
+
+## 19. Reconciliation and new-attempt authority
+
+`CONFIRMED_ACCEPTED`:
+
+- 동일 submission intent replay 영구 차단
+
+`AMBIGUOUS_UNRESOLVED`:
+
+- external/provider reconciliation 완료 전 모든 재submission 차단
+
+`CONFIRMED_NOT_ACCEPTED`:
+
+- fresh Phase35 readiness
+- new Phase36 approval
+- new atomic claim
+
+`ABORTED_BEFORE_SEND` 이후:
+
+- fresh Phase35 readiness
+- new Phase36 approval
+- new atomic claim
+
+이 모두 준비된 새 attempt만 허용한다.
+
+소모된 기존 claim은 어떤 상태에서도 조용히 재사용하지 않는다.
+
+## 20. Approval-stage separation
+
+다음은 각각 별도 승인 단계다.
+
+1. candidate design
+2. Final Contract Review
+3. README official registration
+4. implementation
+5. Git add/commit
+6. Git push
+7. runtime credential/token/account access
+8. demo provider/auth network enablement
+9. actual `kt10000 POST`
+10. Current Phase alignment
+
+현재 완료된 단계는 1과 2뿐이다.
+
+Final Contract Review PASS는 3~10을 승인하지 않는다.
+
+## 21. Implementation safety
+
+future implementation test는 fake/mock만 사용한다.
+
+별도 runtime execution 승인 없이는:
+
+- external provider/network call=0
+- credential/keyring/.env read=0
+- actual order=0
+
+이어야 한다.
+
+별도 승인 없이는 dependency 추가/변경 및 package re-export도 금지한다.
+
+implementation test의 fake transport는 transparent retry가 없고 exact call count를 관찰 가능해야 한다.
+
+## 22. Approved candidate implementation allowlist
+
+implementation이 추후 별도 승인되는 경우 candidate mutation allowlist는 정확히 다음 두 파일이다.
+
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_submission_boundary.py`
+- `tests/test_watchlist_order_provider_submission_boundary.py`
+
+별도 승인 없이 제외되는 대상:
+
+- `README.md`
+- `src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py`
+- 기존 Phase29~35 source/test
+- `pyproject.toml`
+- `uv.lock`
+- `.venv`
+- `.env`
+- credential/token/account artifacts
+- Git index/history/remote
+- Current Phase
+
+## 23. Frozen targeted-test contract
+
+Phase36 future implementation targeted test total은 exact `96`개로 freeze한다.
+
+분배:
+
+1. public API / immutability / type-contract: 8
+2. official endpoint/header/body/provider mapping: 10
+3. Phase35 readiness / approval / binding pre-order gates: 12
+4. credential/account/token/mode/auth preflight: 10
+5. durable registry state machine / CAS / concurrency / crash recovery: 14
+6. one-shot transport / transparent-retry suppression / exact call count: 10
+7. return-code normalization / response conflict / outcome mapping: 12
+8. timeout / cancellation / persistence / finalization failures: 10
+9. reconciliation / secret-safety / cleanup / BaseException propagation: 10
+
+Total: `8+10+12+10+14+10+12+10+10 = 96`
+
+현재 frozen full-regression baseline이 1469이고 다른 승인 변경이 없다면 Phase36 implementation 직후 expected full regression count는 exact `1565`다.
+
+implementation 전 baseline/test-count drift가 발생하면 숫자를 임의 재계산하거나 rebaseline하지 않고 STOP-HOLD하여 별도 기준선 검토를 수행한다.
+
+## 24. Required targeted-test semantics
+
+96 tests는 최소 다음 semantic을 포함해야 한다.
+
+- exact public symbols/signature
+- immutable input/output
+- exact Phase35 READY/fingerprint/source binding
+- expired/not-yet-valid readiness/approval
+- wrong mode/host/exchange/side/api-id/path/body binding
+- content-type and reserved-header enforcement
+- secret/account leakage prevention
+- credential/account provenance mismatch
+- token acquired before claim
+- freshness revalidation after token acquisition
+- registry valid/invalid transition
+- atomic CAS race and concurrency
+- crash recovery from `CLAIMED_PRE_SEND`
+- crash/recovery from `IN_FLIGHT`
+- transport call count exact 0/1
+- automatic auth retry disabled
+- HTTP 401 zero retransmission
+- auth-retry return code zero retransmission
+- rate-limit zero retransmission
+- `return_code` int/string/blank/None/bool/non-numeric normalization
+- accepted/not-accepted/ambiguous mapping
+- `return_code=0` without `ord_no`
+- nonzero code with conflicting `ord_no`
+- optional response exchange match/mismatch
+- bare HTTP/non-JSON/partial response
+- timeout before/after `IN_FLIGHT`
+- external cancellation before/after `IN_FLIGHT`
+- underlying transport not cancellation-safe
+- persistence/finalization/cleanup/close failure
+- Phase27 prior-submission states
+- fresh chain after confirmed not accepted
+- no retry after accepted
+- no retry after ambiguous
+- no reuse after aborted-before-send
+- `BaseException` cleanup then propagation
+- registry fake prohibited for actual execution capability
+- full regression after implementation
+
+## 25. Later implementation acceptance criteria
+
+future implementation PASS 조건:
+
+- Approved Draft A2 invariants 전부 구현
+- targeted tests exact `96`, failures=0, errors=0, unexpected skipped=0
+- baseline unchanged 시 full regression exact `1565`, failures=0, errors=0, unexpected skipped=0, exit=0
+- 승인된 두 path만 변경
+- test 중 external provider/network/order/credential action=0
+- raw secret/account/token 노출=0
+- durable actual-execution registry capability contract 구현
+- at-most-once order transport 입증
+- Kiwoom client transparent auth retry 비활성화 입증
+- ambiguous outcome fail-closed
+- 별도 승인 없이는 Git/README/Current Phase 불변
+
+## 26. Approved Draft governance
+
+- `CANDIDATE_PHASE_NUMBER=PHASE36`
+- `PHASE36_FINAL_CONTRACT_REVIEW=PASS`
+- `PHASE36_APPROVED_DRAFT_A2=YES`
+- `PHASE36_OFFICIAL_CONTRACT_REGISTERED=NO`
+- `CURRENT_PHASE=PHASE35`
+- `README_REGISTRATION_APPROVED=NO`
+- `IMPLEMENTATION_APPROVED=NO`
+- `PROVIDER_TRANSPORT_AUTHORIZED=NO`
+- `ACTUAL_KT10000_POST_AUTHORIZED=NO`
+- `CREDENTIAL_TOKEN_ACCOUNT_ACCESS_AUTHORIZED=NO`
+- `DEPENDENCY_CHANGE_APPROVED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+- `RESTORE_RESET_CLEAN_APPROVED=NO`
+- `REBASELINE_APPROVED=NO`
+- `CURRENT_PHASE_CHANGE_APPROVED=NO`
+
+## 27. Final boundary
+
+Phase36 Approved Draft A2의 의미:
+
+“독립적으로 검증된 Phase35 READY snapshot과 별도 승인된 demo execution context가 주어진 경우, credential/token readiness를 order claim 이전에 확정하고, durable one-shot submission authority를 atomic하게 소비하며, durable `IN_FLIGHT` marker 이후 최대 한 번의 `kt10000` provider order POST만 수행하고, 그 결과를 confirmed accepted / confirmed not accepted / unresolved ambiguous 상태의 durable secret-safe evidence로 만든다.”
+
+의미하지 않는 것:
+
+“성공할 때까지 재시도한다.”
+
+또한 이 Final Contract Review PASS는 README 등록, implementation, credential/token/account access, provider/auth network, actual `kt10000 POST`, Git mutation 또는 Current Phase 변경을 허가하지 않는다.
+
+<!-- PHASE36_APPROVED_DRAFT_A2_EXACT_PAYLOAD_END -->
