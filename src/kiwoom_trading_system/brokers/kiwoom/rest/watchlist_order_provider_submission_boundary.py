@@ -440,6 +440,634 @@ class _KiwoomSdkCachedTokenProvider:
 
 
 @_dataclass(frozen=True, slots=True)
+class _Phase36RuntimeValidationApproval:
+    runtime_credential_account_access_authorized: bool
+    cached_token_access_authorized: bool
+    auth_network_authorized: bool
+    token_cache_write_authorized: bool
+    provider_network_authorized: bool
+    expected_account_resolution_authorized: bool
+    actual_kt10000_post_authorized: bool
+    test_execution: bool
+
+
+@_dataclass(frozen=True, slots=True)
+class _Phase36RuntimeValidationEvidence:
+    mode: str
+    credential_ref_id: str
+    account_ref_id: str
+    credential_ownership_evidence_fingerprint: str
+    account_ownership_evidence_fingerprint: str
+    cached_token_reusable: bool
+    auth_refresh_performed: bool
+    provider_account_binding_validated: bool
+    auth_network_required: bool
+
+
+def _runtime_error(code: str) -> None:
+    raise WatchlistOrderProviderSubmissionBoundaryError(code)
+
+
+def _runtime_exact_bool(value: object, code: str) -> bool:
+    if type(value) is not bool:
+        _runtime_error(code)
+    return value
+
+
+def _runtime_binding_dict_valid(
+    resolved: object,
+    *,
+    credential_ref_id: str,
+    account_ref_id: str,
+    credential_fingerprint: str,
+    account_fingerprint: str,
+) -> bool:
+    if not isinstance(resolved, _Mapping):
+        return False
+    expected_keys = {
+        "mode",
+        "credential_ref_id",
+        "account_ref_id",
+        "credential_ownership_evidence_fingerprint",
+        "account_ownership_evidence_fingerprint",
+    }
+    try:
+        if set(resolved.keys()) != expected_keys:
+            return False
+        return (
+            resolved["mode"] == "demo"
+            and resolved["credential_ref_id"] == credential_ref_id
+            and resolved["account_ref_id"] == account_ref_id
+            and resolved["credential_ownership_evidence_fingerprint"]
+            == credential_fingerprint
+            and resolved["account_ownership_evidence_fingerprint"]
+            == account_fingerprint
+        )
+    except (KeyError, TypeError):
+        return False
+
+
+async def _runtime_call(target: object, method_name: str, /, **kwargs: object) -> object:
+    try:
+        method = getattr(target, method_name)
+    except AttributeError:
+        _runtime_error(f"RUNTIME_{method_name.upper()}_SURFACE_INVALID")
+    if not callable(method):
+        _runtime_error(f"RUNTIME_{method_name.upper()}_SURFACE_INVALID")
+    result = method(**kwargs)
+    if _inspect.isawaitable(result):
+        return await result
+    return result
+
+
+async def _runtime_cleanup_best_effort(target: object | None) -> None:
+    if target is None:
+        return
+    method = getattr(target, "cleanup", None)
+    if not callable(method):
+        return
+    try:
+        result = method()
+        if _inspect.isawaitable(result):
+            await result
+    except _asyncio.CancelledError:
+        raise
+    except BaseException:
+        return
+
+
+class _KiwoomSdkCachedTokenInspector:
+    def __init__(
+        self,
+        *,
+        profile_alias: str,
+        token_store: object | None = None,
+        now_utc: object | None = None,
+        minimum_validity_seconds: float = 600.0,
+    ) -> None:
+        if type(profile_alias) is not str or not profile_alias.strip():
+            _runtime_error("RUNTIME_PROFILE_ALIAS_INVALID")
+        if len(profile_alias.strip()) > 64:
+            _runtime_error("RUNTIME_PROFILE_ALIAS_INVALID")
+        if (
+            isinstance(minimum_validity_seconds, bool)
+            or not isinstance(minimum_validity_seconds, (int, float))
+            or not _math.isfinite(float(minimum_validity_seconds))
+            or float(minimum_validity_seconds) != 600.0
+        ):
+            _runtime_error("RUNTIME_TOKEN_MINIMUM_VALIDITY_INVALID")
+        if token_store is None:
+            try:
+                from kiwoom.core.token_store import FileTokenStore as _FileTokenStore
+            except Exception as exc:
+                raise WatchlistOrderProviderSubmissionBoundaryError(
+                    "RUNTIME_KIWOOM_SDK_UNAVAILABLE"
+                ) from None
+            token_store = _FileTokenStore()
+        self._profile_alias = profile_alias.strip()
+        self._token_store = token_store
+        self._now_utc = (
+            now_utc
+            if now_utc is not None
+            else lambda: _datetime.now(_timezone.utc)
+        )
+        self._minimum_validity_seconds = 600.0
+
+    def __repr__(self) -> str:
+        return "_KiwoomSdkCachedTokenInspector(secret_safe=True)"
+
+    def _read_reusable_record(self, resolved: object, *, access_authorized: bool):
+        if access_authorized is not True:
+            _runtime_error("CACHED_TOKEN_ACCESS_NOT_AUTHORIZED")
+        if not isinstance(resolved, _Mapping):
+            _runtime_error("RUNTIME_RESOLVED_BINDING_INVALID")
+        try:
+            if resolved["mode"] != "demo":
+                _runtime_error("RUNTIME_RESOLVED_MODE_NOT_DEMO")
+            credential_ref_id = resolved["credential_ref_id"]
+            account_ref_id = resolved["account_ref_id"]
+            credential_fingerprint = resolved[
+                "credential_ownership_evidence_fingerprint"
+            ]
+            account_fingerprint = resolved[
+                "account_ownership_evidence_fingerprint"
+            ]
+        except (KeyError, TypeError) as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "RUNTIME_RESOLVED_BINDING_INVALID"
+            ) from None
+        if (
+            type(credential_ref_id) is not str
+            or not credential_ref_id.strip()
+            or type(account_ref_id) is not str
+            or not account_ref_id.strip()
+            or type(credential_fingerprint) is not str
+            or _re.fullmatch(r"[0-9a-fA-F]{64}", credential_fingerprint) is None
+            or type(account_fingerprint) is not str
+            or _re.fullmatch(r"[0-9a-fA-F]{64}", account_fingerprint) is None
+        ):
+            _runtime_error("RUNTIME_RESOLVED_BINDING_INVALID")
+        try:
+            record = self._token_store.peek(
+                "demo",
+                profile=self._profile_alias,
+            )
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "RUNTIME_CACHED_TOKEN_READ_FAILED"
+            ) from None
+        if record is None:
+            _runtime_error("AUTH_NETWORK_REQUIRED")
+        if (
+            getattr(record, "mode", None) != "demo"
+            or getattr(record, "profile", None) != self._profile_alias
+            or getattr(record, "credential_fingerprint", None)
+            != credential_fingerprint
+        ):
+            _runtime_error("AUTH_NETWORK_REQUIRED")
+        token_type = getattr(record, "token_type", None)
+        token = getattr(record, "access_token", None)
+        expires_at = getattr(record, "expires_at", None)
+        if (
+            type(token_type) is not str
+            or token_type.lower() != "bearer"
+            or type(token) is not str
+            or not token
+            or token != token.strip()
+            or not isinstance(expires_at, _datetime)
+            or expires_at.tzinfo is None
+        ):
+            _runtime_error("AUTH_NETWORK_REQUIRED")
+        try:
+            now = self._now_utc()
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "RUNTIME_CLOCK_FAILED"
+            ) from None
+        if not isinstance(now, _datetime) or now.tzinfo is None:
+            _runtime_error("RUNTIME_CLOCK_INVALID")
+        remaining_seconds = (
+            expires_at.astimezone(_timezone.utc)
+            - now.astimezone(_timezone.utc)
+        ).total_seconds()
+        if remaining_seconds <= self._minimum_validity_seconds:
+            _runtime_error("AUTH_NETWORK_REQUIRED")
+        metadata = {
+            "mode": "demo",
+            "credential_ref_id": credential_ref_id,
+            "account_ref_id": account_ref_id,
+            "credential_ownership_evidence_fingerprint": credential_fingerprint,
+            "account_ownership_evidence_fingerprint": account_fingerprint,
+            "cached_token_reusable": True,
+        }
+        return record, metadata
+
+    async def inspect(
+        self,
+        *,
+        resolved: object,
+        access_authorized: bool,
+    ) -> dict[str, object]:
+        _record, metadata = self._read_reusable_record(
+            resolved,
+            access_authorized=access_authorized,
+        )
+        return dict(metadata)
+
+    async def consume_reusable_token(
+        self,
+        *,
+        resolved: object,
+        access_authorized: bool,
+        consumer: object,
+    ) -> object:
+        if not callable(consumer):
+            _runtime_error("RUNTIME_TOKEN_CONSUMER_INVALID")
+        record, _metadata = self._read_reusable_record(
+            resolved,
+            access_authorized=access_authorized,
+        )
+        result = consumer(access_token=record.access_token)
+        if _inspect.isawaitable(result):
+            return await result
+        return result
+
+
+class _KiwoomSdkDemoAuthRefresher:
+    def __init__(
+        self,
+        *,
+        auth_client: object,
+        base_url: str,
+        timeout_seconds: float,
+        cleanup: object | None = None,
+        endpoint_resolver: object | None = None,
+    ) -> None:
+        if type(base_url) is not str:
+            _runtime_error("DEMO_AUTH_BASE_URL_INVALID")
+        if (
+            isinstance(timeout_seconds, bool)
+            or not isinstance(timeout_seconds, (int, float))
+            or not _math.isfinite(float(timeout_seconds))
+            or float(timeout_seconds) <= 0.0
+        ):
+            _runtime_error("RUNTIME_TIMEOUT_INVALID")
+        self._auth_client = auth_client
+        self._base_url = base_url.rstrip("/")
+        self._timeout_seconds = float(timeout_seconds)
+        self._cleanup = cleanup
+        if endpoint_resolver is None:
+            client_type = type(auth_client)
+            if (
+                client_type.__module__ == "kiwoom.core.auth"
+                and client_type.__name__ == "KiwoomAuth"
+            ):
+                try:
+                    from kiwoom.core.auth import get_base_url as endpoint_resolver
+                except Exception:
+                    _runtime_error("RUNTIME_KIWOOM_SDK_UNAVAILABLE")
+        if endpoint_resolver is not None and not callable(endpoint_resolver):
+            _runtime_error("DEMO_AUTH_ENDPOINT_RESOLVER_INVALID")
+        self._endpoint_resolver = endpoint_resolver
+
+    def __repr__(self) -> str:
+        return "_KiwoomSdkDemoAuthRefresher(secret_safe=True)"
+
+    async def refresh_once(
+        self,
+        *,
+        auth_network_authorized: bool,
+        token_cache_write_authorized: bool,
+    ) -> None:
+        if auth_network_authorized is not True:
+            _runtime_error("AUTH_NETWORK_REQUIRED")
+        if token_cache_write_authorized is not True:
+            _runtime_error("TOKEN_CACHE_WRITE_NOT_AUTHORIZED")
+        if self._base_url != "https://mockapi.kiwoom.com":
+            _runtime_error("DEMO_AUTH_BASE_URL_INVALID")
+        if getattr(self._auth_client, "mode", None) != "demo":
+            _runtime_error("DEMO_AUTH_MODE_INVALID")
+        if self._endpoint_resolver is not None:
+            try:
+                resolved_base_url = self._endpoint_resolver("demo")
+            except BaseException:
+                _runtime_error("DEMO_AUTH_BASE_URL_RESOLUTION_FAILED")
+            if (
+                type(resolved_base_url) is not str
+                or resolved_base_url.rstrip("/")
+                != "https://mockapi.kiwoom.com"
+            ):
+                _runtime_error("DEMO_AUTH_BASE_URL_INVALID")
+        client_timeout = getattr(self._auth_client, "timeout_seconds", None)
+        if client_timeout is not None:
+            if (
+                isinstance(client_timeout, bool)
+                or not isinstance(client_timeout, (int, float))
+                or not _math.isfinite(float(client_timeout))
+                or float(client_timeout) <= 0.0
+            ):
+                _runtime_error("DEMO_AUTH_TIMEOUT_INVALID")
+        try:
+            method = getattr(self._auth_client, "refresh_access_token")
+        except AttributeError:
+            _runtime_error("AUTH_REFRESH_SURFACE_INVALID")
+        if not callable(method):
+            _runtime_error("AUTH_REFRESH_SURFACE_INVALID")
+        try:
+            result = method()
+            if _inspect.isawaitable(result):
+                async with _asyncio.timeout(self._timeout_seconds):
+                    await result
+        except _asyncio.CancelledError:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise
+        except TimeoutError as exc:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "AUTH_REFRESH_TIMEOUT"
+            ) from None
+        except Exception as exc:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "AUTH_REFRESH_FAILED"
+            ) from None
+
+
+class _Phase36DemoAccountBindingProbe:
+    def __init__(
+        self,
+        *,
+        transport: object,
+        base_url: str,
+        timeout_seconds: float,
+        cleanup: object | None = None,
+    ) -> None:
+        if type(base_url) is not str:
+            _runtime_error("DEMO_ACCOUNT_BASE_URL_INVALID")
+        if (
+            isinstance(timeout_seconds, bool)
+            or not isinstance(timeout_seconds, (int, float))
+            or not _math.isfinite(float(timeout_seconds))
+            or float(timeout_seconds) <= 0.0
+        ):
+            _runtime_error("RUNTIME_TIMEOUT_INVALID")
+        self._transport = transport
+        self._base_url = base_url.rstrip("/")
+        self._timeout_seconds = float(timeout_seconds)
+        self._cleanup = cleanup
+
+    def __repr__(self) -> str:
+        return "_Phase36DemoAccountBindingProbe(secret_safe=True)"
+
+    async def probe(
+        self,
+        *,
+        access_token: str,
+        account_ref_id: str,
+        provider_network_authorized: bool,
+        expected_account_resolution_authorized: bool,
+        expected_account_resolver: object,
+    ) -> bool:
+        if provider_network_authorized is not True:
+            _runtime_error("PROVIDER_NETWORK_REQUIRED")
+        if expected_account_resolution_authorized is not True:
+            _runtime_error("EXPECTED_ACCOUNT_RESOLUTION_NOT_AUTHORIZED")
+        if self._base_url != "https://mockapi.kiwoom.com":
+            _runtime_error("DEMO_ACCOUNT_BASE_URL_INVALID")
+        if (
+            type(access_token) is not str
+            or not access_token
+            or access_token != access_token.strip()
+            or type(account_ref_id) is not str
+            or not account_ref_id.strip()
+        ):
+            _runtime_error("DEMO_ACCOUNT_BINDING_INPUT_INVALID")
+        if callable(expected_account_resolver):
+            resolver = expected_account_resolver
+        else:
+            resolver = getattr(expected_account_resolver, "resolve", None)
+        if not callable(resolver):
+            _runtime_error("EXPECTED_ACCOUNT_RESOLVER_INVALID")
+        try:
+            expected_account = resolver(account_ref_id=account_ref_id)
+            if _inspect.isawaitable(expected_account):
+                async with _asyncio.timeout(self._timeout_seconds):
+                    expected_account = await expected_account
+        except _asyncio.CancelledError:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise
+        except TimeoutError:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            _runtime_error("EXPECTED_ACCOUNT_RESOLUTION_TIMEOUT")
+        except BaseException:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            _runtime_error("EXPECTED_ACCOUNT_RESOLUTION_FAILED")
+        if (
+            type(expected_account) is not str
+            or not expected_account
+            or expected_account != expected_account.strip()
+        ):
+            _runtime_error("EXPECTED_ACCOUNT_RESOLUTION_FAILED")
+        method = getattr(self._transport, "post_account_binding", None)
+        if not callable(method):
+            _runtime_error("ACCOUNT_BINDING_TRANSPORT_INVALID")
+        try:
+            response = method(
+                base_url="https://mockapi.kiwoom.com",
+                path="/api/dostk/acnt",
+                headers={
+                    "authorization": f"Bearer {access_token}",
+                    "api-id": "ka00001",
+                    "Content-Type": "application/json;charset=UTF-8",
+                },
+                body={},
+                timeout_seconds=self._timeout_seconds,
+                retry_on_auth_failure=False,
+            )
+            if _inspect.isawaitable(response):
+                async with _asyncio.timeout(self._timeout_seconds):
+                    response = await response
+        except _asyncio.CancelledError:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise
+        except TimeoutError as exc:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "ACCOUNT_BINDING_TIMEOUT"
+            ) from None
+        except Exception as exc:
+            await _runtime_cleanup_best_effort(self._cleanup)
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "ACCOUNT_BINDING_REQUEST_FAILED"
+            ) from None
+        if isinstance(response, _Mapping):
+            body = response.get("body", response)
+        else:
+            body = getattr(response, "body", None)
+        if not isinstance(body, _Mapping):
+            _runtime_error("ACCOUNT_BINDING_RESPONSE_INVALID")
+        provider_account = body.get("acctNo")
+        if (
+            type(provider_account) is not str
+            or not provider_account
+            or provider_account != provider_account.strip()
+        ):
+            _runtime_error("ACCOUNT_BINDING_RESPONSE_INVALID")
+        if provider_account != expected_account:
+            _runtime_error("ACCOUNT_BINDING_MISMATCH")
+        return True
+
+
+async def _validate_phase36_runtime_materials_once(
+    *,
+    approval: object,
+    resolver: object,
+    credential_ref_id: str,
+    account_ref_id: str,
+    credential_ownership_evidence_fingerprint: str,
+    account_ownership_evidence_fingerprint: str,
+    cached_token_inspector: object,
+    auth_refresher: object,
+    account_probe: object,
+    expected_account_resolver: object,
+) -> _Phase36RuntimeValidationEvidence:
+    if type(approval) is not _Phase36RuntimeValidationApproval:
+        _runtime_error("RUNTIME_VALIDATION_APPROVAL_INVALID")
+    for value, code in (
+        (
+            approval.runtime_credential_account_access_authorized,
+            "RUNTIME_CREDENTIAL_ACCOUNT_GATE_INVALID",
+        ),
+        (approval.cached_token_access_authorized, "CACHED_TOKEN_GATE_INVALID"),
+        (approval.auth_network_authorized, "AUTH_NETWORK_GATE_INVALID"),
+        (approval.token_cache_write_authorized, "TOKEN_CACHE_WRITE_GATE_INVALID"),
+        (approval.provider_network_authorized, "PROVIDER_NETWORK_GATE_INVALID"),
+        (
+            approval.expected_account_resolution_authorized,
+            "EXPECTED_ACCOUNT_GATE_INVALID",
+        ),
+        (approval.actual_kt10000_post_authorized, "KT10000_GATE_INVALID"),
+        (approval.test_execution, "TEST_EXECUTION_GATE_INVALID"),
+    ):
+        _runtime_exact_bool(value, code)
+    if approval.actual_kt10000_post_authorized is not False:
+        _runtime_error("ACTUAL_KT10000_POST_PROHIBITED")
+    if approval.runtime_credential_account_access_authorized is not True:
+        _runtime_error("RUNTIME_CREDENTIAL_ACCOUNT_ACCESS_NOT_AUTHORIZED")
+    if (
+        type(credential_ref_id) is not str
+        or not credential_ref_id.strip()
+        or type(account_ref_id) is not str
+        or not account_ref_id.strip()
+        or type(credential_ownership_evidence_fingerprint) is not str
+        or _re.fullmatch(
+            r"[0-9a-fA-F]{64}",
+            credential_ownership_evidence_fingerprint,
+        )
+        is None
+        or type(account_ownership_evidence_fingerprint) is not str
+        or _re.fullmatch(
+            r"[0-9a-fA-F]{64}",
+            account_ownership_evidence_fingerprint,
+        )
+        is None
+    ):
+        _runtime_error("RUNTIME_BINDING_INPUT_INVALID")
+    try:
+        resolved = await _runtime_call(
+            resolver,
+            "resolve",
+            credential_ref_id=credential_ref_id,
+            account_ref_id=account_ref_id,
+        )
+    except _asyncio.CancelledError:
+        raise
+    except BaseException as exc:
+        raise WatchlistOrderProviderSubmissionBoundaryError(
+            "RUNTIME_LOCAL_DEMO_BINDING_FAILED"
+        ) from None
+    if not _runtime_binding_dict_valid(
+        resolved,
+        credential_ref_id=credential_ref_id,
+        account_ref_id=account_ref_id,
+        credential_fingerprint=credential_ownership_evidence_fingerprint,
+        account_fingerprint=account_ownership_evidence_fingerprint,
+    ):
+        _runtime_error("RUNTIME_LOCAL_DEMO_BINDING_MISMATCH")
+    if approval.cached_token_access_authorized is not True:
+        _runtime_error("CACHED_TOKEN_ACCESS_NOT_AUTHORIZED")
+    auth_refresh_performed = False
+    try:
+        token_metadata = await _runtime_call(
+            cached_token_inspector,
+            "inspect",
+            resolved=resolved,
+            access_authorized=True,
+        )
+    except WatchlistOrderProviderSubmissionBoundaryError as exc:
+        if str(exc) != "AUTH_NETWORK_REQUIRED":
+            raise
+        if approval.auth_network_authorized is not True:
+            raise
+        if approval.token_cache_write_authorized is not True:
+            _runtime_error("TOKEN_CACHE_WRITE_NOT_AUTHORIZED")
+        await _runtime_call(
+            auth_refresher,
+            "refresh_once",
+            auth_network_authorized=True,
+            token_cache_write_authorized=True,
+        )
+        auth_refresh_performed = True
+        token_metadata = await _runtime_call(
+            cached_token_inspector,
+            "inspect",
+            resolved=resolved,
+            access_authorized=True,
+        )
+    if not isinstance(token_metadata, _Mapping):
+        _runtime_error("CACHED_TOKEN_METADATA_INVALID")
+    if token_metadata.get("cached_token_reusable") is not True:
+        _runtime_error("AUTH_NETWORK_REQUIRED")
+    if approval.provider_network_authorized is not True:
+        _runtime_error("PROVIDER_NETWORK_REQUIRED")
+    if approval.expected_account_resolution_authorized is not True:
+        _runtime_error("EXPECTED_ACCOUNT_RESOLUTION_NOT_AUTHORIZED")
+
+    async def _consume(*, access_token: str) -> object:
+        return await _runtime_call(
+            account_probe,
+            "probe",
+            access_token=access_token,
+            account_ref_id=account_ref_id,
+            provider_network_authorized=True,
+            expected_account_resolution_authorized=True,
+            expected_account_resolver=expected_account_resolver,
+        )
+
+    account_validated = await _runtime_call(
+        cached_token_inspector,
+        "consume_reusable_token",
+        resolved=resolved,
+        access_authorized=True,
+        consumer=_consume,
+    )
+    if account_validated is not True:
+        _runtime_error("ACCOUNT_BINDING_VALIDATION_FAILED")
+    return _Phase36RuntimeValidationEvidence(
+        mode="demo",
+        credential_ref_id=credential_ref_id,
+        account_ref_id=account_ref_id,
+        credential_ownership_evidence_fingerprint=
+            credential_ownership_evidence_fingerprint,
+        account_ownership_evidence_fingerprint=
+            account_ownership_evidence_fingerprint,
+        cached_token_reusable=True,
+        auth_refresh_performed=auth_refresh_performed,
+        provider_account_binding_validated=True,
+        auth_network_required=False,
+    )
+
+@_dataclass(frozen=True, slots=True)
 class Phase36ProviderExecutionContext:
     mode: str
     base_url: str
