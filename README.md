@@ -9906,3 +9906,86 @@ Phase36 Approved Draft A2의 의미:
 또한 이 Final Contract Review PASS는 README 등록, implementation, credential/token/account access, provider/auth network, actual `kt10000 POST`, Git mutation 또는 Current Phase 변경을 허가하지 않는다.
 
 <!-- PHASE36_APPROVED_DRAFT_A2_EXACT_PAYLOAD_END -->
+
+## Phase36 Runtime Credential / Cached-Token / Demo Account-Binding Validation Contract v1.0 — DRAFT-A2
+
+**Status:** README official contract registration. `Current Phase` remains `PHASE35`. This contract introduces no new stage name. Existing Phase36 module-level public API remains exact 8.
+
+### Scope and authorization boundary
+
+- This contract governs runtime credential, cached-token, demo account-binding validation for the existing Phase36 runtime adapters.
+- README registration alone does not authorize source/test changes, credential or token value access, `.env` changes, auth/provider network calls, account queries, order calls, dependency changes, Git mutation, rebaseline, or Current Phase transition.
+- Raw App Key, App Secret, access token, and account number must never be returned, logged, written to files, or persisted as evidence.
+
+### A — Local Demo Binding
+
+- Validate the local demo profile / credential / opaque account binding only.
+- Keep `runtime_credential_account_access_authorized` as an independent gate.
+- Require exact `credential_ref_id` / `account_ref_id` binding.
+- Require exact credential/account ownership evidence fingerprint binding.
+- Do not redefine the existing `account_ownership_evidence_fingerprint` as `SHA256(acctNo)` or as any other account-number hash.
+- Do not compare provider `acctNo` directly with the existing ownership-evidence fingerprint.
+- Raw App Key, App Secret, and account number must not be printed, logged, returned, or written to files.
+- No provider account query is permitted in A.
+
+### B — Cached-Token Inspection
+
+- Cached-token access requires authorization separate from A.
+- Use `FileTokenStore.peek` for non-destructive inspection.
+- Do not call `get_access_token` or `refresh_access_token` during B.
+- Validate demo mode, profile, credential fingerprint, token type, and expiry.
+- Minimum reusable validity is strictly greater than 600 seconds.
+- Raw access-token value must not be printed, logged, hashed for evidence, returned, or persisted.
+- Token miss, expired token, or non-reusable token must fail closed as `AUTH_NETWORK_REQUIRED`.
+
+### C — Demo Auth Issue/Refresh
+
+- C is eligible only when B cannot provide a reusable token.
+- `auth_network_authorized` and token-cache-write authorization are independent required gates.
+- Demo base URL must be exactly `https://mockapi.kiwoom.com`.
+- Do not call `get_access_token`.
+- `refresh_access_token` may be called at most once.
+- Automatic retry is prohibited.
+- On timeout or cancellation, do not infer success.
+- External `CancelledError` must be re-raised after cleanup.
+- Re-run fresh B inspection after the auth attempt to validate the resulting cached-token state.
+
+### D — Demo Provider Account Binding
+
+- `provider_network_authorized` is a separate required gate.
+- Use only API ID `ka00001` (`계좌번호조회`).
+- Issue exactly one `POST` request to `https://mockapi.kiwoom.com/api/dostk/acnt`.
+- Request body is `{}`; required `api-id` is `ka00001`; authorization is `Bearer <access-token>`.
+- Read the provider account identity only from response field `acctNo`.
+- Automatic retry is prohibited.
+- Do not use `kt00018`.
+- Do not call any order endpoint.
+- Actual D execution additionally requires a separate secret-safe `expected_account_resolver`.
+- `expected_account_resolver` receives `account_ref_id` and supplies the expected account number from a separately approved secure local source, memory-only.
+- Compare provider `acctNo` with the expected account number only in memory.
+- Do not return, log, include in exceptions, write to files, or persist the raw account number.
+- Do not persist an unkeyed hash of the account number.
+- Selection of the actual data source used by `expected_account_resolver` requires separate approval before D Actual.
+
+### E — kt10000 Hard Prohibition
+
+- Keep `actual_kt10000_post_authorized=False`.
+- If it is `True`, block before validation begins.
+- `kt10000`, `/api/dostk/ordr`, actual orders, `SELL`, modify/cancel, credit, and NXT/SOR are outside this contract.
+
+### Future implementation contract — not implemented by this README registration
+
+- Keep all existing Phase36 module-level public API exact 8 unchanged.
+- Private-only implementation candidates:
+  - `_Phase36RuntimeValidationApproval`
+  - `_Phase36RuntimeValidationEvidence`
+  - `_KiwoomSdkCachedTokenInspector`
+  - `_KiwoomSdkDemoAuthRefresher`
+  - `_Phase36DemoAccountBindingProbe`
+  - `_validate_phase36_runtime_materials_once`
+- Future implementation allowlist:
+  1. `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_submission_boundary.py`
+  2. `tests/test_watchlist_order_runtime_validation_contract.py`
+- Future runtime-validation direct tests: 32 total candidates = Compatibility 4 + A 6 + B 8 + C 5 + D 5 + E/security 4.
+- Expected full regression after that future implementation is 1597.
+- This README-only registration does not modify source/test code or test counts; the existing Phase36 targeted-test baseline remains 96 and the existing full-regression baseline remains 1565.
