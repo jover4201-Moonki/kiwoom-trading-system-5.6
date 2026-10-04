@@ -64,6 +64,381 @@ class Phase36SubmissionApprovalEvidence:
     approval_fingerprint: str
 
 
+class _KiwoomSdkLocalCredentialAccountResolver:
+    def __init__(
+        self,
+        *,
+        profile_alias: str,
+        credential_ref_id: str,
+        account_ref_id: str,
+        credential_ownership_evidence_fingerprint: str,
+        account_ownership_evidence_fingerprint: str,
+        profile_loader: object | None = None,
+        secret_provider: object | None = None,
+        credential_fingerprint: object | None = None,
+    ) -> None:
+        if type(profile_alias) is not str or not profile_alias.strip():
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_PROFILE_ALIAS_INVALID"
+            )
+        if len(profile_alias.strip()) > 64:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_PROFILE_ALIAS_INVALID"
+            )
+        if type(credential_ref_id) is not str or not credential_ref_id.strip():
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CREDENTIAL_REF_INVALID"
+            )
+        if type(account_ref_id) is not str or not account_ref_id.strip():
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_ACCOUNT_REF_INVALID"
+            )
+        if (
+            type(credential_ownership_evidence_fingerprint) is not str
+            or _re.fullmatch(
+                r"[0-9a-fA-F]{64}",
+                credential_ownership_evidence_fingerprint,
+            )
+            is None
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CREDENTIAL_FINGERPRINT_INVALID"
+            )
+        if (
+            type(account_ownership_evidence_fingerprint) is not str
+            or _re.fullmatch(
+                r"[0-9a-fA-F]{64}",
+                account_ownership_evidence_fingerprint,
+            )
+            is None
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_ACCOUNT_FINGERPRINT_INVALID"
+            )
+
+        self._profile_alias = profile_alias.strip()
+        self._credential_ref_id = credential_ref_id
+        self._account_ref_id = account_ref_id
+        self._credential_ownership_evidence_fingerprint = (
+            credential_ownership_evidence_fingerprint
+        )
+        self._account_ownership_evidence_fingerprint = (
+            account_ownership_evidence_fingerprint
+        )
+
+        if (
+            profile_loader is None
+            or secret_provider is None
+            or credential_fingerprint is None
+        ):
+            try:
+                from kiwoom.core.auth import KiwoomAuth as _KiwoomAuth
+                from kiwoom.core.profiles import get_profile as _get_profile
+                from kiwoom.core.secrets import (
+                    default_secret_provider as _default_secret_provider,
+                )
+            except Exception as exc:
+                raise WatchlistOrderProviderSubmissionBoundaryError(
+                    "STAGE7_KIWOOM_SDK_UNAVAILABLE"
+                ) from exc
+
+            if profile_loader is None:
+                profile_loader = _get_profile
+            if secret_provider is None:
+                secret_provider = _default_secret_provider(
+                    profile=self._profile_alias,
+                )
+            if credential_fingerprint is None:
+                credential_fingerprint = _KiwoomAuth._credential_fingerprint
+
+        self._profile_loader = profile_loader
+        self._secret_provider = secret_provider
+        self._credential_fingerprint = credential_fingerprint
+
+    def __repr__(self) -> str:
+        return (
+            "_KiwoomSdkLocalCredentialAccountResolver("
+            "secret_safe=True)"
+        )
+
+    async def resolve(
+        self,
+        *,
+        credential_ref_id: str,
+        account_ref_id: str,
+    ) -> dict[str, str]:
+        if (
+            credential_ref_id != self._credential_ref_id
+            or account_ref_id != self._account_ref_id
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_REFERENCE_BINDING_MISMATCH"
+            )
+
+        try:
+            profile = self._profile_loader(self._profile_alias)
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_LOCAL_PROFILE_RESOLUTION_FAILED"
+            ) from exc
+
+        if (
+            getattr(profile, "alias", None) != self._profile_alias
+            or getattr(profile, "mode", None) != "demo"
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_DEMO_PROFILE_BINDING_MISMATCH"
+            )
+
+        try:
+            credentials = self._secret_provider.get_credentials("demo")
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_LOCAL_CREDENTIAL_READ_FAILED"
+            ) from exc
+
+        if credentials is None:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_LOCAL_CREDENTIALS_MISSING"
+            )
+
+        try:
+            actual_fingerprint = self._credential_fingerprint(credentials)
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CREDENTIAL_FINGERPRINT_FAILED"
+            ) from exc
+
+        if (
+            type(actual_fingerprint) is not str
+            or actual_fingerprint
+            != self._credential_ownership_evidence_fingerprint
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CREDENTIAL_OWNERSHIP_MISMATCH"
+            )
+
+        return {
+            "mode": "demo",
+            "credential_ref_id": self._credential_ref_id,
+            "account_ref_id": self._account_ref_id,
+            "credential_ownership_evidence_fingerprint":
+                self._credential_ownership_evidence_fingerprint,
+            "account_ownership_evidence_fingerprint":
+                self._account_ownership_evidence_fingerprint,
+        }
+
+
+class _KiwoomSdkCachedTokenProvider:
+    def __init__(
+        self,
+        *,
+        profile_alias: str,
+        token_store: object | None = None,
+        now_utc: object | None = None,
+        minimum_validity_seconds: float = 600.0,
+    ) -> None:
+        if type(profile_alias) is not str or not profile_alias.strip():
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_PROFILE_ALIAS_INVALID"
+            )
+        if len(profile_alias.strip()) > 64:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_PROFILE_ALIAS_INVALID"
+            )
+        if (
+            isinstance(minimum_validity_seconds, bool)
+            or not isinstance(minimum_validity_seconds, (int, float))
+            or not _math.isfinite(float(minimum_validity_seconds))
+            or float(minimum_validity_seconds) < 0.0
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_TOKEN_MINIMUM_VALIDITY_INVALID"
+            )
+
+        self._profile_alias = profile_alias.strip()
+        self._minimum_validity_seconds = float(
+            minimum_validity_seconds
+        )
+
+        if token_store is None:
+            try:
+                from kiwoom.core.token_store import (
+                    FileTokenStore as _FileTokenStore,
+                )
+            except Exception as exc:
+                raise WatchlistOrderProviderSubmissionBoundaryError(
+                    "STAGE7_KIWOOM_SDK_UNAVAILABLE"
+                ) from exc
+
+            token_store = _FileTokenStore()
+
+        self._token_store = token_store
+        self._now_utc = (
+            now_utc
+            if now_utc is not None
+            else lambda: _datetime.now(_timezone.utc)
+        )
+
+    def __repr__(self) -> str:
+        return "_KiwoomSdkCachedTokenProvider(secret_safe=True)"
+
+    async def acquire(
+        self,
+        *,
+        resolved: object,
+    ) -> dict[str, str]:
+        expected_keys = {
+            "mode",
+            "credential_ref_id",
+            "account_ref_id",
+            "credential_ownership_evidence_fingerprint",
+            "account_ownership_evidence_fingerprint",
+        }
+
+        if not isinstance(resolved, _Mapping):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_RESOLVED_BINDING_INVALID"
+            )
+
+        try:
+            if set(resolved.keys()) != expected_keys:
+                raise WatchlistOrderProviderSubmissionBoundaryError(
+                    "STAGE7_RESOLVED_BINDING_INVALID"
+                )
+
+            mode = resolved["mode"]
+            credential_ref_id = resolved["credential_ref_id"]
+            account_ref_id = resolved["account_ref_id"]
+            credential_fingerprint = (
+                resolved[
+                    "credential_ownership_evidence_fingerprint"
+                ]
+            )
+            account_fingerprint = (
+                resolved[
+                    "account_ownership_evidence_fingerprint"
+                ]
+            )
+        except (KeyError, TypeError) as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_RESOLVED_BINDING_INVALID"
+            ) from exc
+
+        if mode != "demo":
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_RESOLVED_MODE_NOT_DEMO"
+            )
+
+        for value, code in (
+            (
+                credential_ref_id,
+                "STAGE7_CREDENTIAL_REF_INVALID",
+            ),
+            (
+                account_ref_id,
+                "STAGE7_ACCOUNT_REF_INVALID",
+            ),
+        ):
+            if type(value) is not str or not value.strip():
+                raise WatchlistOrderProviderSubmissionBoundaryError(code)
+
+        for value, code in (
+            (
+                credential_fingerprint,
+                "STAGE7_CREDENTIAL_FINGERPRINT_INVALID",
+            ),
+            (
+                account_fingerprint,
+                "STAGE7_ACCOUNT_FINGERPRINT_INVALID",
+            ),
+        ):
+            if (
+                type(value) is not str
+                or _re.fullmatch(r"[0-9a-fA-F]{64}", value) is None
+            ):
+                raise WatchlistOrderProviderSubmissionBoundaryError(code)
+
+        try:
+            record = self._token_store.peek(
+                "demo",
+                profile=self._profile_alias,
+            )
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_READ_FAILED"
+            ) from exc
+
+        if record is None:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_MISSING"
+            )
+
+        if (
+            getattr(record, "mode", None) != "demo"
+            or getattr(record, "profile", None) != self._profile_alias
+            or getattr(record, "credential_fingerprint", None)
+            != credential_fingerprint
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_BINDING_MISMATCH"
+            )
+
+        token_type = getattr(record, "token_type", None)
+        token = getattr(record, "access_token", None)
+
+        if (
+            type(token_type) is not str
+            or token_type.lower() != "bearer"
+            or type(token) is not str
+            or not token
+            or token != token.strip()
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_INVALID"
+            )
+
+        expires_at = getattr(record, "expires_at", None)
+
+        try:
+            now = self._now_utc()
+        except Exception as exc:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CLOCK_FAILED"
+            ) from exc
+
+        if (
+            not isinstance(expires_at, _datetime)
+            or expires_at.tzinfo is None
+            or not isinstance(now, _datetime)
+            or now.tzinfo is None
+        ):
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_EXPIRY_INVALID"
+            )
+
+        remaining_seconds = (
+            expires_at.astimezone(_timezone.utc)
+            - now.astimezone(_timezone.utc)
+        ).total_seconds()
+
+        if remaining_seconds <= self._minimum_validity_seconds:
+            raise WatchlistOrderProviderSubmissionBoundaryError(
+                "STAGE7_CACHED_TOKEN_NOT_REUSABLE"
+            )
+
+        return {
+            "token": token,
+            "mode": "demo",
+            "credential_ref_id": credential_ref_id,
+            "account_ref_id": account_ref_id,
+            "credential_ownership_evidence_fingerprint":
+                credential_fingerprint,
+            "account_ownership_evidence_fingerprint":
+                account_fingerprint,
+        }
+
+
 @_dataclass(frozen=True, slots=True)
 class Phase36ProviderExecutionContext:
     mode: str

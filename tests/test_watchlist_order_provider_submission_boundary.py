@@ -854,6 +854,224 @@ class Phase36ReadinessApprovalTests(unittest.IsolatedAsyncioTestCase):
 
 class Phase36PreflightTests(unittest.IsolatedAsyncioTestCase):
     async def test_031_ordered_preflight_resolve_token_revalidate_claim_cas_transport(self):
+        _stage7_module = __import__(
+            "kiwoom_trading_system.brokers.kiwoom.rest."
+            "watchlist_order_provider_submission_boundary",
+            fromlist=["*"],
+        )
+        Resolver = getattr(
+            _stage7_module,
+            "_KiwoomSdkLocalCredentialAccountResolver",
+        )
+        TokenProvider = getattr(
+            _stage7_module,
+            "_KiwoomSdkCachedTokenProvider",
+        )
+
+        class LocalProfile:
+            def __init__(self, alias="demo-1", mode="demo"):
+                self.alias = alias
+                self.mode = mode
+
+        class LocalSecretProvider:
+            def __init__(self):
+                self.calls = 0
+
+            def get_credentials(self, mode):
+                self.calls += 1
+                self.mode = mode
+                return object()
+
+        profile_calls = []
+
+        def profile_loader(alias):
+            profile_calls.append(alias)
+            return LocalProfile(alias=alias, mode="demo")
+
+        secret_provider = LocalSecretProvider()
+
+        resolver = Resolver(
+            profile_alias="demo-1",
+            credential_ref_id="credref:demo-1",
+            account_ref_id="acctref:demo-1",
+            credential_ownership_evidence_fingerprint=CRED_FP,
+            account_ownership_evidence_fingerprint=ACCT_FP,
+            profile_loader=profile_loader,
+            secret_provider=secret_provider,
+            credential_fingerprint=lambda credentials: CRED_FP,
+        )
+
+        resolved = await resolver.resolve(
+            credential_ref_id="credref:demo-1",
+            account_ref_id="acctref:demo-1",
+        )
+
+        self.assertEqual(
+            resolved,
+            {
+                "mode": "demo",
+                "credential_ref_id": "credref:demo-1",
+                "account_ref_id": "acctref:demo-1",
+                "credential_ownership_evidence_fingerprint": CRED_FP,
+                "account_ownership_evidence_fingerprint": ACCT_FP,
+            },
+        )
+        self.assertEqual(profile_calls, ["demo-1"])
+        self.assertEqual(secret_provider.calls, 1)
+        self.assertEqual(secret_provider.mode, "demo")
+        self.assertNotIn("credref:demo-1", repr(resolver))
+        self.assertNotIn("acctref:demo-1", repr(resolver))
+
+        bad_profile_resolver = Resolver(
+            profile_alias="demo-1",
+            credential_ref_id="credref:demo-1",
+            account_ref_id="acctref:demo-1",
+            credential_ownership_evidence_fingerprint=CRED_FP,
+            account_ownership_evidence_fingerprint=ACCT_FP,
+            profile_loader=lambda alias: LocalProfile(
+                alias="other",
+                mode="demo",
+            ),
+            secret_provider=LocalSecretProvider(),
+            credential_fingerprint=lambda credentials: CRED_FP,
+        )
+
+        with self.assertRaisesRegex(
+            _stage7_module.WatchlistOrderProviderSubmissionBoundaryError,
+            "STAGE7_DEMO_PROFILE_BINDING_MISMATCH",
+        ):
+            await bad_profile_resolver.resolve(
+                credential_ref_id="credref:demo-1",
+                account_ref_id="acctref:demo-1",
+            )
+
+        bad_credential_resolver = Resolver(
+            profile_alias="demo-1",
+            credential_ref_id="credref:demo-1",
+            account_ref_id="acctref:demo-1",
+            credential_ownership_evidence_fingerprint=CRED_FP,
+            account_ownership_evidence_fingerprint=ACCT_FP,
+            profile_loader=profile_loader,
+            secret_provider=LocalSecretProvider(),
+            credential_fingerprint=lambda credentials: "f" * 64,
+        )
+
+        with self.assertRaisesRegex(
+            _stage7_module.WatchlistOrderProviderSubmissionBoundaryError,
+            "STAGE7_CREDENTIAL_OWNERSHIP_MISMATCH",
+        ):
+            await bad_credential_resolver.resolve(
+                credential_ref_id="credref:demo-1",
+                account_ref_id="acctref:demo-1",
+            )
+
+        class LocalTokenRecord:
+            def __init__(
+                self,
+                *,
+                credential_fingerprint=CRED_FP,
+                expires_at=None,
+            ):
+                self.access_token = "token-supersecret-123"
+                self.token_type = "bearer"
+                self.expires_at = (
+                    expires_at
+                    if expires_at is not None
+                    else FIXED_NOW + timedelta(hours=1)
+                )
+                self.mode = "demo"
+                self.profile = "demo-1"
+                self.credential_fingerprint = credential_fingerprint
+
+        class LocalTokenStore:
+            def __init__(self, record):
+                self.record = record
+                self.peek_calls = []
+
+            def peek(self, mode, *, profile=None):
+                self.peek_calls.append((mode, profile))
+                return self.record
+
+            def load(self, *args, **kwargs):
+                raise AssertionError("STAGE7_LOAD_MUST_NOT_BE_USED")
+
+            def clear(self, *args, **kwargs):
+                raise AssertionError("STAGE7_CLEAR_MUST_NOT_BE_USED")
+
+            def save(self, *args, **kwargs):
+                raise AssertionError("STAGE7_SAVE_MUST_NOT_BE_USED")
+
+        token_store = LocalTokenStore(LocalTokenRecord())
+
+        token_provider = TokenProvider(
+            profile_alias="demo-1",
+            token_store=token_store,
+            now_utc=lambda: FIXED_NOW,
+            minimum_validity_seconds=600,
+        )
+
+        token_material = await token_provider.acquire(
+            resolved=resolved,
+        )
+
+        self.assertEqual(
+            token_material,
+            {
+                "token": "token-supersecret-123",
+                "mode": "demo",
+                "credential_ref_id": "credref:demo-1",
+                "account_ref_id": "acctref:demo-1",
+                "credential_ownership_evidence_fingerprint": CRED_FP,
+                "account_ownership_evidence_fingerprint": ACCT_FP,
+            },
+        )
+        self.assertEqual(
+            token_store.peek_calls,
+            [("demo", "demo-1")],
+        )
+        self.assertNotIn(
+            "token-supersecret-123",
+            repr(token_provider),
+        )
+
+        with self.assertRaisesRegex(
+            _stage7_module.WatchlistOrderProviderSubmissionBoundaryError,
+            "STAGE7_CACHED_TOKEN_MISSING",
+        ):
+            await TokenProvider(
+                profile_alias="demo-1",
+                token_store=LocalTokenStore(None),
+                now_utc=lambda: FIXED_NOW,
+            ).acquire(resolved=resolved)
+
+        with self.assertRaisesRegex(
+            _stage7_module.WatchlistOrderProviderSubmissionBoundaryError,
+            "STAGE7_CACHED_TOKEN_BINDING_MISMATCH",
+        ):
+            await TokenProvider(
+                profile_alias="demo-1",
+                token_store=LocalTokenStore(
+                    LocalTokenRecord(
+                        credential_fingerprint="f" * 64,
+                    )
+                ),
+                now_utc=lambda: FIXED_NOW,
+            ).acquire(resolved=resolved)
+
+        with self.assertRaisesRegex(
+            _stage7_module.WatchlistOrderProviderSubmissionBoundaryError,
+            "STAGE7_CACHED_TOKEN_NOT_REUSABLE",
+        ):
+            await TokenProvider(
+                profile_alias="demo-1",
+                token_store=LocalTokenStore(
+                    LocalTokenRecord(
+                        expires_at=FIXED_NOW + timedelta(seconds=600),
+                    )
+                ),
+                now_utc=lambda: FIXED_NOW,
+                minimum_validity_seconds=600,
+            ).acquire(resolved=resolved)
         m = subject(); r = make_readiness(); events = []
         c = make_context(
             m, r,
