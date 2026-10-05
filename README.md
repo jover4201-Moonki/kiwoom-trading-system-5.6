@@ -5,7 +5,7 @@
 
 ## Current Phase
 
-Phase 35 — demo Kiwoom Cash BUY Provider-Send Execution Readiness Gate Snapshot 기반선 v1.0
+Phase 36 — demo Kiwoom Cash BUY One-Shot Provider Submission Boundary Contract v1.1
 
 검증된 현재 기준선:
 
@@ -9989,3 +9989,61 @@ Phase36 Approved Draft A2의 의미:
 - Future runtime-validation direct tests: 32 total candidates = Compatibility 4 + A 6 + B 8 + C 5 + D 5 + E/security 4.
 - Expected full regression after that future implementation is 1597.
 - This README-only registration does not modify source/test code or test counts; the existing Phase36 targeted-test baseline remains 96 and the existing full-regression baseline remains 1565.
+
+## Phase36 Runtime Credential / Cached-Token / Demo Account-Binding Validation implementation Closure
+
+Closure status:
+
+- `PHASE36_IMPLEMENTATION=COMPLETE`
+- `PHASE36_RUNTIME_VALIDATION_IMPLEMENTATION=COMPLETE`
+- `PHASE36_RUNTIME_VALIDATION_IMPLEMENTATION_CLOSURE=PASS`
+- `CURRENT_PHASE_BEFORE_ALIGNMENT=PHASE35`
+
+Frozen implementation identity:
+
+- `PHASE36_RUNTIME_VALIDATION_IMPLEMENTATION_COMMIT=1fd56f0b3f1d75f7ac1837ccec710fc81d3dfb49`
+- `PHASE36_RUNTIME_VALIDATION_IMPLEMENTATION_TREE=6b928a71b82b0fc94d6b2ef3009ea41c38b0b687`
+- `PHASE36_RUNTIME_VALIDATION_SOURCE_PATH=src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_submission_boundary.py`
+- `PHASE36_RUNTIME_VALIDATION_SOURCE_BYTES=96563`
+- `PHASE36_RUNTIME_VALIDATION_SOURCE_SHA256=02875C1A18E0172FB145B99E13FF87829D3F85B82960E6C38F236E7BCD2BB4B0`
+- `PHASE36_RUNTIME_VALIDATION_TEST_PATH=tests/test_watchlist_order_runtime_validation_contract.py`
+- `PHASE36_RUNTIME_VALIDATION_TEST_BYTES=36476`
+- `PHASE36_RUNTIME_VALIDATION_TEST_SHA256=3862F17BA3F103DABD8479E891D1967FE4A905AB11A242AEB18C08B1FCB05720`
+
+Fresh validation evidence:
+
+- `PHASE36_RUNTIME_VALIDATION_DIRECT_TEST_COUNT=32`
+- `PHASE36_EXISTING_TARGETED_TEST_COUNT=96`
+- `PHASE36_FULL_REGRESSION_V5_TEST_COUNT=1597`
+- `PHASE36_FULL_REGRESSION_FAILURES=0`
+- `PHASE36_FULL_REGRESSION_ERRORS=0`
+- `PHASE36_FULL_REGRESSION_SKIPPED=0`
+- `PHASE36_FULL_REGRESSION_WARNING_LINES=0`
+- `PHASE36_FULL_REGRESSION_EXIT_CODE=0`
+- `PHASE36_IMPLEMENTATION_REMOTE_CONFIRMED=YES`
+
+This closure freezes the completed Phase36 runtime-validation implementation, its pushed implementation identity, and the fresh V5 full-regression evidence. The earlier registration-stage `CURRENT_PHASE=PHASE35`, `Current Phase remains PHASE35`, and future-implementation statements are historical pre-implementation provenance and remain unchanged.
+
+This closure does not authorize runtime credential, token, or account access; auth/provider network access; `ka00001`; actual `kt10000`; order action; dependency changes; Git mutation; restore/reset/clean; or rebaseline.
+
+## Phase36 Current Phase alignment
+
+Alignment status:
+
+- `PHASE36_CURRENT_PHASE_ALIGNMENT=PASS`
+- `CURRENT_PHASE=PHASE36`
+- `PHASE36_IMPLEMENTATION_COMMIT=1fd56f0b3f1d75f7ac1837ccec710fc81d3dfb49`
+- `PHASE36_IMPLEMENTATION_TREE=6b928a71b82b0fc94d6b2ef3009ea41c38b0b687`
+- `PHASE36_RUNTIME_VALIDATION_DIRECT_TEST_COUNT=32`
+- `PHASE36_EXISTING_TARGETED_TEST_COUNT=96`
+- `PHASE36_FULL_REGRESSION_V5_TEST_COUNT=1597`
+- `PHASE36_FULL_REGRESSION_FAILURES=0`
+- `PHASE36_FULL_REGRESSION_ERRORS=0`
+- `PHASE36_FULL_REGRESSION_SKIPPED=0`
+- `PHASE36_FULL_REGRESSION_WARNING_LINES=0`
+- `PHASE36_FULL_REGRESSION_EXIT_CODE=0`
+- `PHASE36_REMOTE_MAIN=1fd56f0b3f1d75f7ac1837ccec710fc81d3dfb49`
+
+This alignment supersedes only the repository current-phase authority after the validated Phase36 implementation and remote confirmation. Historical `Current Phase` and `CURRENT_PHASE` statements remain unchanged as provenance. Current Phase is now PHASE36.
+
+This alignment does not authorize credential/token/account access, auth/provider network access, `ka00001`, actual `kt10000`, order action, dependency changes, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` changes.
