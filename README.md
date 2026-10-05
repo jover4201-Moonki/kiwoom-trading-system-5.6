@@ -10047,3 +10047,182 @@ Alignment status:
 This alignment supersedes only the repository current-phase authority after the validated Phase36 implementation and remote confirmation. Historical `Current Phase` and `CURRENT_PHASE` statements remain unchanged as provenance. Current Phase is now PHASE36.
 
 This alignment does not authorize credential/token/account access, auth/provider network access, `ka00001`, actual `kt10000`, order action, dependency changes, Git add/commit/push, restore/reset/clean, rebaseline, source/test mutation, or `rest/__init__.py` changes.
+
+<!-- PHASE37_CANDIDATE_DRAFT_A1_EXACT_PAYLOAD_BEGIN -->
+
+## Candidate Phase37 — demo Kiwoom Cash BUY kt10000 Single-Attempt Provider Submission Execution Boundary & Evidence Contract v1.0 — DRAFT-A1
+
+**Status:** README official candidate-contract registration only. `Current Phase` remains `PHASE36`. Phase37 implementation is NOT APPROVED.
+
+### 1. Purpose and authorization boundary
+
+- This contract freezes the future Phase37 boundary for one demo/KRX/cash BUY `kt10000` provider-submission attempt by consuming the completed Phase36 public submission boundary.
+- This README registration does not authorize Phase37 implementation, runtime credential/token/account access, auth/provider/account/order network calls, demo or real `kt10000 POST`, actual orders, dependency changes, Git mutation, rebaseline, or Current Phase transition.
+- Phase36 historical provenance, implementation Closure, and Current Phase alignment remain unchanged.
+- No real-server or real-account execution is in scope.
+
+### 2. Frozen Phase36 public-only upstream coupling
+
+The existing Phase36 module-level public API remains exact 8 and must not be changed:
+
+1. `WatchlistOrderProviderSubmissionBoundaryError`
+2. `KiwoomOrderProviderSubmissionOutcome`
+3. `Phase36SubmissionRegistryState`
+4. `Phase36SubmissionApprovalEvidence`
+5. `Phase36ProviderExecutionContext`
+6. `Phase36AtomicSubmissionRegistry`
+7. `KiwoomOrderProviderSubmissionReceipt`
+8. `submit_demo_watchlist_order_once`
+
+Future Phase37 implementation may import/use only these Phase36 public symbols from `watchlist_order_provider_submission_boundary.py`.
+
+The following Phase36 runtime-validation symbols remain private-only and Phase37 must not import, call, re-export, subclass, monkey-patch, or otherwise couple to them:
+
+- `_Phase36RuntimeValidationApproval`
+- `_Phase36RuntimeValidationEvidence`
+- `_KiwoomSdkCachedTokenInspector`
+- `_KiwoomSdkDemoAuthRefresher`
+- `_Phase36DemoAccountBindingProbe`
+- `_validate_phase36_runtime_materials_once`
+
+Phase37 must not require any Phase36 public-API addition or change, Phase36 source/test modification, `rest/__init__.py` modification, or new dependency.
+
+### 3. Public boundary relationship
+
+- `Phase36SubmissionApprovalEvidence` is the exact one-shot approval input contract. `one_shot_authorized` must be `True`, approval time bounds must be valid, and readiness/request/source-attempt/authorization/scope/credential-ownership/account-ownership bindings must match the upstream readiness snapshot.
+- `Phase36ProviderExecutionContext` is the exact public runtime/provider execution context supplied to Phase36. It carries demo mode/base URL, opaque credential/account references, ownership fingerprints, authorization gates, timeout, resolver, token provider, readiness revalidator, transport, cleanup, and clock.
+- `Phase36AtomicSubmissionRegistry` is the exact atomic submission-state capability. Actual execution requires a durable, non-test-only registry when `test_execution=False`.
+- `submit_demo_watchlist_order_once` is the sole Phase36 provider-submission orchestration function that Phase37 may invoke for the attempt.
+- `KiwoomOrderProviderSubmissionReceipt` is the exact returned provider-submission evidence type consumed by Phase37.
+- `KiwoomOrderProviderSubmissionOutcome` and `Phase36SubmissionRegistryState` are the exact outcome/state domains carried by that receipt and registry.
+- `WatchlistOrderProviderSubmissionBoundaryError` is the existing public Phase36 boundary error type; Phase37 must not replace it with private Phase36 error channels.
+- The upstream readiness snapshot may be passed through as an existing upstream object, but Phase37 must not reach into Phase36 private runtime-validation evidence to manufacture or replace it.
+
+### 4. Runtime-validation / actual-order stage separation
+
+The completed Phase36 private runtime-validation contract and the Phase36 public order-submission path have different authorization meanings and must remain separated.
+
+- `_validate_phase36_runtime_materials_once` belongs to the private runtime-validation stage and requires `actual_kt10000_post_authorized=False`; Phase37 must not call it as an actual-order execution prerequisite.
+- The public `Phase36ProviderExecutionContext` order path requires exact boolean values and, before provider submission can proceed, requires all of:
+  - `runtime_credential_account_access_authorized=True`
+  - `auth_network_authorized=True`
+  - `provider_network_authorized=True`
+  - `actual_kt10000_post_authorized=True`
+- Future actual execution additionally requires `test_execution=False`.
+- With `test_execution=False`, the registry must satisfy `is_durable=True` and `test_only=False`.
+- These `True` values describe future Phase37 execution eligibility only. This README registration does not grant any of those runtime/network/order authorizations.
+- Phase37 must rely on the Phase36 public path's resolver/token binding/readiness revalidation and must not recreate private runtime-validation internals.
+
+### 5. Exact provider boundary
+
+For future Phase37 execution, the provider boundary is frozen to:
+
+- mode: `demo`
+- base URL: `https://mockapi.kiwoom.com`
+- method: `POST`
+- API ID: `kt10000`
+- path: `/api/dostk/ordr`
+- market: `KRX`
+- order family: domestic cash BUY only
+- transport retry/retransmission for the same attempt: prohibited
+
+`SELL`, modify/cancel, credit, NXT, SOR, real mode, real server, and any other order API are outside this contract.
+
+The validated request body must come from the already-authoritative upstream readiness chain. Phase37 must not silently rebuild, broaden, or mutate the order request.
+
+### 6. Single-attempt submission rule
+
+- One Phase37 execution request may delegate to `submit_demo_watchlist_order_once` at most once.
+- Phase37 must not call `execution_context.transport.post_order` directly.
+- Phase37 must not perform a second submission after a blocked, accepted, not-accepted, timeout, cancellation, provider error, persistence failure, or ambiguous result.
+- Phase36 owns claim, `CLAIMED_PRE_SEND -> IN_FLIGHT`, the single transport attempt, response classification, terminalization, and cleanup.
+- A receipt with `transport_attempt_count=0` means the attempt did not reach provider order transport.
+- A receipt with `transport_attempt_count=1` means the Phase36 public boundary consumed the single provider transport attempt.
+- Any value outside `0` or `1` is a contract violation and must fail closed.
+- No token refresh, auth recovery, HTTP retry, rate-limit retry, or provider-error recovery may create order retransmission authority.
+
+### 7. Receipt and evidence contract
+
+Phase37 must preserve the returned `KiwoomOrderProviderSubmissionReceipt` without weakening its provenance.
+
+Required evidence includes:
+
+- attempt fingerprint
+- request fingerprint
+- readiness fingerprint
+- submission approval fingerprint
+- claim fingerprint when present
+- demo endpoint identity and API ID
+- normalized provider return code when available
+- secret-safe provider return message/order number/exchange fields when available
+- `KiwoomOrderProviderSubmissionOutcome`
+- terminal `Phase36SubmissionRegistryState` when available
+- transport attempt count
+- started/completed UTC timestamps
+- credential/account provenance fingerprints when available
+
+Phase37 must not infer provider acceptance merely from HTTP completion. `CONFIRMED_ACCEPTED`, `CONFIRMED_NOT_ACCEPTED`, `BLOCKED_BEFORE_SEND`, and `AMBIGUOUS_UNRESOLVED` remain Phase36-defined outcome semantics.
+
+### 8. Failure, timeout, cancellation, and persistence
+
+- `BLOCKED_BEFORE_SEND` never authorizes an automatic retry.
+- Timeout after the attempt may have reached provider transport remains fail-closed as `AMBIGUOUS_UNRESOLVED`.
+- External `CancelledError` must not be converted into success or retry authority; Phase36 cleanup/finalization semantics and cancellation propagation are preserved.
+- If terminal persistence cannot be established after send, Phase37 must not initiate another order attempt.
+- `CONFIRMED_ACCEPTED` and `AMBIGUOUS_UNRESOLVED` prohibit automatic resubmission.
+- Any later eligible attempt after a retry-permitted terminal state requires a fresh authoritative upstream chain and separately approved execution authority; no consumed claim may be reused.
+
+### 9. Secret and account safety
+
+- Raw App Key, App Secret, access token, and raw account number must never be printed, logged, returned as Phase37 evidence, included in exceptions, or written to repository files.
+- Phase37 evidence may retain only the existing opaque references and secret-safe ownership/provenance fingerprints already exposed through approved public contracts.
+- Registration and tests must not access credential/token/account material or external provider/auth/account/order networks.
+
+### 10. Candidate implementation allowlist — NOT APPROVED
+
+The following paths are frozen as implementation candidates only and are not authorized for modification by this README registration:
+
+1. `src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_demo_provider_submission_execution.py`
+2. `tests/test_watchlist_order_demo_provider_submission_execution_contract.py`
+
+All other source/test paths, including the existing Phase36 source/test and `rest/__init__.py`, remain excluded.
+
+### 11. Candidate test-count contract — not an implementation baseline
+
+Candidate counts:
+
+- Phase37 direct candidate: `40`
+- targeted aggregate candidate: `168`
+- expected full candidate: `1637`
+
+These values are planning candidates only. They are not implementation Actual baselines and must be re-frozen by fresh unittest discovery before any Phase37 implementation approval. Baseline drift must STOP-HOLD rather than trigger silent rebaseline.
+
+### 12. Registration governance
+
+- `CANDIDATE_PHASE_NUMBER=PHASE37`
+- `PHASE37_CANDIDATE_DRAFT_A1_REGISTERED=YES`
+- `CURRENT_PHASE=PHASE36`
+- `PHASE37_IMPLEMENTATION_APPROVED=NO`
+- `RUNTIME_CREDENTIAL_TOKEN_ACCOUNT_ACCESS_AUTHORIZED=NO`
+- `AUTH_PROVIDER_ACCOUNT_ORDER_NETWORK_AUTHORIZED=NO`
+- `ACTUAL_KT10000_POST_AUTHORIZED=NO`
+- `REAL_ORDER_AUTHORIZED=NO`
+- `DEPENDENCY_CHANGE_APPROVED=NO`
+- `PHASE36_SOURCE_TEST_CHANGE_APPROVED=NO`
+- `REST_INIT_CHANGE_APPROVED=NO`
+- `REBASELINE_APPROVED=NO`
+- `CURRENT_PHASE_CHANGE_APPROVED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+- `RESTORE_RESET_CLEAN_APPROVED=NO`
+
+### 13. Final boundary
+
+This DRAFT-A1 registration means only:
+
+“Phase37 may later be implemented as a public-only consumer of the completed Phase36 submission boundary, using the exact Phase36 public types and `submit_demo_watchlist_order_once` to establish a single-attempt demo/KRX/cash-BUY `kt10000` execution boundary and preserve the resulting secret-safe receipt evidence.”
+
+It does not mean:
+
+“Credential/token/account access, provider/auth/account/order network access, `actual_kt10000_post_authorized=True`, or any actual order is authorized now.”
+
+<!-- PHASE37_CANDIDATE_DRAFT_A1_EXACT_PAYLOAD_END -->
