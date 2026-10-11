@@ -10284,3 +10284,949 @@ Alignment status:
 This alignment supersedes only the repository current-phase authority after the validated Phase37 implementation, push, and fresh V5 confirmation. Historical `Current Phase` / `CURRENT_PHASE` statements in earlier registration, implementation, closure, and prior-phase records remain unchanged as point-in-time provenance. Current Phase is now PHASE37.
 
 This alignment does not authorize credential/token/account access or output, auth/provider/account/order network access, actual `kt10000 POST`, any actual order, dependency changes, source/test mutation, Git add/commit/push, amend/rebase/reset/restore/clean, rebaseline, or any further Phase transition.
+
+<!-- PHASE38_CANDIDATE_DRAFT_A2_REGISTRATION_BEGIN -->
+
+## Candidate Phase38 — Demo Kiwoom Cash BUY Post-Submission Order-State Reconciliation & Evidence Contract v1.0 — DRAFT-A2
+
+**Status:** README official candidate-contract registration only. `Current Phase` remains `PHASE37`. Phase38 implementation is NOT APPROVED.
+
+Registration authority and frozen identity:
+
+- `CANDIDATE_PHASE_NUMBER=PHASE38`
+- `PHASE38_CANDIDATE_DRAFT_A2_REGISTERED=YES`
+- `README_OFFICIAL_CONTRACT_REGISTRATION=YES`
+- `FINAL_CONTRACT_PASS=YES`
+- `DRAFT_A2_FINAL=PASS`
+- `CURRENT_PHASE=PHASE37`
+- `PHASE38_IMPLEMENTATION_APPROVED=NO`
+- `PHASE38_NUMBER_AUTHORITY_SOURCE=USER_EXPLICIT_APPROVAL`
+- `DRAFT_A2_UNASSIGNED_TEXT_IS_PRE_REGISTRATION_PROVENANCE=YES`
+- `DRAFT_A2_FILENAME=Candidate_Next_Phase_Order_State_Reconciliation_DRAFT-A2.txt`
+- `DRAFT_A2_BYTES=36235`
+- `DRAFT_A2_SHA256=BB67A44F9B6420A249AF4FA867C69C4CE3C2E1A93EAC21BE5A007BFFC32D37B3`
+- `SOURCE_TEST_IMPLEMENTATION_APPROVED=NO`
+- `AUTH_PROVIDER_ACCOUNT_ORDER_NETWORK_AUTHORIZED=NO`
+- `ACTUAL_QUERY_API_CALL_AUTHORIZED=NO`
+- `ACTUAL_KT10000_POST_AUTHORIZED=NO`
+- `REAL_ORDER_AUTHORIZED=NO`
+- `DEPENDENCY_CHANGE_APPROVED=NO`
+- `GIT_ADD_COMMIT_PUSH_APPROVED=NO`
+- `RESTORE_RESET_CLEAN_APPROVED=NO`
+- `CURRENT_PHASE_CHANGE_APPROVED=NO`
+- `REBASELINE_APPROVED=NO`
+
+The exact reviewed DRAFT-A2 payload follows. Its internal `Candidate Phase number: UNASSIGNED` and draft-stage authority statements are preserved as pre-registration provenance. This README registration supersedes that candidate-number placeholder only by explicitly fixing the registered candidate number to PHASE38; it does not rewrite or mutate the reviewed payload.
+
+<!-- PHASE38_CANDIDATE_DRAFT_A2_EXACT_PAYLOAD_BEGIN -->
+Candidate Next-Phase — Demo Kiwoom Cash BUY Post-Submission Order-State Reconciliation & Evidence Contract v1.0 — DRAFT-A2
+
+Status: DESIGN ONLY / DRAFT-A2
+Candidate Phase number: UNASSIGNED
+Current official Phase: PHASE37
+Execution authority: NOT GRANTED
+README registration authority: NOT GRANTED BY THIS DRAFT
+Implementation authority: NOT GRANTED
+Provider/account/order network authority in this drafting step: NOT GRANTED
+
+1. Purpose
+
+This contract defines the candidate next-phase boundary for read-only reconciliation of the provider-side state of one demo Kiwoom domestic cash BUY order after the Phase37 single-attempt provider-submission boundary has produced a KiwoomOrderProviderSubmissionReceipt.
+
+The phase exists only to answer, as conservatively as the available provider evidence permits, what state the already-submitted order is in. It MUST NOT submit a new order, repeat the prior order, amend an order, cancel an order, obtain new trading authority, or reinterpret a Phase37 submission fact.
+
+The authoritative upstream evidence is the exact Phase37 KiwoomOrderProviderSubmissionReceipt object supplied to reconciliation. That receipt is immutable upstream evidence. Reconciliation adds a new read-only evidence layer; it does not replace, mutate, rewrite, normalize again, or retroactively alter the Phase37 receipt.
+
+2. Normative language
+
+MUST, MUST NOT, SHALL, SHALL NOT, REQUIRED, and FORBIDDEN are normative.
+
+MAY indicates a permitted implementation choice that does not weaken any MUST or MUST NOT requirement.
+
+UNKNOWN, AMBIGUOUS, INCOMPLETE, UNRECOGNIZED, and CONTRADICTORY provider evidence MUST fail closed. In this contract, fail-closed reconciliation normally produces status unresolved, except for invalid contract inputs or external task cancellation, which follow the exception rules below.
+
+3. Scope
+
+In scope:
+
+- Demo Kiwoom domestic cash BUY only.
+- One Phase37 KiwoomOrderProviderSubmissionReceipt at a time.
+- Read-only provider inquiry evidence only.
+- Primary inquiry APIs:
+  - ka10075 미체결요청
+  - ka10076 체결요청
+- Secondary corroborating inquiry APIs:
+  - kt00007 계좌별주문체결내역상세요청
+  - kt00009 계좌별주문체결현황요청
+- Exact provider-order-number row correlation.
+- Trusted demo account provenance correlation.
+- Full continuation traversal using cont-yn and next-key.
+- Conservative normalization into:
+  - accepted_unfilled
+  - partially_filled
+  - filled
+  - cancelled
+  - rejected
+  - unresolved
+- Immutable evidence capture sufficient to explain the normalized state without exposing credentials, tokens, raw account secrets, or arbitrary raw provider payloads.
+
+Out of scope and forbidden:
+
+- kt10000 POST.
+- Any new BUY or SELL submission.
+- Resubmission or automatic retry of an order.
+- Order correction/amendment.
+- Order cancellation.
+- Live/real server use.
+- Live/real account use.
+- Risk Gate bypass.
+- New authorization consumption.
+- Creation of new order authority from reconciliation.
+- Credential, App Key, App Secret, bearer token, raw account number, .env content, or OS credential-store value output.
+- Dependency installation, removal, upgrade, or downgrade.
+- README/source/test mutation in this drafting and review step.
+- Git add/commit/push/restore/reset/clean.
+- Phase number assignment.
+- Current Phase transition.
+
+4. Authoritative upstream boundary
+
+4.1 Exact upstream object
+
+Input MUST be the exact Phase37 KiwoomOrderProviderSubmissionReceipt object produced by the approved Phase37 boundary.
+
+The reconciliation layer MUST preserve object identity. If the result retains the receipt, it MUST retain the same object, not a reconstructed or copied replacement.
+
+The following classes of Phase37 evidence MUST remain unchanged:
+
+- submission outcome;
+- transport-attempt count;
+- terminal registry state;
+- normalized return code;
+- provider fields already captured by Phase37;
+- timestamps;
+- fingerprints;
+- demo endpoint identity;
+- provider API identity;
+- readiness, approval, execution-context, and registry identities where present.
+
+4.2 Phase37 semantics are not reopened
+
+Reconciliation MUST NOT:
+
+- change confirmed_accepted to not-submitted;
+- change confirmed_not_accepted to accepted;
+- change blocked_before_send into a provider-side rejection;
+- erase ambiguous_unresolved;
+- alter transport-attempt count;
+- alter the provider response facts already captured by Phase37;
+- infer that a second submission is permitted.
+
+4.3 Submission-attempt eligibility
+
+A receipt whose Phase37 transport-attempt count is not exactly 0 or 1 is a contract violation and MUST fail before any provider inquiry.
+
+A zero-attempt receipt MUST NOT trigger provider inquiry.
+
+A receipt that is explicitly blocked_before_send is outside provider-order-state reconciliation because no provider submission occurred. It MUST fail closed as an ineligible reconciliation input and MUST NOT be converted to rejected.
+
+A one-attempt receipt MAY be reconciled only under the correlation rules in this contract.
+
+A confirmed_not_accepted one-attempt receipt MAY normalize to rejected from Phase37 evidence alone only when Phase37 already provides an unambiguous provider non-acceptance fact. No provider inquiry is required to manufacture a rejection state.
+
+An ambiguous_unresolved one-attempt receipt MAY be queried only if exact provider-order correlation is possible. If exact correlation is impossible, the result MUST remain unresolved and no broad heuristic identification is allowed.
+
+5. Trusted account provenance contract
+
+5.1 Required correlation dimensions
+
+A provider row MUST NOT be accepted as evidence based on provider_order_no alone.
+
+Every accepted evidence row MUST be bound to both:
+
+- the exact provider_order_no associated with the Phase37 submission evidence; and
+- trusted demo account provenance for the same Phase37 execution context.
+
+5.2 Secret-safe provenance
+
+Trusted account provenance MUST be an opaque, non-secret identity derived from the approved demo account-binding context.
+
+It MUST NOT contain or expose:
+
+- raw account number;
+- App Key;
+- App Secret;
+- bearer token;
+- credential-store secret;
+- .env value.
+
+A fingerprint or opaque binding identifier MAY be used only if it is stable enough for equality comparison inside the approved execution and cannot be reversed or used as a credential.
+
+5.3 Provenance mismatch
+
+If the reconciliation query context cannot prove that it is bound to the same trusted demo account provenance as the Phase37 receipt, provider inquiry MUST NOT proceed.
+
+If provenance changes between pages, APIs, or query attempts, all collected evidence from that reconciliation run MUST be treated as unusable for terminal classification and the result MUST be unresolved or the operation MUST fail with a secret-safe contract error.
+
+6. Frozen provider schema contract
+
+All four target APIs are POST /api/dostk/acnt and use the common continuation request/response headers cont-yn and next-key.
+
+6.1 ka10075 미체결요청 — primary pending-order evidence
+
+Request:
+- required: all_stk_tp, trde_tp, stex_tp
+- optional: stk_cd
+
+Response list:
+- oso
+
+Relevant response evidence:
+- ord_no: provider order number
+- ord_stt: raw provider order status
+- ord_qty: ordered quantity
+- oso_qty: explicit unfilled quantity
+- cntr_qty and unit_cntr_qty: filled quantity evidence
+- cntr_pric and unit_cntr_pric: fill-price evidence
+- acnt_no may appear in provider output but MUST NOT be logged or exposed by this phase
+
+There is no frozen explicit cancel-quantity field for this API.
+
+6.2 ka10076 체결요청 — primary execution evidence
+
+Request:
+- required: qry_tp, sell_tp, stex_tp
+- optional: stk_cd, ord_no
+
+Response list:
+- cntr
+
+Relevant response evidence:
+- ord_no
+- ord_stt
+- ord_qty
+- cntr_qty
+- oso_qty
+- cntr_pric
+
+There is no frozen explicit cancel-quantity field for this API.
+
+Critical request semantic:
+
+ka10076 request ord_no is NOT an exact-order lookup key. It is a search baseline whose official meaning is that execution records older than the entered order number are returned.
+
+Therefore:
+
+- the target provider_order_no MUST NOT be passed as ord_no under an assumption that the target order itself will be returned;
+- request ord_no MUST NOT be treated as correlation proof;
+- implementation MAY omit request ord_no or use only a separately justified search baseline known to include the target;
+- target confirmation MUST be performed against the ord_no contained in returned rows, together with trusted account provenance;
+- if the search strategy cannot prove that the target could have been included in the exhaustively traversed result set, ka10076 evidence for the target is incomplete.
+
+6.3 kt00007 계좌별주문체결내역상세요청 — secondary detailed corroboration
+
+Request:
+- required: qry_tp, stk_bond_tp, sell_tp, dmst_stex_tp
+- optional: ord_dt, stk_cd, fr_ord_no
+
+Response list:
+- acnt_ord_cntr_prps_dtl
+
+Relevant response evidence:
+- ord_no
+- acpt_tp
+- mdfy_cncl
+- ord_qty
+- cntr_qty
+- ord_remnq: explicit order remainder/unfilled quantity
+- cntr_uv
+
+There is no frozen explicit cancel-quantity field for this API.
+
+Request fr_ord_no is a starting-order-number field. It MUST NOT be treated as proof that a returned row is the target. Target proof is row-level exact ord_no plus trusted account provenance.
+
+6.4 kt00009 계좌별주문체결현황요청 — secondary broad corroboration
+
+Request:
+- required: stk_bond_tp, mrkt_tp, sell_tp, qry_tp, dmst_stex_tp
+- optional: ord_dt, stk_cd, fr_ord_no
+
+Response list:
+- acnt_ord_cntr_prst_array
+
+Relevant response evidence:
+- ord_no
+- acpt_tp
+- mdfy_cncl_tp
+- ord_qty
+- cntr_qty
+- cntr_uv
+
+There is NO frozen explicit unfilled-quantity field for kt00009.
+There is NO frozen explicit cancel-quantity field for kt00009.
+
+Accordingly:
+
+- kt00009 MUST NOT manufacture provider-confirmed unfilled quantity;
+- ord_qty - cntr_qty MUST NOT be stored, reported, or treated as an explicit provider unfilled field;
+- a subtraction MAY be used only as a non-authoritative internal consistency check;
+- kt00009 alone MUST NOT establish accepted_unfilled or partially_filled when those states require explicit unfilled evidence;
+- target proof remains exact response-row ord_no plus trusted account provenance.
+
+7. Provider query classification and authority
+
+“Primary” and “secondary” describe evidence acquisition roles only. They do not establish a winner-takes-all precedence rule.
+
+Primary evidence:
+- ka10075
+- ka10076
+
+Secondary corroborating evidence:
+- kt00007
+- kt00009
+
+No API is allowed to override contradictory exact evidence from another API merely because it is primary or secondary.
+
+No majority vote is permitted.
+
+Any irreconcilable contradiction affecting target identity, ordered quantity, filled quantity, unfilled quantity, terminal status, account provenance, or pagination completeness MUST produce unresolved.
+
+8. Continuation and pagination contract
+
+8.1 Exhaustion rule
+
+For each API actually used in a reconciliation run, all pages required by the provider continuation contract MUST be consumed before that API can contribute terminal evidence.
+
+When a response indicates cont-yn=Y:
+
+- next-key MUST be present and nonblank;
+- the subsequent request MUST use the provider-returned continuation values according to the frozen provider contract;
+- the run MUST continue until the provider indicates no further page.
+
+8.2 Incomplete pagination
+
+The API evidence set is incomplete and cannot establish a terminal normalized state if any of the following occurs before exhaustion:
+
+- timeout;
+- external cancellation;
+- missing next-key while cont-yn=Y;
+- malformed continuation header;
+- repeated next-key or continuation loop;
+- page limit reached before exhaustion;
+- query transport failure;
+- explicit provider failure;
+- malformed response;
+- account-provenance drift;
+- target-correlation contradiction;
+- duplicate rows with incompatible material facts.
+
+8.3 Page limit
+
+An implementation MAY enforce a finite safety page limit to prevent unbounded loops.
+
+Reaching that limit while continuation remains is not successful exhaustion. It MUST produce incomplete evidence and therefore unresolved.
+
+8.4 No partial terminal classification
+
+Rows collected before incomplete termination MAY be retained as diagnostic evidence only if secret-safe, but MUST NOT be used to emit accepted_unfilled, partially_filled, filled, cancelled, or rejected unless the terminal state is already conclusively established by immutable Phase37 evidence alone.
+
+9. Row correlation contract
+
+A returned row is target-correlated only when all available required identity checks pass.
+
+Required:
+- exact response-row ord_no equals the Phase37 provider_order_no as a string;
+- trusted account provenance matches;
+- environment is demo;
+- order side is BUY where the API exposes a side dimension;
+- instrument identity is consistent with Phase37 where a trusted instrument identity is available;
+- exchange scope is consistent where a trusted exchange identity is available.
+
+Forbidden correlation methods:
+- numeric coercion of ord_no that drops leading zeros;
+- substring or prefix order-number matching;
+- nearest-time matching;
+- same-symbol-only matching;
+- same-quantity-only matching;
+- same-price-only matching;
+- “only row returned” inference;
+- request ord_no or fr_ord_no being treated as proof of row identity.
+
+If zero exact-correlated rows are found after complete search, the result is unresolved unless immutable Phase37 evidence itself already establishes rejected.
+
+If multiple exact-correlated rows represent legitimate execution fragments for the same order, they MAY be aggregated only under the quantity and contradiction rules below.
+
+10. Raw evidence preservation and secret-safe projection
+
+The reconciliation layer MUST preserve enough allowlisted raw evidence to explain the result, but MUST NOT retain arbitrary full provider payloads as public result data.
+
+Permitted evidence fields include only fields needed for:
+- API identity;
+- page index;
+- row index;
+- provider order number;
+- status field names and values;
+- ordered quantity;
+- filled quantity;
+- explicit unfilled quantity where the provider actually supplies one;
+- fill price where needed;
+- instrument/exchange/side identity where needed for correlation;
+- continuation-completeness metadata;
+- non-secret provenance fingerprint.
+
+Credentials, tokens, raw account numbers, authorization headers, and unrelated provider fields MUST NOT be copied into public result objects, exception messages, print output, or logs.
+
+11. Numeric normalization contract
+
+Provider numeric text MUST be parsed conservatively.
+
+Allowed:
+- surrounding whitespace trim;
+- provider zero-padding;
+- a leading plus sign where the provider schema permits signed numeric formatting.
+
+Forbidden:
+- float conversion for integer quantity;
+- locale-dependent parsing;
+- silent truncation;
+- absolute-value conversion of negative quantity;
+- treating blank as zero.
+
+Blank optional numeric values become unknown/None.
+
+A negative ordered, filled, or unfilled quantity is invalid evidence and produces unresolved.
+
+When ordered, filled, and explicit unfilled quantities are all present for the same semantic snapshot, inconsistent arithmetic such as filled + unfilled > ordered is contradictory and produces unresolved.
+
+Because cancel quantity is not explicitly frozen for the four target APIs, arithmetic MUST NOT invent cancel quantity.
+
+12. Raw-status and normalized-status separation
+
+Raw provider status values MUST be preserved as raw evidence and MUST NOT be exposed as if they were the normalized reconciliation enum.
+
+The normalized status set is exactly:
+
+- accepted_unfilled
+- partially_filled
+- filled
+- cancelled
+- rejected
+- unresolved
+
+When a target-correlated evidence row contains a raw provider status field that is unknown or unapproved and that field is relevant to normalized-state determination, the normalized result MUST be unresolved. Independent quantity evidence MUST NOT override or bypass this rule to emit accepted_unfilled, partially_filled, filled, cancelled, or rejected.
+
+The provider spec freezes the existence of status fields but does not, for all target APIs, freeze a complete enumerated meaning for every possible raw value. Therefore an implementation MUST NOT invent string mappings.
+
+A raw-status mapping for cancelled or rejected MAY be used only when that mapping is separately frozen by official-provider evidence or an approved provider adapter/test artifact. Until such a mapping is frozen, unrecognized cancel/reject-like text is unresolved.
+
+13. Normalized state decision contract
+
+13.1 accepted_unfilled
+
+accepted_unfilled requires all of the following:
+
+- exact target correlation;
+- complete evidence traversal for the source(s) relied upon;
+- ordered quantity is known and greater than zero;
+- filled quantity is explicitly known as zero;
+- explicit unfilled quantity is known and equals ordered quantity;
+- no exact evidence indicates any fill;
+- no exact evidence indicates cancellation or rejection;
+- no material contradiction exists.
+
+kt00009 alone cannot satisfy the explicit-unfilled requirement.
+
+13.2 partially_filled
+
+partially_filled requires all of the following:
+
+- exact target correlation;
+- complete evidence traversal for the source(s) relied upon;
+- ordered quantity is known and greater than zero;
+- filled quantity is explicitly greater than zero;
+- explicit unfilled quantity is explicitly greater than zero;
+- filled quantity is less than ordered quantity;
+- where ordered, filled, and explicit unfilled refer to the same semantic snapshot, their values are arithmetically consistent;
+- no exact evidence establishes a later filled, cancelled, or rejected terminal state;
+- no material contradiction exists.
+
+kt00009 ord_qty - cntr_qty cannot satisfy the explicit-unfilled requirement.
+
+13.3 filled
+
+filled requires:
+
+- exact target correlation;
+- complete evidence traversal for the source(s) relied upon;
+- ordered quantity is known and greater than zero;
+- total trusted filled quantity equals ordered quantity;
+- any explicit unfilled quantity applicable to the same terminal snapshot is zero;
+- no exact evidence establishes cancellation or rejection of remaining quantity;
+- no material contradiction exists.
+
+Multiple execution fragments MAY be summed only when they are proven to belong to the same provider_order_no and same trusted account provenance and do not duplicate the same execution evidence.
+
+13.4 cancelled
+
+cancelled requires an exact-correlated, complete, non-contradictory provider status signal whose raw-to-semantic mapping to cancellation has been separately frozen and approved.
+
+Because the frozen target APIs do not provide an explicit cancel-quantity field, cancellation quantity MUST NOT be invented.
+
+A partially filled then cancelled order MAY normalize to cancelled as the terminal state only when the cancellation status itself is authoritative and all exact evidence is consistent. Filled quantity already executed remains preserved as evidence.
+
+If cancellation is suspected but the raw mapping is unknown, evidence is incomplete, or another API contradicts it, status is unresolved.
+
+13.5 rejected
+
+rejected may be emitted in either of two ways:
+
+- immutable Phase37 evidence already unambiguously records provider non-acceptance for the one submission attempt; or
+- exact-correlated, complete provider inquiry evidence contains an approved raw status mapping to rejection and no contradiction exists.
+
+Absence of an order from inquiry results is not rejection.
+
+A timeout, empty result, missing row, or malformed response is not rejection.
+
+13.6 unresolved
+
+unresolved is mandatory when a unique safe terminal/non-terminal state cannot be proved.
+
+Examples include:
+- missing provider_order_no needed for exact correlation;
+- no exact-correlated row found;
+- unknown raw status needed for the decision;
+- pagination incomplete;
+- timeout;
+- provider explicit query failure;
+- malformed response;
+- missing next-key;
+- continuation loop;
+- account-provenance mismatch;
+- order-number contradiction;
+- quantity contradiction;
+- cross-API contradiction;
+- duplicate evidence that cannot be de-duplicated safely;
+- kt00009-only evidence where explicit unfilled quantity is required;
+- cancellation/rejection suspected without an approved raw mapping.
+
+unresolved MUST NOT authorize another order attempt.
+
+14. Evidence aggregation and de-duplication
+
+Evidence aggregation MUST be deterministic.
+
+The implementation MUST preserve source API identity and source row identity sufficiently to avoid double-counting the same execution.
+
+Two rows MUST NOT be summed merely because provider_order_no matches.
+
+Execution fragments may be aggregated only when their execution identity, source semantics, timestamps/sequence information where available, and quantities establish that they are distinct fills of the same order.
+
+If the implementation cannot prove whether rows are duplicates or distinct fills, it MUST NOT sum them; status becomes unresolved if the distinction affects classification.
+
+15. Contradiction policy
+
+Material contradictions are fail-closed.
+
+Examples:
+- different ordered quantities for the same exact target without a documented amendment relationship;
+- filled quantity above ordered quantity;
+- explicit unfilled quantity inconsistent with a supposedly filled terminal state;
+- one source proving filled while another complete later source proves outstanding quantity without an explainable temporal relationship;
+- conflicting account provenance;
+- conflicting instrument or side identity;
+- incompatible terminal statuses;
+- same execution identity with different quantity or price.
+
+The phase MUST NOT:
+- pick the newest-looking row heuristically;
+- pick the primary API automatically;
+- use majority vote;
+- silently discard a conflicting source;
+- “repair” evidence by subtraction.
+
+If temporal ordering can be established from trusted provider timestamps, later evidence MAY supersede earlier non-terminal evidence only when the relation is unambiguous and no immutable Phase37 fact is rewritten. Otherwise unresolved.
+
+16. Timeout, cancellation, failure, and retry contract
+
+16.1 Timeout
+
+A reconciliation timeout is not proof of provider order state.
+
+Timeout while provider inquiry is in progress MUST stop the current reconciliation attempt, perform required cleanup, and result in unresolved with a secret-safe timeout reason, unless the timeout is surfaced as a separately approved boundary exception.
+
+Timeout MUST NOT trigger order resubmission.
+
+This DRAFT grants no automatic provider-query retry authority.
+
+16.2 External cancellation
+
+External asyncio cancellation is distinct from timeout.
+
+If CancelledError is received:
+- cleanup MUST run;
+- CancelledError MUST be re-raised after cleanup;
+- it MUST NOT be converted into filled, rejected, cancelled, or unresolved;
+- it MUST NOT trigger provider-query retry;
+- it MUST NOT trigger order retry/resubmission.
+
+16.3 Provider explicit failure
+
+An explicit provider inquiry failure is not a provider-order rejection.
+
+It MUST be preserved as query-failure evidence and MUST produce unresolved or a separately approved secret-safe query exception.
+
+16.4 Recoverable transport error
+
+This DRAFT does not itself authorize automatic read-query retries.
+
+A later implementation may introduce bounded retries for explicitly recoverable read-only inquiry transport errors only through separate approval. Such retries can never extend to kt10000 or any order/amend/cancel operation.
+
+17. Exception contract
+
+Contract/input errors MUST fail before provider inquiry where detectable.
+
+Examples:
+- input is not the exact expected Phase37 receipt type;
+- receipt is not demo-scoped;
+- receipt is not a domestic cash BUY submission receipt;
+- invalid transport-attempt count;
+- zero-attempt or blocked-before-send receipt presented as a submitted provider order;
+- missing or blank trusted provenance identity;
+- receipt/provenance mismatch;
+- malformed provider_order_no when exact correlation is required;
+- invalid timeout type or range.
+
+Expected reconciliation uncertainty is represented by unresolved, not by fabricating a terminal status.
+
+Unexpected programmer/runtime failures MUST propagate after cleanup and MUST NOT be translated into order authority.
+
+All exception text MUST be secret-safe.
+
+18. Authority firewall
+
+Reconciliation is evidence-only.
+
+The result MUST NOT contain or imply any of the following permissions:
+
+- submit_order;
+- resubmit_order;
+- retry_order;
+- amend_order;
+- cancel_order;
+- consume_authorization;
+- bypass_risk_gate;
+- open_live_connection;
+- switch_to_real_account.
+
+No status, including unresolved, rejected, or cancelled, permits an automatic new order.
+
+A caller that wants to initiate a new order must re-enter the independently approved upstream planning, Risk Gate, authorization, replay-guard, and submission contracts. Reconciliation alone can never satisfy those gates.
+
+19. Demo-only boundary
+
+Every provider inquiry permitted by a future implementation of this contract MUST be bound to the Kiwoom demo/mock environment.
+
+A real/production endpoint, real account provenance, environment ambiguity, or endpoint mismatch MUST fail before network where detectable.
+
+No fallback from demo to real is permitted.
+
+20. Proposed semantic data model
+
+This section freezes semantic shapes for Final Contract Review but does not authorize source implementation.
+
+20.1 KiwoomOrderReconciliationStatus
+
+Exact values:
+- accepted_unfilled
+- partially_filled
+- filled
+- cancelled
+- rejected
+- unresolved
+
+No additional status may be introduced without contract revision.
+
+20.2 KiwoomOrderAccountProvenance
+
+Immutable semantic value object containing only:
+- environment: exact value demo
+- profile_fingerprint: nonblank opaque non-secret identifier
+- account_binding_fingerprint: nonblank opaque non-secret identifier
+
+It MUST NOT contain raw account number or credentials.
+
+20.3 KiwoomOrderReconciliationEvidence
+
+Immutable semantic evidence record containing, at minimum:
+- api_id
+- page_index
+- row_index
+- provider_order_no
+- account_provenance
+- raw_status_fields as an immutable allowlisted mapping/tuple
+- ordered_quantity: int or None
+- filled_quantity: int or None
+- explicit_unfilled_quantity: int or None
+- fill_price: int or None
+- evidence_timestamp or provider time value where available
+- continuation_exhausted for the source API
+- correlation_complete
+- secret_safe = true by construction
+
+It MUST NOT contain authorization headers, bearer tokens, App Key, App Secret, raw account number, or arbitrary raw payload blobs.
+
+20.4 KiwoomOrderStateReconciliationResult
+
+Immutable semantic result containing, at minimum:
+- receipt: the exact same Phase37 KiwoomOrderProviderSubmissionReceipt object
+- account_provenance
+- status: KiwoomOrderReconciliationStatus
+- ordered_quantity: int or None
+- filled_quantity: int or None
+- explicit_unfilled_quantity: int or None
+- evidence: immutable tuple of KiwoomOrderReconciliationEvidence
+- evidence_complete: bool
+- terminal: bool
+- reason_code: secret-safe bounded identifier
+- provider_order_no: preserved exact string or None
+- order_submission_authority = false
+- automatic_retry_permitted = false
+- amend_permitted = false
+- cancel_permitted = false
+
+For unresolved, terminal MUST be false.
+
+For filled, cancelled, and rejected, terminal MAY be true only when the terminal classification rules above are fully satisfied.
+
+20.5 Candidate reconciliation operation
+
+The candidate phase defines one semantic asynchronous operation:
+
+reconcile_demo_kiwoom_cash_buy_order_state(
+    receipt,
+    account_provenance,
+    *,
+    timeout_seconds
+) -> KiwoomOrderStateReconciliationResult
+
+The exact Python module path and exact __all__ list are NOT approved by this DRAFT and MUST be frozen in the later implementation-design approval before source mutation.
+
+The operation MUST use only an approved demo read-only provider-query boundary. It MUST NOT import or call an order-submission transport directly.
+
+21. Query sequencing
+
+A future implementation MAY choose a minimal query sequence, but the following constraints are mandatory:
+
+- ka10075 and ka10076 are primary evidence sources.
+- kt00007 and kt00009 are secondary corroboration sources.
+- the sequence MUST NOT create a precedence shortcut that ignores contradictions.
+- exact target correlation is always row-level.
+- if a source is not queried, the result MUST NOT claim facts that require that source.
+- if a terminal classification depends on cross-source corroboration, all required sources must be complete.
+- no query may be issued for a zero-attempt blocked-before-send receipt.
+- no query may be issued when trusted account provenance cannot be established.
+
+22. Logging and observability
+
+The reconciliation implementation MUST NOT use print for provider payloads, credentials, tokens, raw account numbers, or unrestricted evidence objects.
+
+If structured logging is later approved, logs MAY include only bounded non-secret fields such as:
+- reconciliation status;
+- API ID;
+- page count;
+- reason_code;
+- whether exact correlation succeeded;
+- whether pagination exhausted;
+- opaque run identifier.
+
+provider_order_no and account fingerprints SHOULD be omitted from general logs unless a separately approved secret-safe diagnostic policy explicitly permits bounded redaction.
+
+23. Idempotence and repeatability
+
+Running reconciliation multiple times is read-only and MUST NOT mutate Phase37 receipt state or grant new authority.
+
+Different reconciliation runs may legitimately observe later provider state. Therefore result objects are snapshots, not mutations of prior results.
+
+A later snapshot MAY show progression such as accepted_unfilled -> partially_filled -> filled when supported by complete non-contradictory provider evidence.
+
+A later unresolved snapshot MUST NOT erase or rewrite an earlier snapshot; both are independent evidence snapshots.
+
+24. Temporal semantics
+
+Provider rows may represent different times.
+
+When timestamps are available and trusted:
+- they may be used to order evidence;
+- they MUST be preserved without changing raw values;
+- timezone/session assumptions MUST NOT be invented when not provided;
+- later evidence may supersede earlier non-terminal evidence only when identity and chronology are unambiguous.
+
+When chronology is ambiguous and the ambiguity affects classification, status is unresolved.
+
+25. Security contract
+
+The phase MUST remain secret-safe.
+
+Forbidden in result data, logs, exception strings, test snapshots, generated reports, and Git-tracked artifacts:
+- App Key;
+- App Secret;
+- bearer token;
+- raw credential-store material;
+- raw .env values;
+- raw account number unless a separately approved artifact explicitly requires it and provides masking rules.
+
+This DRAFT contains no approval for obtaining, printing, or persisting those values.
+
+26. Test contract for a future implementation
+
+Implementation approval, if later granted, MUST add targeted tests covering at least:
+
+Upstream preservation:
+- exact Phase37 receipt identity preserved;
+- all Phase37 provider fields preserved;
+- timestamps/fingerprints preserved;
+- no Phase37 outcome rewrite.
+
+Eligibility:
+- zero-attempt blocked-before-send performs no query;
+- invalid attempt count fails closed;
+- non-demo fails before network;
+- wrong receipt type fails before network.
+
+Correlation:
+- provider_order_no exact-match success;
+- leading-zero mismatch is not coerced;
+- order-number-only without account provenance fails;
+- account-provenance mismatch fails;
+- symbol/side/exchange contradiction unresolved.
+
+ka10076:
+- request ord_no is never treated as exact lookup;
+- target matching uses returned-row ord_no;
+- incomplete search range is unresolved.
+
+kt00009:
+- explicit_unfilled_quantity remains None;
+- ord_qty-cntr_qty is not promoted to explicit unfilled;
+- kt00009 alone cannot prove accepted_unfilled or partially_filled.
+
+Pagination:
+- single page complete;
+- multi-page complete;
+- cont-yn=Y with missing next-key unresolved;
+- repeated next-key unresolved;
+- page-limit exhaustion unresolved;
+- timeout mid-pagination unresolved;
+- cancellation mid-pagination cleans up and re-raises.
+
+State normalization:
+- accepted_unfilled positive case;
+- partially_filled positive case;
+- filled positive case;
+- approved cancelled mapping positive case;
+- approved rejected mapping positive case;
+- unknown/unapproved raw status relevant to normalized-state determination remains unresolved even when quantity evidence would otherwise be sufficient;
+- missing row unresolved;
+- contradictory quantities unresolved;
+- cross-API contradiction unresolved;
+- duplicate ambiguous fill rows unresolved.
+
+Authority firewall:
+- no kt10000 reference;
+- no order POST capability;
+- no amend/cancel capability;
+- no auto resubmit;
+- no authorization consumption;
+- no Risk Gate bypass;
+- no live endpoint fallback.
+
+Secret safety:
+- credentials/tokens/raw account number absent from public result;
+- secret-safe exceptions;
+- no print/log leak.
+
+27. Acceptance criteria for future implementation
+
+A future implementation is not complete unless:
+
+- exact approved source/test allowlist is respected;
+- Windows PowerShell 5.1 and approved .venv validation passes;
+- Python AST/compile/import passes;
+- targeted tests pass with expected count;
+- full repository regression passes in a fresh process;
+- failures = 0;
+- errors = 0;
+- unapproved skipped = 0;
+- exit code = 0;
+- HEAD/branch/README baseline is as approved;
+- staged/unstaged/untracked state is acceptable under the approved task;
+- git diff --check passes;
+- no dependency change occurs unless separately approved;
+- no credential/token/account secret is output;
+- no live provider connection occurs;
+- no order/amend/cancel operation occurs unless separately and explicitly approved in a future phase.
+
+28. README registration boundary
+
+This DRAFT-A2 is a candidate contract only.
+
+Creating this text does NOT:
+- register it in README;
+- assign Phase38 or any other number;
+- change Current Phase;
+- approve implementation;
+- approve provider inquiry execution;
+- approve Git mutation.
+
+README registration requires a separate Final Contract Review PASS against the exact artifact identity and a separate explicit user approval for README mutation.
+
+29. Current candidate conclusion
+
+Candidate title:
+Demo Kiwoom Cash BUY Post-Submission Order-State Reconciliation & Evidence Contract v1.0 — DRAFT-A2
+
+Candidate Phase number:
+UNASSIGNED
+
+Current official Phase:
+PHASE37
+
+Provider schema basis:
+Frozen target contract for ka10075, ka10076, kt00007, kt00009.
+
+Core invariants:
+- Phase37 receipt is immutable upstream evidence.
+- provider_order_no alone is insufficient; trusted account provenance is mandatory.
+- ka10076 request ord_no is not an exact lookup key.
+- kt00009 has no explicit unfilled-quantity field.
+- continuation must be exhausted before dependent terminal classification.
+- timeout, ambiguity, incomplete pagination, contradiction, and any unknown/unapproved raw status relevant to normalized-state determination fail closed; quantity evidence cannot bypass the unknown/unapproved-status rule.
+- external cancellation is cleaned up and re-raised.
+- reconciliation is evidence-only and never creates order authority.
+- demo-only and secret-safe boundaries are mandatory.
+
+30. Authoritative reference precedence
+
+For later implementation and review, authority order is:
+
+1. Current repository official Phase37 contract and approved public boundary.
+2. This exact DRAFT-A2 after Final Contract Review and separate README registration approval.
+3. Frozen installed Kiwoom provider-schema evidence for ka10075, ka10076, kt00007, kt00009.
+4. Current official Kiwoom REST API specification for the same API IDs.
+5. Python 3.13 asyncio cancellation/timeout contract.
+6. Repository-approved dependency/runtime contracts.
+7. Inference only where explicitly permitted; inference can never override items 1 through 6.
+
+Any later provider-schema drift that changes a material field or semantic assumption requires a new review before implementation continues.
+
+END OF DRAFT-A2
+<!-- PHASE38_CANDIDATE_DRAFT_A2_EXACT_PAYLOAD_END -->
+
+Registration boundary:
+
+- The embedded payload is the complete Final-Contract-Review-PASS DRAFT-A2, normalized only to the existing README CRLF line-ending convention.
+- Candidate Phase is PHASE38 by explicit user approval.
+- Current Phase remains PHASE37.
+- README registration does not authorize implementation, credentials, provider/account/order network access, actual query calls, kt10000 POST, actual orders, dependency changes, Git add/commit/push, restore/reset/clean, rebaseline, or Current Phase transition.
+
+<!-- PHASE38_CANDIDATE_DRAFT_A2_REGISTRATION_END -->
