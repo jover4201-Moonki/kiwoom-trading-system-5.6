@@ -11230,3 +11230,993 @@ Registration boundary:
 - README registration does not authorize implementation, credentials, provider/account/order network access, actual query calls, kt10000 POST, actual orders, dependency changes, Git add/commit/push, restore/reset/clean, rebaseline, or Current Phase transition.
 
 <!-- PHASE38_CANDIDATE_DRAFT_A2_REGISTRATION_END -->
+
+<!-- PHASE38_CANDIDATE_DRAFT_A3_AMENDMENT_REGISTRATION_BEGIN -->
+## Phase38 Candidate Contract Amendment - DRAFT-A3
+
+CANDIDATE_PHASE_NUMBER=PHASE38
+CURRENT_PHASE=PHASE37
+PHASE38_CANDIDATE_DRAFT_A3_REGISTERED=YES
+README_OFFICIAL_CONTRACT_AMENDMENT_REGISTRATION=YES
+DRAFT_A3_FINAL_CONTRACT_REVIEW=PASS
+DRAFT_A3_AMENDMENT_PRECEDENCE=QUERY_CAPABILITY_INJECTION_SCOPE_ONLY
+DRAFT_A2_PROVENANCE_PRESERVED=YES
+DRAFT_A2_BYTES=36235
+DRAFT_A2_SHA256=BB67A44F9B6420A249AF4FA867C69C4CE3C2E1A93EAC21BE5A007BFFC32D37B3
+DRAFT_A3_BYTES=36391
+DRAFT_A3_SHA256=1FBA37EB6B3521D7DD75BF42607F5C893D6B0709F12488FE399DE72E2C59D050
+PHASE38_IMPLEMENTATION_APPROVED=NO
+CURRENT_PHASE_CHANGE=NO
+
+DRAFT-A3 is the latest Phase38 candidate official contract amendment.
+DRAFT-A3 supersedes DRAFT-A2 only for the query-capability injection and exact implementation-design provisions explicitly identified by DRAFT-A3.
+All other DRAFT-A2 safety contracts remain normative and unchanged.
+DRAFT-A2 provenance and exact embedded payload remain preserved in README.
+This registration does not approve Phase38 implementation, provider network, credentials, dependency changes, Git mutation, or Current Phase transition.
+
+<!-- PHASE38_CANDIDATE_DRAFT_A3_EXACT_PAYLOAD_BEGIN -->
+Phase38 — Demo Kiwoom Cash BUY Post-Submission Order-State Reconciliation & Evidence Contract v1.0 — DRAFT-A3 Read-Only Provider Query Boundary Injection Amendment
+
+Status: DESIGN ONLY / DRAFT-A3 AMENDMENT / FINAL CONTRACT REVIEW CANDIDATE
+Candidate Phase number: PHASE38
+Current official Phase: PHASE37
+Registered base contract: Phase38 DRAFT-A2
+Registered base artifact bytes: 36235
+Registered base artifact SHA256: BB67A44F9B6420A249AF4FA867C69C4CE3C2E1A93EAC21BE5A007BFFC32D37B3
+Implementation authority: NOT GRANTED
+README mutation authority: NOT GRANTED
+Provider/account/order network authority in this drafting step: NOT GRANTED
+Credential/token/account access or output authority: NOT GRANTED
+Dependency-change authority: NOT GRANTED
+Git mutation authority: NOT GRANTED
+Current Phase transition authority: NOT GRANTED
+
+1. Purpose
+
+This amendment resolves the implementation-design blocker discovered after Phase38 DRAFT-A2 registration.
+
+DRAFT-A2 requires reconciliation to use only an approved demo read-only provider-query boundary, but DRAFT-A2 did not define how that capability is injected into the reconciliation operation.
+
+The current approved repository evidence shows that Phase36ProviderExecutionContext is an order-submission execution context containing resolver, token_provider, transport, cleanup, provider_network_authorized, and actual_kt10000_post_authorized. It is therefore not an approved Phase38 read-only inquiry boundary.
+
+DRAFT-A3 introduces an explicit Phase38-only read-only query capability contract. It does not authorize creation of credentials, tokens, provider sessions, network clients, provider calls, or order authority.
+
+2. Amendment precedence
+
+DRAFT-A3 is an amendment to the exact registered DRAFT-A2 identified above.
+
+Until DRAFT-A3 receives Final Contract Review PASS and separate README registration approval, DRAFT-A2 remains the registered Phase38 candidate contract.
+
+If DRAFT-A3 is later approved and registered, DRAFT-A3 supersedes only these DRAFT-A2 items:
+- Section 20 proposed semantic data model, only to replace minimum shapes with the exact public shapes frozen here;
+- Section 20.5 candidate reconciliation operation;
+- the implementation-design portion of Section 21 query sequencing;
+- the previously implicit provider-query capability injection assumption.
+
+All other DRAFT-A2 requirements remain normative and unchanged.
+
+In particular, DRAFT-A3 does not weaken:
+- exact Phase37 receipt preservation;
+- trusted account provenance;
+- exact provider_order_no row correlation;
+- ka10076 ord_no search-baseline semantics;
+- kt00009 no-explicit-unfilled rule;
+- pagination exhaustion;
+- raw-status and normalized-status separation;
+- accepted_unfilled / partially_filled / filled / cancelled / rejected / unresolved decision rules;
+- contradiction fail-closed behavior;
+- timeout behavior;
+- external cancellation cleanup and re-raise;
+- no automatic provider-query retry authority;
+- no order retry/resubmission/amend/cancel authority;
+- demo-only operation;
+- secret-safe evidence and exceptions.
+
+If an unchanged DRAFT-A2 safety rule and DRAFT-A3 could be read differently, the interpretation that preserves the unchanged DRAFT-A2 safety rule wins.
+
+3. Exact implementation allowlist
+
+Exact Phase38 implementation source allowlist:
+- src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_demo_provider_state_reconciliation.py
+
+Exact Phase38 implementation test allowlist:
+- tests/test_watchlist_order_demo_provider_state_reconciliation_contract.py
+
+No other repository path is in the Phase38 implementation allowlist under this amendment.
+
+The following paths MUST remain unchanged unless separately approved:
+- src/kiwoom_trading_system/brokers/kiwoom/rest/__init__.py
+- src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_provider_submission_boundary.py
+- src/kiwoom_trading_system/brokers/kiwoom/rest/watchlist_order_demo_provider_submission_execution.py
+- README.md
+- pyproject.toml
+- uv.lock
+- any .env or credential material
+
+4. Exact approved imports from the Phase36 submission-boundary module
+
+The Phase38 source MAY import only these public Phase36 symbols when needed for receipt validation:
+- KiwoomOrderProviderSubmissionOutcome
+- Phase36SubmissionRegistryState
+- KiwoomOrderProviderSubmissionReceipt
+
+The Phase38 source MUST NOT import:
+- Phase36ProviderExecutionContext
+- Phase36AtomicSubmissionRegistry
+- submit_demo_watchlist_order_once
+- any private Phase36 symbol
+- any Phase36 credential/token/resolver/transport adapter
+
+The Phase38 source MUST NOT import or call execute_demo_watchlist_order_once from Phase37.
+
+5. Exact module-level public surface
+
+The exact module-level __all__ MUST be:
+
+__all__ = [
+    "KiwoomOrderReconciliationStatus",
+    "KiwoomOrderAccountProvenance",
+    "KiwoomOrderReadOnlyQueryPage",
+    "KiwoomOrderReadOnlyQueryContext",
+    "KiwoomOrderReconciliationEvidence",
+    "KiwoomOrderStateReconciliationResult",
+    "reconcile_demo_kiwoom_cash_buy_order_state",
+]
+
+No additional public symbol is approved by DRAFT-A3.
+
+Package-level re-export through rest/__init__.py is NOT approved.
+
+6. KiwoomOrderReconciliationStatus
+
+KiwoomOrderReconciliationStatus MUST be a string-valued enum with exactly these values:
+- accepted_unfilled
+- partially_filled
+- filled
+- cancelled
+- rejected
+- unresolved
+
+No additional normalized status is approved.
+
+7. KiwoomOrderAccountProvenance
+
+KiwoomOrderAccountProvenance MUST be a frozen, slots-based immutable value object.
+
+Exact fields, in exact order:
+- environment: str
+- profile_fingerprint: str
+- account_binding_fingerprint: str
+
+Rules:
+- environment MUST be exactly "demo";
+- profile_fingerprint MUST be nonblank, opaque, non-secret, and suitable only for equality comparison;
+- account_binding_fingerprint MUST be nonblank, opaque, non-secret, and suitable only for equality comparison;
+- raw account number, credential, token, App Key, App Secret, .env content, or reversible account identity is forbidden.
+
+8. KiwoomOrderReadOnlyQueryPage
+
+KiwoomOrderReadOnlyQueryPage MUST be a frozen, slots-based immutable value object.
+
+Exact fields, in exact order:
+- api_id: str
+- environment: str
+- endpoint_identity: str
+- account_provenance: KiwoomOrderAccountProvenance
+- return_code: int
+- cont_yn: str
+- next_key: str | None
+- rows: tuple[tuple[tuple[str, str | None], ...], ...]
+
+Each row is an immutable tuple of unique (field_name, raw_value) pairs.
+
+Rules:
+- api_id MUST be exactly one of ka10075, ka10076, kt00007, kt00009;
+- environment MUST be exactly "demo";
+- endpoint_identity MUST be exactly "https://mockapi.kiwoom.com/api/dostk/acnt";
+- account_provenance MUST equal both the query context provenance and the explicit reconciliation account_provenance argument;
+- return_code MUST satisfy type(return_code) is int;
+- bool is invalid;
+- cont_yn MUST be exactly "Y" or "N";
+- when cont_yn == "Y", next_key MUST be a nonblank exact str;
+- when cont_yn == "N", next_key MAY be None or blank and MUST NOT trigger another page;
+- duplicate field names inside one row are invalid;
+- row keys MUST be a subset of the exact per-API projection allowlist in Section 13;
+- raw account number, authorization header, bearer token, App Key, App Secret, credential material, and arbitrary full provider payload data are forbidden.
+
+DRAFT-A3 intentionally does not expose provider return_msg through the public page object.
+
+9. KiwoomOrderReadOnlyQueryContext
+
+KiwoomOrderReadOnlyQueryContext MUST be a frozen, slots-based immutable value object.
+
+Exact fields, in exact order:
+- environment: str
+- endpoint_identity: str
+- account_provenance: KiwoomOrderAccountProvenance
+- page_limit_per_api: int
+- query_page: object
+- cleanup: object
+
+query_page and cleanup MUST be excluded from repr.
+
+Rules:
+- environment MUST be exactly "demo";
+- endpoint_identity MUST be exactly "https://mockapi.kiwoom.com/api/dostk/acnt";
+- account_provenance MUST equal the explicit reconciliation account_provenance argument before any query;
+- page_limit_per_api MUST satisfy type(page_limit_per_api) is int and page_limit_per_api > 0;
+- bool is invalid for page_limit_per_api;
+- no implicit or default page limit is approved;
+- query_page MUST satisfy Section 10;
+- cleanup MUST satisfy Section 11.
+
+The context MUST NOT expose, as fields or approved callable surface:
+- raw access token;
+- App Key;
+- App Secret;
+- raw account number;
+- credential resolver;
+- token provider;
+- generic HTTP post;
+- generic provider transport;
+- kt10000 submission;
+- order submission;
+- order amendment;
+- order cancellation;
+- authorization consumption.
+
+10. Exact query_page callable contract
+
+The exact semantic call is:
+
+await query_context.query_page(
+    api_id,
+    request_body,
+    *,
+    cont_yn=cont_yn,
+    next_key=next_key,
+) -> KiwoomOrderReadOnlyQueryPage
+
+Exact call arguments:
+- api_id: str
+- request_body: dict[str, str]
+- cont_yn: str, keyword-only
+- next_key: str, keyword-only
+
+Contract:
+- query_page MUST be callable;
+- invoking it MUST return an awaitable;
+- awaiting it MUST yield KiwoomOrderReadOnlyQueryPage;
+- the reconciliation module MUST NOT require inspect.iscoroutinefunction to be true;
+- api_id MUST be one of the four approved read-only inquiry IDs;
+- request_body MUST be newly constructed for that API call by the reconciliation operation;
+- request_body MUST NOT contain authorization, token, App Key, App Secret, raw account number, or any order-submission authority;
+- first page call MUST use cont_yn="N" and next_key="";
+- continuation calls MUST use the immediately preceding valid page's returned cont_yn and next_key;
+- query_page MUST NOT be invoked with kt10000, kt10001, kt10002, kt10003, or any other order/amend/cancel API;
+- query_page MUST NOT return a generic HTTP/provider response object.
+
+query_page MAY be backed by separately approved authentication/network facilities outside the Phase38 reconciliation module. DRAFT-A3 does not grant authority to construct those facilities, obtain credentials, refresh tokens, or perform provider network calls.
+
+Hidden global query transports, module singletons, private Phase36 credential/token adapters, implicit .env lookup, and reflection-based capability discovery are forbidden.
+
+11. Exact cleanup callable contract
+
+The exact semantic call is:
+
+await query_context.cleanup() -> None
+
+Contract:
+- cleanup MUST be callable;
+- invoking it MUST return an awaitable;
+- no provider inquiry attempted means cleanup is not required and MUST NOT be invoked solely for local validation failure;
+- after the first query_page invocation attempt, cleanup MUST be attempted exactly once in a finally-equivalent path;
+- cleanup MUST be attempted after success, unresolved provider-query failure, timeout, unexpected runtime failure, and external cancellation;
+- external asyncio.CancelledError MUST be re-raised after cleanup attempt;
+- cleanup failure during external cancellation MUST NOT replace or suppress the original CancelledError;
+- an unexpected cleanup failure on a non-cancellation path MUST propagate as a secret-safe runtime failure;
+- cleanup failure MUST NOT be translated into filled, cancelled, rejected, accepted_unfilled, partially_filled, or order authority;
+- no cleanup retry loop is approved.
+
+12. Frozen provider endpoint and continuation contract
+
+The four approved inquiry API IDs are:
+- ka10075
+- ka10076
+- kt00007
+- kt00009
+
+All four use:
+- method: POST
+- demo host: https://mockapi.kiwoom.com
+- path: /api/dostk/acnt
+- exact endpoint identity for this contract: https://mockapi.kiwoom.com/api/dostk/acnt
+- provider continuation request/response dimensions: cont-yn and next-key
+
+The Kiwoom demo account API is KRX-only. DRAFT-A3 grants no real endpoint fallback and no NXT/SOR fallback.
+
+13. Exact secret-safe provider-row projection allowlists
+
+The query boundary MUST project provider rows to these keys only.
+
+ka10075:
+- ord_no
+- stk_cd
+- ord_stt
+- ord_qty
+- oso_qty
+- cntr_qty
+- unit_cntr_qty
+- cntr_pric
+- unit_cntr_pric
+- io_tp_nm
+- trde_tp
+- tm
+- cntr_no
+- stex_tp
+
+ka10076:
+- ord_no
+- stk_cd
+- ord_stt
+- ord_qty
+- cntr_qty
+- oso_qty
+- cntr_pric
+- io_tp_nm
+- trde_tp
+- ord_tm
+- stex_tp
+
+kt00007:
+- ord_no
+- stk_cd
+- trde_tp
+- ord_qty
+- acpt_tp
+- ord_tm
+- io_tp_nm
+- cntr_qty
+- cntr_uv
+- ord_remnq
+- mdfy_cncl
+- cnfm_tm
+- dmst_stex_tp
+
+kt00009:
+- ord_no
+- stk_cd
+- trde_tp
+- io_tp_nm
+- ord_qty
+- cntr_no
+- acpt_tp
+- cntr_qty
+- cntr_uv
+- mdfy_cncl_tp
+- cntr_tm
+- dmst_stex_tp
+
+acnt_no is explicitly forbidden from the public projected page even where the provider output includes it.
+
+Unknown or newly added provider fields MUST be dropped unless a later approved contract revision adds them.
+
+14. Exact request-body construction policy
+
+The reconciliation module owns request-body construction. Arbitrary provider request bodies MUST NOT be accepted from the caller.
+
+ka10075:
+- trde_tp MUST be "2";
+- stex_tp MUST be "1";
+- when a trusted Phase37 instrument code is available, all_stk_tp MUST be "1" and stk_cd MAY contain that exact trusted code;
+- otherwise all_stk_tp MUST be "0" and stk_cd MUST be omitted.
+
+ka10076:
+- sell_tp MUST be "2";
+- stex_tp MUST be "1";
+- when a trusted Phase37 instrument code is available, qry_tp MUST be "1" and stk_cd MAY contain that exact trusted code;
+- otherwise qry_tp MUST be "0" and stk_cd MUST be omitted;
+- request ord_no MUST be omitted unless a later approved amendment freezes a safe search-baseline strategy;
+- the target provider_order_no MUST NOT be passed as request ord_no merely to try to fetch the target.
+
+kt00007:
+- qry_tp MUST be "1";
+- stk_bond_tp MUST be "1";
+- sell_tp MUST be "2";
+- dmst_stex_tp MUST be "KRX";
+- stk_cd MAY be supplied only from a trusted Phase37 instrument identity;
+- ord_dt MUST be omitted unless a trusted provider/session date is already available without timezone inference;
+- fr_ord_no MUST be omitted or blank;
+- target provider_order_no MUST NOT be used as fr_ord_no identity proof.
+
+kt00009:
+- stk_bond_tp MUST be "1";
+- mrkt_tp MUST be "0";
+- sell_tp MUST be "2";
+- qry_tp MUST be "0";
+- dmst_stex_tp MUST be "KRX";
+- stk_cd MAY be supplied only from a trusted Phase37 instrument identity;
+- ord_dt MUST be omitted unless a trusted provider/session date is already available without timezone inference;
+- fr_ord_no MUST be omitted or blank;
+- target provider_order_no MUST NOT be used as fr_ord_no identity proof.
+
+The reconciliation module MUST NOT invent a trusted instrument code, order date, exchange, or session date.
+
+15. Page validation contract
+
+A returned page is invalid if any of the following is true:
+- returned object is not KiwoomOrderReadOnlyQueryPage;
+- api_id differs from the requested api_id;
+- environment is not "demo";
+- endpoint_identity is not the exact mock account endpoint;
+- account_provenance differs from the explicit trusted provenance;
+- return_code is bool or not int;
+- return_code is nonzero;
+- cont_yn is not "Y" or "N";
+- cont_yn is "Y" and next_key is missing or blank;
+- rows is not an immutable tuple of immutable row tuples;
+- a row contains duplicate keys;
+- a row contains a non-allowlisted key;
+- a row exposes acnt_no or authentication/credential material;
+- a required identity/status/quantity value is malformed in a way relevant to the decision.
+
+Invalid or explicit-failure page evidence MUST NOT establish a terminal normalized state.
+
+16. Page-limit and continuation contract
+
+page_limit_per_api counts query_page invocation attempts independently for each API.
+
+For an API actually queried:
+- call count starts at 1;
+- page_index stored in evidence starts at 0;
+- no more than page_limit_per_api calls may be issued for that API;
+- if cont_yn remains "Y" after the last permitted page, evidence for that API is incomplete;
+- repeated exact next_key before exhaustion is a continuation loop;
+- missing/blank next_key with cont_yn="Y" is incomplete;
+- continuation values MUST come from the immediately preceding valid page;
+- no page-limit condition creates a retry;
+- no provider-query retry is approved by DRAFT-A3;
+- incomplete pagination produces unresolved unless immutable Phase37 evidence alone already establishes rejected.
+
+17. Exact amended reconciliation function signature
+
+DRAFT-A2 Section 20.5 is replaced by this exact semantic Python signature:
+
+async def reconcile_demo_kiwoom_cash_buy_order_state(
+    receipt: KiwoomOrderProviderSubmissionReceipt,
+    account_provenance: KiwoomOrderAccountProvenance,
+    *,
+    query_context: KiwoomOrderReadOnlyQueryContext,
+    timeout_seconds: float,
+) -> KiwoomOrderStateReconciliationResult
+
+Signature rules:
+- receipt and account_provenance are positional-or-keyword;
+- query_context and timeout_seconds are keyword-only;
+- no *args or **kwargs;
+- no defaults;
+- timeout_seconds MUST satisfy type(timeout_seconds) is float;
+- timeout_seconds MUST be finite and greater than 0.0;
+- bool, int, NaN, positive infinity, negative infinity, zero, and negative values are invalid;
+- invalid local input MUST fail before provider inquiry where detectable.
+
+18. Exact local validation order
+
+Before first query_page invocation, validation MUST occur in this order where the fact is locally available:
+1. receipt exact expected type;
+2. Phase37 receipt transport-attempt count and blocked-before-send rules;
+3. demo/cash-BUY eligibility available from approved receipt/upstream evidence;
+4. account_provenance exact expected type and field validity;
+5. query_context exact expected type;
+6. query_context environment;
+7. query_context endpoint_identity;
+8. query_context account_provenance equality;
+9. page_limit_per_api exact type and range;
+10. query_page callable presence;
+11. cleanup callable presence;
+12. provider_order_no exact-correlation eligibility when inquiry requires it;
+13. timeout_seconds exact type/range.
+
+A local validation failure before the first query_page invocation MUST produce zero query_page calls and zero cleanup calls.
+
+19. Exact upstream receipt coupling
+
+The reconciliation input receipt MUST be the exact Phase37-produced KiwoomOrderProviderSubmissionReceipt object.
+
+The result MUST retain the same receipt object identity.
+
+The Phase38 source MUST NOT reconstruct, copy, replace, or mutate the receipt.
+
+The Phase38 source MUST NOT alter:
+- submission outcome;
+- transport-attempt count;
+- registry terminal state;
+- normalized provider return code;
+- provider_order_no;
+- provider exchange;
+- timestamps;
+- fingerprints;
+- endpoint identity;
+- Phase37 provider facts.
+
+A receipt transport-attempt count other than exact int 0 or 1 is a contract violation.
+
+A zero-attempt or blocked-before-send receipt MUST perform no provider query.
+
+A one-attempt confirmed_not_accepted receipt MAY normalize to rejected from immutable Phase37 evidence alone only when Phase37 already provides an unambiguous provider non-acceptance fact.
+
+20. Exact account-provenance coupling
+
+The explicit account_provenance argument is the reconciliation trust anchor.
+
+query_context.account_provenance MUST equal it before query.
+
+Every returned query page account_provenance MUST equal it.
+
+The reconciliation module MUST NOT:
+- read raw account number to reconstruct provenance;
+- load credentials to reconstruct provenance;
+- derive provenance from provider row acnt_no;
+- accept provider_order_no alone as sufficient identity.
+
+If provenance changes or mismatches, provider evidence from that reconciliation run is unusable for terminal classification.
+
+21. Exact target-row correlation
+
+A row is target-correlated only when:
+- response-row ord_no equals receipt.provider_order_no as an exact string;
+- trusted account provenance matches;
+- environment is demo;
+- side is BUY where an allowlisted field exposes side;
+- trusted instrument identity matches where available;
+- exchange scope matches where trusted exchange identity is available.
+
+Forbidden:
+- numeric ord_no coercion;
+- stripping leading zeros;
+- substring/prefix matching;
+- nearest-time matching;
+- same-symbol-only matching;
+- same-quantity-only matching;
+- same-price-only matching;
+- only-row-returned inference;
+- treating request ord_no or fr_ord_no as target proof.
+
+Zero exact-correlated rows after a complete applicable search is unresolved unless immutable Phase37 evidence alone already establishes rejected.
+
+22. Query-source roles and sequencing
+
+Primary evidence sources remain:
+- ka10075
+- ka10076
+
+Secondary corroborating sources remain:
+- kt00007
+- kt00009
+
+Primary does not mean authoritative override.
+
+No majority vote is allowed.
+
+The implementation MAY use an evidence-driven minimal query sequence.
+
+It MUST NOT:
+- claim evidence from an unqueried source;
+- ignore known contradictions;
+- emit a terminal/non-terminal normalized state from a queried source whose pagination is incomplete when that source is required for the decision;
+- issue a query for a zero-attempt or blocked-before-send receipt;
+- issue a query when exact correlation is impossible and no safe terminal Phase37 fact already decides the result.
+
+23. ka10076 search-baseline rule retained
+
+ka10076 request ord_no is NOT an exact-order lookup key.
+
+DRAFT-A3 does not approve a ka10076 ord_no search-baseline algorithm.
+
+Therefore the initial DRAFT-A3 implementation MUST omit ka10076 request ord_no.
+
+Target confirmation MUST use exact returned-row ord_no plus trusted account provenance.
+
+If the ord_no-omitted search and complete continuation traversal cannot prove that the target could have appeared in the covered result set, ka10076 evidence for the target is incomplete and cannot establish a terminal normalized state.
+
+24. kt00009 explicit-unfilled prohibition retained
+
+kt00009 has no frozen explicit unfilled-quantity field.
+
+The implementation MUST NOT:
+- create explicit_unfilled_quantity from ord_qty - cntr_qty;
+- store ord_qty - cntr_qty as provider-confirmed unfilled;
+- use kt00009 alone to prove accepted_unfilled or partially_filled when explicit unfilled evidence is required.
+
+Subtraction may be used only as a non-authoritative internal consistency check.
+
+25. Numeric normalization retained
+
+Provider quantity text MUST be parsed conservatively.
+
+Allowed:
+- surrounding whitespace trim;
+- zero-padding;
+- leading plus sign where provider schema permits.
+
+Forbidden:
+- float conversion for integer quantity;
+- locale-dependent parsing;
+- silent truncation;
+- absolute-value repair of negative quantities;
+- blank-as-zero.
+
+Blank optional numeric value becomes None.
+
+Negative ordered, filled, or explicit-unfilled quantity is invalid evidence.
+
+Arithmetic inconsistency relevant to the decision produces unresolved.
+
+26. Raw-status mapping policy retained
+
+DRAFT-A3 introduces no new raw provider status mapping.
+
+Unknown or unapproved raw status relevant to normalized-state determination MUST produce unresolved even when quantity evidence would otherwise appear sufficient.
+
+DRAFT-A3 does not approve cancel-like or reject-like provider text merely by name.
+
+Provider-query cancelled or rejected classification may be used only after a separate official-provider-backed mapping is frozen or where immutable Phase37 evidence already establishes rejected under DRAFT-A2.
+
+27. Exact KiwoomOrderReconciliationEvidence shape
+
+KiwoomOrderReconciliationEvidence MUST be a frozen, slots-based immutable value object.
+
+Exact fields, in exact order:
+- api_id: str
+- page_index: int
+- row_index: int
+- provider_order_no: str
+- account_provenance: KiwoomOrderAccountProvenance
+- instrument_code: str | None
+- side: str | None
+- exchange: str | None
+- raw_status_fields: tuple[tuple[str, str | None], ...]
+- ordered_quantity: int | None
+- filled_quantity: int | None
+- explicit_unfilled_quantity: int | None
+- fill_price: int | None
+- provider_time: str | None
+- continuation_exhausted: bool
+- correlation_complete: bool
+- secret_safe: bool
+
+Rules:
+- secret_safe MUST always be True for constructed public evidence;
+- page_index and row_index MUST be exact nonnegative ints and not bool;
+- raw_status_fields MUST contain only allowlisted status-semantic fields from the source row;
+- provider_order_no MUST preserve exact provider string identity;
+- evidence MUST NOT include raw account number, credentials, token, authorization headers, arbitrary response blobs, or mutable provider dictionaries.
+
+28. Exact KiwoomOrderStateReconciliationResult shape
+
+KiwoomOrderStateReconciliationResult MUST be a frozen, slots-based immutable value object.
+
+Exact fields, in exact order:
+- receipt: KiwoomOrderProviderSubmissionReceipt
+- account_provenance: KiwoomOrderAccountProvenance
+- status: KiwoomOrderReconciliationStatus
+- ordered_quantity: int | None
+- filled_quantity: int | None
+- explicit_unfilled_quantity: int | None
+- evidence: tuple[KiwoomOrderReconciliationEvidence, ...]
+- evidence_complete: bool
+- terminal: bool
+- reason_code: str
+- provider_order_no: str | None
+- order_submission_authority: bool
+- automatic_retry_permitted: bool
+- amend_permitted: bool
+- cancel_permitted: bool
+
+Rules:
+- receipt MUST be the exact same object passed into reconciliation;
+- order_submission_authority MUST always be False;
+- automatic_retry_permitted MUST always be False;
+- amend_permitted MUST always be False;
+- cancel_permitted MUST always be False;
+- unresolved MUST have terminal=False;
+- reason_code MUST be bounded, deterministic, and secret-safe;
+- the result MUST NOT contain query_context, query_page, cleanup, credentials, tokens, raw account number, or arbitrary provider payloads.
+
+29. Timeout contract
+
+The entire provider-inquiry portion of one reconciliation call MUST be bounded by timeout_seconds using Python asyncio timeout semantics or an equivalent separately approved mechanism.
+
+Timeout is not order rejection.
+
+On reconciliation timeout:
+- no new query page may begin;
+- cleanup MUST be attempted once if any query_page invocation was attempted;
+- the result MUST be unresolved with a bounded secret-safe timeout reason unless an unexpected cleanup/runtime failure must propagate;
+- no provider-query retry is authorized;
+- no order retry/resubmission is authorized.
+
+Cleanup MUST be outside the logic that would silently convert an external cancellation into TimeoutError.
+
+30. External cancellation contract
+
+External asyncio.CancelledError is distinct from reconciliation timeout.
+
+If external CancelledError occurs after a query attempt:
+- cleanup MUST be attempted exactly once;
+- the original CancelledError MUST be re-raised after cleanup attempt;
+- it MUST NOT be converted into unresolved or any other reconciliation status;
+- it MUST NOT trigger query retry;
+- it MUST NOT trigger order retry/resubmission.
+
+If cancellation occurs before any query attempt, no provider cleanup requirement is created by DRAFT-A3.
+
+31. Provider explicit failure and runtime failure
+
+A KiwoomOrderReadOnlyQueryPage with nonzero return_code is explicit provider inquiry failure.
+
+It is not provider order rejection.
+
+It MUST produce incomplete evidence and unresolved or a separately approved secret-safe query exception.
+
+DRAFT-A3 grants no automatic read-query retry.
+
+Unexpected programmer/runtime failures MUST propagate after required cleanup and MUST NOT be translated into order authority.
+
+All public exception text and public reason text MUST be secret-safe.
+
+32. Order-capability firewall
+
+The Phase38 reconciliation source MUST NOT import or reference:
+- Phase36ProviderExecutionContext;
+- submit_demo_watchlist_order_once;
+- execute_demo_watchlist_order_once;
+- requests.post;
+- httpx client/post primitives;
+- a generic provider transport;
+- kt10000;
+- kt10001;
+- kt10002;
+- kt10003;
+- order/amend/cancel/resubmit helper symbols;
+- credential/token resolver helpers.
+
+The only provider I/O capability consumed by reconcile_demo_kiwoom_cash_buy_order_state is query_context.query_page.
+
+The module MUST NOT:
+- instantiate a network client;
+- load .env;
+- resolve credentials;
+- obtain or refresh tokens;
+- inspect query_page closure state;
+- use reflection to find hidden transport;
+- fall back to a real endpoint.
+
+33. Secret-safety contract
+
+Forbidden in public result/evidence/exception/log output:
+- bearer/access token;
+- App Key;
+- App Secret;
+- raw account number;
+- authorization header;
+- .env content;
+- credential-store value;
+- unrestricted provider response;
+- unrestricted query context repr.
+
+Opaque non-secret fingerprints may be used only for equality and bounded evidence identity.
+
+The source MUST contain no print call for provider material.
+
+Any later logging must be separately approved and secret-safe.
+
+34. Read-only and authority contract
+
+Reconciliation is evidence-only.
+
+No normalized status, including rejected or cancelled, grants:
+- submit_order;
+- resubmit_order;
+- retry_order;
+- amend_order;
+- cancel_order;
+- consume_authorization;
+- bypass_risk_gate;
+- open_live_connection;
+- switch_to_real_account.
+
+A later order attempt must independently re-enter the approved planning, Risk Gate, authorization, replay guard, and submission contracts.
+
+35. Implementation test contract
+
+The exact test path is the single test file frozen in Section 3.
+
+At minimum, implementation approval MUST require direct tests for:
+
+Public surface:
+- target module importable;
+- exact seven-name __all__;
+- no rest/__init__.py re-export;
+- exact function signature;
+- exact query page fields/order/frozen/slots;
+- exact query context fields/order/frozen/slots;
+- query_page and cleanup excluded from repr;
+- exact evidence fields/order/frozen/slots;
+- exact result fields/order/frozen/slots.
+
+Capability firewall:
+- Phase36ProviderExecutionContext absent;
+- Phase36 submission function absent;
+- Phase37 execution function absent;
+- kt10000/kt10001/kt10002/kt10003 absent;
+- direct requests/httpx network primitives absent;
+- no credential/token resolver import;
+- no .env load;
+- no print/log provider leak.
+
+Local validation:
+- wrong receipt type fails before query;
+- invalid attempt count fails before query;
+- zero-attempt fails with zero query calls;
+- blocked-before-send has zero query calls;
+- non-demo provenance fails before query;
+- query_context provenance mismatch fails before query;
+- invalid endpoint fails before query;
+- bool/zero/negative page limit fails before query;
+- invalid timeout types/ranges fail before query.
+
+Query callable:
+- first call uses cont_yn=N and next_key="";
+- only approved API IDs accepted;
+- unexpected page type unresolved/fails closed;
+- wrong page api_id unresolved;
+- wrong page provenance unresolved;
+- nonzero return_code unresolved;
+- forbidden row key unresolved;
+- acnt_no projection rejected.
+
+Pagination:
+- one-page complete;
+- multi-page complete;
+- repeated next_key unresolved;
+- missing next_key with Y unresolved;
+- page-limit exhaustion unresolved;
+- per-API page limits independent;
+- no automatic query retry.
+
+Correlation:
+- exact provider_order_no success;
+- leading-zero mismatch not coerced;
+- order number without provenance insufficient;
+- instrument contradiction unresolved where trusted instrument exists;
+- side contradiction unresolved;
+- exchange contradiction unresolved.
+
+ka10076:
+- target provider_order_no never used as request ord_no;
+- exact returned-row ord_no required;
+- incomplete covered search unresolved.
+
+kt00009:
+- explicit_unfilled_quantity stays None;
+- ord_qty-cntr_qty not promoted to provider unfilled;
+- kt00009-only explicit-unfilled-dependent state unresolved.
+
+State normalization:
+- accepted_unfilled positive case;
+- partially_filled positive case;
+- filled positive case;
+- immutable Phase37 rejected positive case;
+- unknown/unapproved raw status unresolved even with otherwise sufficient quantity;
+- no exact-correlated row unresolved;
+- contradictory quantities unresolved;
+- cross-source contradiction unresolved;
+- ambiguous duplicate fills unresolved.
+
+Cleanup and cancellation:
+- no-query local failure causes no cleanup;
+- query success cleanup exactly once;
+- provider failure cleanup exactly once;
+- timeout cleanup exactly once and unresolved;
+- external cancellation cleanup exactly once then re-raise;
+- cancellation cleanup failure preserves original CancelledError;
+- non-cancellation cleanup failure propagates secret-safe runtime failure.
+
+Authority:
+- every result has four authority booleans false;
+- no result grants new order authority;
+- no live endpoint fallback.
+
+DRAFT-A3 does not freeze a numeric direct/targeted/full regression count. Exact counts MUST be measured fresh during the later implementation-design acceptance step before source mutation; historical counts MUST NOT be reused as the fresh baseline.
+
+36. Implementation STOP-HOLD conditions
+
+Implementation MUST NOT begin if any of these remains unresolved:
+- DRAFT-A3 has not received Final Contract Review PASS;
+- DRAFT-A3 has not been separately registered in README when registration is required by project governance;
+- Current Phase/official next-phase governance conflicts with PHASE38;
+- repository baseline differs from the approved implementation baseline;
+- source/test candidate paths collide with existing files unexpectedly;
+- exact public-name collision is discovered;
+- approved .venv Python/runtime differs materially from the reviewed contract;
+- query boundary requires an order-capable transport;
+- credentials/tokens/account secrets would need to be exposed to the reconciliation module;
+- provider schema differs from the frozen four-API contract;
+- a dependency change is required without separate approval;
+- fresh regression baseline cannot be established;
+- Git state is not the exact approved state.
+
+37. Recovery plan for later implementation
+
+Before implementation:
+- capture exact baseline branch/HEAD/parent/tree/subject;
+- capture exact README identity;
+- capture exact source/test allowlist existence/nonexistence;
+- capture staged/unstaged/untracked state;
+- capture dependency identities.
+
+If later implementation validation fails:
+- stop provider/network activity;
+- preserve user changes;
+- do not use restore/reset/clean without separate approval;
+- identify only the approved source/test changes;
+- repair only within the approved allowlist;
+- restart required fresh search/review/analysis/V1 validation after any correction.
+
+38. Final Contract Review acceptance criteria for DRAFT-A3
+
+DRAFT-A3 is eligible for Final Contract Review only if all of the following are true:
+- the DRAFT-A2 query-capability injection blocker is removed;
+- Phase36 order-capable transport is not reused;
+- query capability is explicit, injected, read-only by contract, and limited to the four inquiry API IDs;
+- exact public surface is frozen;
+- exact source/test allowlist is frozen;
+- exact query page/context fields are frozen;
+- exact query_page and cleanup contracts are frozen;
+- finite positive page limit is mandatory;
+- exact amended reconciliation signature is frozen;
+- demo-only endpoint identity is frozen;
+- continuation/page-limit failure remains fail-closed;
+- external cancellation cleanup/re-raise remains intact;
+- no new raw cancel/reject mapping is invented;
+- DRAFT-A2 status/correlation/authority rules remain intact;
+- no implementation/network/credential/dependency/Git/Current Phase authority is created by the amendment.
+
+39. DRAFT-A3 authority boundary
+
+DRAFT-A3 is a design artifact only.
+
+This document does NOT authorize:
+- source mutation;
+- test mutation;
+- README mutation;
+- provider network access;
+- ka10075 / ka10076 / kt00007 / kt00009 actual calls;
+- credential/token/account access or output;
+- dependency changes;
+- kt10000 POST;
+- any order;
+- amend/cancel/resubmit;
+- Git add/commit/push;
+- restore/reset/clean;
+- Current Phase change;
+- rebaseline;
+- live account/server use.
+
+40. Final DRAFT-A3 design conclusion
+
+DRAFT-A3 resolves the DRAFT-A2 implementation-design conflict by replacing implicit query-capability discovery with one explicit injected read-only-only query context.
+
+The approved semantic boundary is now:
+- immutable Phase37 receipt in;
+- explicit trusted demo account provenance in;
+- explicit Phase38 KiwoomOrderReadOnlyQueryContext in;
+- only four approved read-only inquiry API IDs through query_context.query_page;
+- exact secret-safe KiwoomOrderReadOnlyQueryPage out of the query boundary;
+- deterministic fail-closed reconciliation result out;
+- no order capability in the reconciliation module.
+
+DRAFT-A3 is therefore a Final Contract Review candidate only. It is not implementation approval and it is not README registration approval.
+<!-- PHASE38_CANDIDATE_DRAFT_A3_EXACT_PAYLOAD_END -->
+<!-- PHASE38_CANDIDATE_DRAFT_A3_AMENDMENT_REGISTRATION_END -->
